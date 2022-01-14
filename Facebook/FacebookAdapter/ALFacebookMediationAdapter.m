@@ -8,6 +8,7 @@
 
 #import "ALFacebookMediationAdapter.h"
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"6.9.0.2"
 #define MEDIATION_IDENTIFIER [NSString stringWithFormat: @"APPLOVIN_%@:%@", [ALSdk version], self.adapterVersion]
@@ -494,6 +495,13 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
 - (void)interstitialAdDidLoad:(FBInterstitialAd *)interstitialAd
 {
     [self.parentAdapter log: @"Interstitial ad loaded: %@", interstitialAd.placementID];
+	
+	
+	// astar
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"facebook" ofType:@"fullscreen" data:nil];
+	
+	
     [self.delegate didLoadInterstitialAd];
 }
 
@@ -667,6 +675,13 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
 - (void)adViewDidLoad:(FBAdView *)adView
 {
     [self.parentAdapter log: @"Banner loaded: %@", adView.placementID];
+	
+	
+	// astar
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"facebook" ofType:@"banner" data:nil];
+	
+	
     [self.delegate didLoadAdForAdView: adView];
 }
 

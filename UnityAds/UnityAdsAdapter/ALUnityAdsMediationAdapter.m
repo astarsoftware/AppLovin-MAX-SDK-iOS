@@ -8,6 +8,7 @@
 
 #import "ALUnityAdsMediationAdapter.h"
 #import <UnityAds/UnityAds.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"4.0.0.0"
 
@@ -438,6 +439,13 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 - (void)unityAdsAdLoaded:(NSString *)placementId
 {
     [self.parentAdapter log: @"Interstitial placement \"%@\" loaded", placementId];
+	
+	
+	// astar
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"unity" ofType:@"fullscreen" data:nil];
+	
+	
     [self.delegate didLoadInterstitialAd];
 }
 
@@ -497,6 +505,13 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 - (void)unityAdsAdLoaded:(NSString *)placementId
 {
     [self.parentAdapter log: @"Rewarded ad placement \"%@\" loaded", placementId];
+	
+	
+	// astar
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"unity" ofType:@"fullscreen" data:nil];
+	
+	
     [self.delegate didLoadRewardedAd];
 }
 
@@ -562,6 +577,13 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 - (void)bannerViewDidLoad:(UADSBannerView *)bannerView
 {
     [self.parentAdapter log: @"Banner ad loaded"];
+	
+	
+	// astar
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"unity" ofType:@"banner" data:nil];
+	
+	
     [self.delegate didLoadAdForAdView: bannerView];
 }
 

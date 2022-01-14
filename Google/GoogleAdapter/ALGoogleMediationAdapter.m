@@ -8,6 +8,7 @@
 
 #import "ALGoogleMediationAdapter.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"8.13.0.3"
 
@@ -250,6 +251,16 @@ static NSString *ALGoogleSDKVersion;
             
             return;
         }
+		
+		
+		// astar
+		NSDictionary *data = @{
+			@"ResponseId": interstitialAd.responseInfo.responseIdentifier
+		};
+		
+		ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+		[adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"fullscreen" data:data];
+		
         
         [self log: @"Interstitial ad loaded: %@", placementIdentifier];
         
@@ -966,6 +977,16 @@ static NSString *ALGoogleSDKVersion;
 - (void)bannerViewDidReceiveAd:(GADBannerView *)bannerView
 {
     [self.parentAdapter log: @"%@ ad loaded: %@", self.adFormat.label, bannerView.adUnitID];
+	
+	
+	// astar
+	NSDictionary *data = @{
+		@"ResponseId": bannerView.responseInfo.responseIdentifier
+	};
+	
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
+	
     
     NSString *responseId = bannerView.responseInfo.responseIdentifier;
     if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )

@@ -8,6 +8,7 @@
 
 #import "ALAmazonPublisherServicesMediationAdapter.h"
 #import <DTBiOSSDK/DTBiOSSDK.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"4.2.1.2"
 
@@ -425,6 +426,13 @@ static NSObject *ALMediationHintsCacheLock;
 - (void)adDidLoad:(UIView *)adView
 {
     [self.parentAdapter d: @"AdView ad loaded"];
+	
+	
+	// astar
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"banner" data:nil];
+	
+	
     [self.delegate didLoadAdForAdView: adView];
 }
 
@@ -466,6 +474,13 @@ static NSObject *ALMediationHintsCacheLock;
 - (void)interstitialDidLoad:(nullable DTBAdInterstitialDispatcher *)interstitial
 {
     [self.parentAdapter log: @"Interstitial loaded"];
+	
+	
+	// astar
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"fullscreen" data:nil];
+	
+	
     [self.delegate didLoadInterstitialAd];
 }
 

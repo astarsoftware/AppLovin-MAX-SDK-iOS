@@ -7,6 +7,7 @@
 
 #import "ALIronSourceMediationAdapter.h"
 #import <IronSource/IronSource.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"7.1.13.0.0"
 
@@ -267,6 +268,17 @@
 - (void)interstitialDidLoad:(NSString *)instanceId
 {
     [self log: @"Interstitial loaded for instance ID: %@", instanceId];
+	
+	
+	// astar
+	NSDictionary *data = @{
+		@"InstanceId": instanceId
+	};
+	
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"ironsource" ofType:@"fullscreen" data:data];
+	
+	
     [self didLoadAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter interstitialRouterIdentifierForInstanceID: instanceId]];
 }
 

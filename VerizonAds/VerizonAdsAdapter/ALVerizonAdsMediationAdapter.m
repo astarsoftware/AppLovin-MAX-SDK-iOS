@@ -9,6 +9,7 @@
 #import "ALVerizonAdsMediationAdapter.h"
 #import <VerizonAdsInterstitialPlacement/VerizonAdsInterstitialPlacement.h>
 #import <VerizonAdsInlinePlacement/VerizonAdsInlinePlacement.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"1.14.2.0"
 
@@ -451,6 +452,17 @@ static NSString *const kMAVideoCompleteEventId = @"onVideoComplete";
     self.parentAdapter.interstitialAd = interstitialAd;
     
     NSString *creativeId = interstitialAd.creativeInfo.creativeId;
+	
+	
+	// astar
+	NSDictionary *data = @{
+		@"CreativeId": creativeId != nil ? creativeId : @"???"
+	};
+	
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"verizon" ofType:@"fullscreen" data:data];
+	
+	
     if ( ALSdk.versionCode >= 6150000 && [creativeId al_isValidString] )
     {
         [self.delegate performSelector: @selector(didLoadInterstitialAdWithExtraInfo:)
@@ -524,6 +536,17 @@ static NSString *const kMAVideoCompleteEventId = @"onVideoComplete";
     self.parentAdapter.rewardedAd = rewardedAd;
     
     NSString *creativeId = rewardedAd.creativeInfo.creativeId;
+	
+	
+	// astar
+	NSDictionary *data = @{
+		@"CreativeId": creativeId != nil ? creativeId : @"???"
+	};
+	
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"verizon" ofType:@"fullscreen" data:data];
+	
+	
     if ( ALSdk.versionCode >= 6150000 && [creativeId al_isValidString] )
     {
         [self.delegate performSelector: @selector(didLoadRewardedAdWithExtraInfo:)
@@ -621,6 +644,17 @@ static NSString *const kMAVideoCompleteEventId = @"onVideoComplete";
     self.parentAdapter.inlineAdView = inlineAd;
     
     NSString *creativeId = inlineAd.creativeInfo.creativeId;
+	
+	
+	// astar
+	NSDictionary *data = @{
+		@"CreativeId": creativeId != nil ? creativeId : @"???"
+	};
+	
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"verizon" ofType:@"banner" data:data];
+	
+	
     if ( ALSdk.versionCode >= 6150000 && [creativeId al_isValidString] )
     {
         [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
