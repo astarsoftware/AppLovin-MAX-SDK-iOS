@@ -242,7 +242,9 @@
     if ( adFormats.count == 0 )
     {
         // Default to initialize all ad formats if backend doesn't send down which ones to initialize
-        return @[IS_INTERSTITIAL, IS_REWARDED_VIDEO];
+		// A-Star Change: we only initialize the interstitial format by default because we were seeing
+		// crashes in IronSource Ad Quality when initializing rewarded ad format.
+        return @[IS_INTERSTITIAL];
     }
     
     NSMutableArray<NSString *> *adFormatsToInitialize = [NSMutableArray array];
