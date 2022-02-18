@@ -9,7 +9,7 @@
 #import "ALByteDanceMediationAdapter.h"
 #import <BUAdSDK/BUAdSDK.h>
 
-#define ADAPTER_VERSION @"4.2.0.2.2"
+#define ADAPTER_VERSION @"4.2.5.4.2"
 
 @interface ALByteDanceInterstitialAdDelegate : NSObject<BUFullscreenVideoAdDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
@@ -94,11 +94,11 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         ALByteDanceInitializationStatus = MAAdapterInitializationStatusInitializing;
         
         BUAdSDKConfiguration *configuration = [BUAdSDKConfiguration configuration];
-
+        
         // Setting of territory should be done _prior_ to init
         BUAdSDKTerritory territory = [parameters.serverParameters al_boolForKey: @"is_cn"] ? BUAdSDKTerritory_CN : BUAdSDKTerritory_NO_CN;
         configuration.territory = territory;
-
+        
         NSString *appID = [parameters.serverParameters al_stringForKey: @"app_id"];
         [self log: @"Initializing ByteDance SDK with app id: %@...", appID];
         configuration.appID = appID;
@@ -111,7 +111,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         [BUAdSDKManager setUserExtData: [NSString stringWithFormat: @"[{\"name\":\"mediation\",\"value\":\"MAX\"},{\"name\":\"adapter_version\",\"value\":\"%@\"}]", self.adapterVersion]];
         
         [self updateConsentWithParameters: parameters];
-                
+        
         [BUAdSDKManager startWithAsyncCompletionHandler:^(BOOL success, NSError *error) {
             if ( success )
             {
@@ -315,8 +315,8 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
 - (void)loadNativeAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MANativeAdAdapterDelegate>)delegate
 {
     NSString *slotId = parameters.thirdPartyAdPlacementIdentifier;
-    
-    [self log: @"Loading native ad for slot id \"%@\"...", parameters.thirdPartyAdPlacementIdentifier];
+    NSString *bidResponse = parameters.bidResponse;
+    [self log: @"Loading %@native ad for slot id \"%@\"...", [bidResponse al_isValidString] ? @"bidding " : @"", slotId];
     
     BUAdSlot *slot = [[BUAdSlot alloc] init];
     slot.ID = slotId;
@@ -325,13 +325,20 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     slot.imgSize = [BUSize sizeBy: BUProposalSize_Banner600_400];
     
     self.nativeAdManager = [[BUNativeAdsManager alloc] initWithSlot: slot];
-
+    
     self.nativeAdDelegate = [[ALByteDanceNativeAdDelegate alloc] initWithParentAdapter: self
                                                                             parameters: parameters
                                                                              andNotify: delegate];
     self.nativeAdManager.delegate = self.nativeAdDelegate;
     
-    [self.nativeAdManager setMopubAdMarkUp: parameters.bidResponse];
+    if ( [bidResponse al_isValidString] )
+    {
+        [self.nativeAdManager setMopubAdMarkUp: bidResponse];
+    }
+    else
+    {
+        [self.nativeAdManager loadAdDataWithCount: 1];
+    }
 }
 
 #pragma mark - Helper Methods
@@ -368,6 +375,15 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     if ( isAgeRestrictedUser )
     {
         [BUAdSDKManager setCoppa: isAgeRestrictedUser.boolValue ? 1 : 0];
+    }
+    
+    if ( ALSdk.versionCode >= 611000 )
+    {
+        NSNumber *isDoNotSell = [self privacySettingForSelector: @selector(isDoNotSell) fromParameters: parameters];
+        if ( isDoNotSell )
+        {
+            [BUAdSDKManager setCCPA: isDoNotSell.boolValue ? 1 : 0];
+        }
     }
 }
 
@@ -524,6 +540,8 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         case BUUnionHardCodeError:
         case BUUnionPreviewFlowInvalid:
         case BUErrorCodeUndefined:
+        case BUErrorSlotAB_Disable:
+        case BUErrorSlotAB_EmptyResult:
             adapterError = MAAdapterError.internalError;
             break;
     }
@@ -594,7 +612,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     [self.delegate didHideInterstitialAd];
 }
 
-- (void)fullscreenVideoAdDidClickDownload:(BUFullscreenVideoAd *)fullscreenVideoAd
+- (void)fullscreenVideoAdDidClick:(BUFullscreenVideoAd *)fullscreenVideoAd
 {
     [self.parentAdapter log: @"Interstitial clicked"];
     [self.delegate didClickInterstitialAd];
@@ -678,7 +696,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     [self.delegate didHideRewardedAd];
 }
 
-- (void)rewardedVideoAdDidClickDownload:(BURewardedVideoAd *)rewardedVideoAd
+- (void)rewardedVideoAdDidClick:(BURewardedVideoAd *)rewardedVideoAd
 {
     [self.parentAdapter log: @"Rewarded ad clicked"];
     [self.delegate didClickRewardedAd];
@@ -747,12 +765,12 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
 - (void)nativeExpressBannerAdViewWillBecomVisible:(BUNativeExpressBannerView *)bannerAdView
 {
     [self.parentAdapter log: @"AdView will show"];
+    [self.delegate didDisplayAdViewAd];
 }
 
 - (void)nativeExpressBannerAdViewRenderSuccess:(BUNativeExpressBannerView *)bannerAdView
 {
     [self.parentAdapter log: @"AdView shown successfully"];
-    [self.delegate didDisplayAdViewAd];
 }
 
 - (void)nativeExpressBannerAdViewRenderFail:(BUNativeExpressBannerView *)bannerAdView error:(nullable NSError *)error
@@ -801,7 +819,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     }
     
     [self.parentAdapter log: @"Native %@ ad loaded: %@. Preparing assets...", self.adFormat.label, self.slotId];
-
+    
     BUNativeAd *nativeAd = nativeAdDataArray.firstObject;
     
     // Pangle iOS doesn't link the passed in delegate so we do it here
@@ -821,13 +839,15 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     }
     
     // Pangle's media view can be either a video or image (which they don't provide a view for)
-    BUNativeAdRelatedView *relatedView;
+    __block BUNativeAdRelatedView *relatedView;
     __block UIImageView *mediaImageView = nil;
     if ( [self.parentAdapter isVideoMediaView: data.imageMode] )
     {
-        relatedView = [[BUNativeAdRelatedView alloc] init];
-        relatedView.videoAdView.hidden = NO;
-        [relatedView refreshData: nativeAd];
+        dispatchOnMainQueue(^{
+            relatedView = [[BUNativeAdRelatedView alloc] init];
+            relatedView.videoAdView.hidden = NO;
+            [relatedView refreshData: nativeAd];
+        });
     }
     else if ( data.imageAry && data.imageAry.count > 0 )
     {
@@ -851,13 +871,14 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         // Create MANativeAd after images are loaded from remote URLs
         dispatchOnMainQueue(^{
             [self.parentAdapter log: @"Creating native ad with assets"];
-
+            
             MANativeAd *maxNativeAd = [[MANativeAd alloc] initWithFormat: self.adFormat builderBlock:^(MANativeAdBuilder *builder) {
                 builder.title = data.AdTitle;
                 builder.body = data.AdDescription;
                 builder.callToAction = data.buttonText;
                 builder.icon = iconImage;
                 builder.mediaView = [self.parentAdapter isVideoMediaView: data.imageMode] ? relatedView.videoAdView : mediaImageView;
+                builder.optionsView = relatedView.logoADImageView;
             }];
             
             NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
@@ -951,7 +972,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     }
     
     [self.parentAdapter log: @"Native ad loaded: %@. Preparing assets...", self.slotId];
-
+    
     BUNativeAd *nativeAd = nativeAdDataArray.firstObject;
     self.parentAdapter.nativeAd = nativeAd;
     
@@ -982,26 +1003,41 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     }
     
     // Pangle's media view can be either a video or image (which they don't provide a view for)
-    BUNativeAdRelatedView *relatedView;
-    __block UIImageView *mediaImageView = nil;
-    if ( [self.parentAdapter isVideoMediaView: data.imageMode] )
-    {
-        relatedView = [[BUNativeAdRelatedView alloc] init];
-        relatedView.videoAdView.hidden = NO;
+    __block UIView *mediaView;
+        
+    // Pangle's native ad logo view
+    __block UIView *optionsView;
+    
+    dispatchOnMainQueue(^{
+        // to show privacy icon (ad logo view) for image native ads we need to initialize related view outside the if
+        BUNativeAdRelatedView *relatedView = [[BUNativeAdRelatedView alloc] init];
         [relatedView refreshData: nativeAd];
-    }
-    else if ( data.imageAry && data.imageAry.count > 0 )
-    {
-        BUImage *mediaImage = data.imageAry.firstObject;
-        if ( [mediaImage.imageURL al_isValidURL] )
+        
+        optionsView = relatedView.logoADImageView;
+        
+        if ( [self.parentAdapter isVideoMediaView: data.imageMode] )
         {
-            [self.parentAdapter log: @"Fetching native ad media: %@", mediaImage.imageURL];
-            [self.parentAdapter loadImageForURLString: mediaImage.imageURL group: group successHandler:^(UIImage *image) {
-                mediaImageView = [[UIImageView alloc] initWithImage: image];
-                mediaImageView.contentMode = UIViewContentModeScaleAspectFit;
-            }];
+            relatedView.videoAdView.hidden = NO;
+            
+            mediaView = relatedView.videoAdView;
         }
-    }
+        else if ( data.imageAry && data.imageAry.count > 0 )
+        {
+            BUImage *mediaImage = data.imageAry.firstObject;
+            __block UIImageView *mediaImageView = nil;
+            
+            if ( [mediaImage.imageURL al_isValidURL] )
+            {
+                [self.parentAdapter log: @"Fetching native ad media: %@", mediaImage.imageURL];
+                [self.parentAdapter loadImageForURLString: mediaImage.imageURL group: group successHandler:^(UIImage *image) {
+                    mediaImageView = [[UIImageView alloc] initWithImage: image];
+                    mediaImageView.contentMode = UIViewContentModeScaleAspectFit;
+                    
+                    mediaView = mediaImageView;
+                }];
+            }
+        }
+    });
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
@@ -1009,7 +1045,6 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         NSTimeInterval imageTaskTimeoutSeconds = [[self.serverParameters al_numberForKey: @"image_task_timeout_seconds" defaultValue: @(kDefaultImageTaskTimeoutSeconds)] doubleValue];
         dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(imageTaskTimeoutSeconds * NSEC_PER_SEC)));
         
-        UIView *mediaView = [self.parentAdapter isVideoMediaView: data.imageMode] ? relatedView.videoAdView : mediaImageView;
         // Media view is required for non-template native ads.
         if ( !isTemplateAd && !mediaView )
         {
@@ -1025,9 +1060,24 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         MANativeAd *maxNativeAd = [[MAByteDanceNativeAd alloc] initWithParentAdapter: self.parentAdapter builderBlock:^(MANativeAdBuilder *builder) {
             builder.title = data.AdTitle;
             builder.body = data.AdDescription;
+            
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+            // Introduced in 10.4.0
+            if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
+            {
+                // NOTE: Might be same as `AdTitle` - ignore if that's the case
+                if ( ![data.AdTitle isEqualToString: data.source] )
+                {
+                    [builder performSelector: @selector(setAdvertiser:) withObject: data.source];
+                }
+            }
+#pragma clang diagnostic pop
+            
             builder.callToAction = data.buttonText;
             builder.icon = iconImage;
             builder.mediaView = mediaView;
+            builder.optionsView = optionsView;
         }];
         
         [self.parentAdapter log: @"Native ad fully loaded: %@", self.slotId];
@@ -1117,6 +1167,20 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     {
         [clickableViews addObject: maxNativeAdView.mediaContentView];
     }
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+    // Introduced in 10.4.0
+    if ( [maxNativeAdView respondsToSelector: @selector(advertiserLabel)] && [self respondsToSelector: @selector(advertiser)] )
+    {
+        id advertiserLabel = [maxNativeAdView performSelector: @selector(advertiserLabel)];
+        id advertiser = [self performSelector: @selector(advertiser)];
+        if ( [advertiser al_isValidString] && advertiserLabel )
+        {
+            [clickableViews addObject: advertiserLabel];
+        }
+    }
+#pragma clang diagnostic pop
     
     [self.parentAdapter.nativeAd registerContainer: maxNativeAdView withClickableViews: clickableViews];
 }

@@ -1,6 +1,13 @@
 # Changelog
 
-## x.x.x.x
+## 21.7.1.0
+* Certified with Smaato SDK 21.7.1.
+
+## 21.7.0.1
+* Fix native ads CTA button not clicking through.
+
+## 21.7.0.0
+* Certified with Smaato SDK 21.7.0.
 * Update open source versions to allow compilation with AppLovin SDK v11.0.0+.
 
 ## 21.6.19.1

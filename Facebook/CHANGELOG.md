@@ -1,7 +1,20 @@
 # Changelog
 
-## x.x.x.x
+## 6.9.0.7
+* Fix icon click registration for manual native banners.
+
+## 6.9.0.6
+* Fix icon rendering for template native banners.
+
+## 6.9.0.5
+* Add support for true [native banner ads](https://developers.facebook.com/docs/audience-network/guides/ad-formats/native-banner/), which can be enabled on your MAX dashboard.
+
+## 6.9.0.4
+* Fix headline and advertiser views in native ads.
+
+## 6.9.0.3
 * Update open source versions to allow compilation with AppLovin SDK v11.0.0+.
+* Address compiler warning about calling `loadAdWithBidPayload:` on a background thread.
 
 ## 6.9.0.2
 * Fix icon view never getting registered for interaction.

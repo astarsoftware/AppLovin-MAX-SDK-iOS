@@ -1,6 +1,45 @@
 # Changelog
 
-## x.x.x.x
+## 4.2.5.4.2
+* Add privacy icon (ad logo view) for native ads.
+
+## 4.2.5.4.1
+* Add support for Binary CCPA.
+
+## 4.2.5.4.0
+* Certified with ByteDance SDK 4.2.5.4.
+
+## 4.2.5.3.5
+* Fix rewarded ads' ad hidden and ad clicked callbacks.
+
+## 4.2.5.3.4
+* Do not use advertiser label `-[BUMaterialMeta source]` if it is same as title.
+
+## 4.2.5.3.3
+* Add new error cases.
+* Fix main queue warning for native ads.
+
+## 4.2.5.3.2
+* Fix fullscreen ad click callbacks.
+
+## 4.2.5.3.1
+* Remove c++ library.
+
+## 4.2.5.3.0
+* Certified with ByteDance SDK 4.2.5.3.
+
+## 4.2.0.4.3
+* Fix native ads advertiser text not rendering.
+* Fix native ads media view not rendering.
+
+## 4.2.0.4.2
+* Add non-bidding support for native ads.
+
+## 4.2.0.4.1
+* Moved impression callback to `-[BUNativeExpressBannerViewDelegate nativeExpressBannerAdViewWillBecomVisible]`.
+
+## 4.2.0.4.0
+* Certified with ByteDance SDK 4.2.0.4.
 * Update open source versions to allow compilation with AppLovin SDK v11.0.0+.
 
 ## 4.2.0.2.2
