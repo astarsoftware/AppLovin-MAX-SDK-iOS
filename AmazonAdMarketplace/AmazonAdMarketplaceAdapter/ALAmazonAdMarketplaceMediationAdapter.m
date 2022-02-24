@@ -8,6 +8,7 @@
 
 #import "ALAmazonAdMarketplaceMediationAdapter.h"
 #import <DTBiOSSDK/DTBiOSSDK.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"4.3.1.4"
 
@@ -524,6 +525,11 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
 - (void)adDidLoad:(UIView *)adView
 {
     [self.parentAdapter d: @"AdView ad loaded"];
+    
+    // astar
+    ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"banner" data:nil];
+
     [self.delegate didLoadAdForAdView: adView];
 }
 
@@ -565,6 +571,11 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
 - (void)interstitialDidLoad:(nullable DTBAdInterstitialDispatcher *)interstitial
 {
     [self.parentAdapter log: @"Interstitial loaded"];
+    
+    // astar
+    ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"fullscreen" data:nil];
+    
     [self.delegate didLoadInterstitialAd];
 }
 
