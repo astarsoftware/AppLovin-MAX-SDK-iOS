@@ -11,7 +11,7 @@
 #import <VerizonAdsInlinePlacement/VerizonAdsInlinePlacement.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"1.14.2.0"
+#define ADAPTER_VERSION @"1.14.2.3"
 
 /**
  * Dedicated delegate object for Verizon Ads interstitial ads.
@@ -239,26 +239,39 @@ static NSString *const kMAVideoCompleteEventId = @"onVideoComplete";
 
 - (void)updateVerizonAdsSDKDataWithAdapterParameters:(id<MAAdapterParameters>)parameters
 {
-	VASLogLevel logLevel = [parameters isTesting] ? VASLogLevelVerbose : VASLogLevelError;
-	[VASAds setLogLevel: logLevel];
-	
-	VASDataPrivacyBuilder *builder = [[VASDataPrivacyBuilder alloc] initWithDataPrivacy: VASAds.sharedInstance.dataPrivacy];
-	
-	NSNumber *isAgeRestrictedUser = [self privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
-	if ( isAgeRestrictedUser )
-	{
-		builder.coppa.applies = isAgeRestrictedUser.boolValue;
-	}
-	
-	//
-	// For more GDPR info please see: https://sdk.verizonmedia.com/gdpr-coppa.html
-	//
-	if ( [parameters.serverParameters al_containsValueForKey: @"consent_string"] )
-	{
-		builder.gdpr.consent = [parameters.serverParameters al_stringForKey: @"consent_string"];
-	}
-	
-	[[VASAds sharedInstance] setDataPrivacy: [builder build]];
+    VASLogLevel logLevel = [parameters isTesting] ? VASLogLevelVerbose : VASLogLevelError;
+    [VASAds setLogLevel: logLevel];
+    
+    VASDataPrivacyBuilder *builder = [[VASDataPrivacyBuilder alloc] initWithDataPrivacy: VASAds.sharedInstance.dataPrivacy];
+    
+    NSNumber *isAgeRestrictedUser = [self privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
+    if ( isAgeRestrictedUser )
+    {
+        builder.coppa.applies = isAgeRestrictedUser.boolValue;
+    }
+    
+    //
+    // For more GDPR info please see: https://sdk.verizonmedia.com/gdpr-coppa.html
+    //
+    if ( [parameters.serverParameters al_containsValueForKey: @"consent_string"] )
+    {
+        builder.gdpr.consent = [parameters.serverParameters al_stringForKey: @"consent_string"];
+    }
+    
+    if ( ALSdk.versionCode >= 61100 )
+    {
+        NSNumber *isDoNotSell = [self privacySettingForSelector: @selector(isDoNotSell) fromParameters: parameters];
+        if ( isDoNotSell )
+        {
+            builder.ccpa.privacy = isDoNotSell ? @"1YY-" : @"1YN-";
+        }
+        else
+        {
+            builder.ccpa.privacy = @"1---";
+        }
+    }
+    
+    [[VASAds sharedInstance] setDataPrivacy: [builder build]];
 }
 
 - (nullable NSNumber *)privacySettingForSelector:(SEL)selector fromParameters:(id<MAAdapterParameters>)parameters

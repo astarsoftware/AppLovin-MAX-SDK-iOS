@@ -10,7 +10,7 @@
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"8.13.0.6"
+#define ADAPTER_VERSION @"8.13.0.11"
 
 @interface ALGoogleMediationAdapterInterstitialDelegate : NSObject<GADFullScreenContentDelegate>
 @property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
@@ -191,7 +191,9 @@ static NSString *ALGoogleSDKVersion;
 - (void)collectSignalWithParameters:(id<MASignalCollectionParameters>)parameters andNotify:(id<MASignalCollectionDelegate>)delegate
 {
     [self setRequestConfigurationWithParameters: parameters];
-    GADRequest *adRequest = [self createAdRequestForBiddingAd: YES withParameters: parameters];
+    GADRequest *adRequest = [self createAdRequestForBiddingAd: YES
+                                                     adFormat: parameters.adFormat
+                                               withParameters: parameters];
     
     [GADQueryInfo createQueryInfoWithRequest: adRequest
                                     adFormat: [self adFormatFromParameters: parameters]
@@ -229,7 +231,9 @@ static NSString *ALGoogleSDKVersion;
     
     [self updateMuteStateFromResponseParameters: parameters];
     [self setRequestConfigurationWithParameters: parameters];
-    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd withParameters: parameters];
+    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd
+                                                   adFormat: MAAdFormat.interstitial
+                                             withParameters: parameters];
     
     [GADInterstitialAd loadWithAdUnitID: placementIdentifier
                                 request: request
@@ -290,7 +294,17 @@ static NSString *ALGoogleSDKVersion;
     
     if ( self.interstitialAd )
     {
-        [self.interstitialAd presentFromRootViewController: [ALUtils topViewControllerFromKeyWindow]];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.interstitialAd presentFromRootViewController: presentingViewController];
     }
     else
     {
@@ -309,7 +323,9 @@ static NSString *ALGoogleSDKVersion;
     
     [self updateMuteStateFromResponseParameters: parameters];
     [self setRequestConfigurationWithParameters: parameters];
-    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd withParameters: parameters];
+    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd
+                                                   adFormat: MAAdFormat.rewardedInterstitial
+                                             withParameters: parameters];
     
     [GADRewardedInterstitialAd loadWithAdUnitID: placementIdentifier
                                         request: request
@@ -361,7 +377,18 @@ static NSString *ALGoogleSDKVersion;
     if ( self.rewardedInterstitialAd )
     {
         [self configureRewardForParameters: parameters];
-        [self.rewardedInterstitialAd presentFromRootViewController: [ALUtils topViewControllerFromKeyWindow] userDidEarnRewardHandler:^{
+        
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.rewardedInterstitialAd presentFromRootViewController: presentingViewController userDidEarnRewardHandler:^{
             
             [self log: @"Rewarded interstitial ad user earned reward: %@", placementIdentifier];
             self.rewardedInterstitialAdapterDelegate.grantedReward = YES;
@@ -384,7 +411,9 @@ static NSString *ALGoogleSDKVersion;
     
     [self updateMuteStateFromResponseParameters: parameters];
     [self setRequestConfigurationWithParameters: parameters];
-    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd withParameters: parameters];
+    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd
+                                                   adFormat: MAAdFormat.rewarded
+                                             withParameters: parameters];
     
     [GADRewardedAd loadWithAdUnitID: placementIdentifier
                             request: request
@@ -461,12 +490,14 @@ static NSString *ALGoogleSDKVersion;
     [self log: @"Loading %@%@%@ ad: %@...", ( isBiddingAd ? @"bidding " : @""), ( isNative ? @"native " : @"" ), adFormat.label, placementIdentifier];
     
     [self setRequestConfigurationWithParameters: parameters];
-    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd withParameters: parameters];
+    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd
+                                                   adFormat: adFormat
+                                             withParameters: parameters];
     
     if ( isNative )
     {
         GADNativeAdViewAdOptions *nativeAdViewOptions = [[GADNativeAdViewAdOptions alloc] init];
-        nativeAdViewOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromLocalExtra: parameters.localExtraParameters];
+        nativeAdViewOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromParameters: parameters];
         
         GADNativeAdImageAdLoaderOptions *nativeAdImageAdLoaderOptions = [[GADNativeAdImageAdLoaderOptions alloc] init];
         nativeAdImageAdLoaderOptions.shouldRequestMultipleImages = (adFormat == MAAdFormat.mrec); // MRECs can handle multiple images via AdMob's media view
@@ -488,10 +519,12 @@ static NSString *ALGoogleSDKVersion;
     }
     else
     {
-        GADAdSize adSize = [self adSizeFromAdFormat: adFormat withServerParameters: parameters.serverParameters];
+        // Check if adaptive banner sizes should be used
+        BOOL isAdaptiveBanner = [parameters.serverParameters al_boolForKey: @"adaptive_banner" defaultValue: NO];
+        GADAdSize adSize = [self adSizeFromAdFormat: adFormat isAdaptiveBanner: isAdaptiveBanner];
         self.adView = [[GADBannerView alloc] initWithAdSize: adSize];
         self.adView.frame = (CGRect){.size = adSize.size};
-        self.adView.adUnitID = parameters.thirdPartyAdPlacementIdentifier;
+        self.adView.adUnitID = placementIdentifier;
         self.adView.rootViewController = [ALUtils topViewControllerFromKeyWindow];
         self.adViewAdapterDelegate = [[ALGoogleMediationAdapterAdViewDelegate alloc] initWithParentAdapter: self
                                                                                                   adFormat: adFormat
@@ -511,10 +544,12 @@ static NSString *ALGoogleSDKVersion;
     [self log: @"Loading %@native ad: %@...", ( isBiddingAd ? @"bidding " : @""), placementIdentifier];
     
     [self setRequestConfigurationWithParameters: parameters];
-    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd withParameters: parameters];
+    GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd
+                                                   adFormat: MAAdFormat.native
+                                             withParameters: parameters];
     
     GADNativeAdViewAdOptions *nativeAdViewOptions = [[GADNativeAdViewAdOptions alloc] init];
-    nativeAdViewOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromLocalExtra: parameters.localExtraParameters];
+    nativeAdViewOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromParameters: parameters];
     
     GADNativeAdImageAdLoaderOptions *nativeAdImageAdLoaderOptions = [[GADNativeAdImageAdLoaderOptions alloc] init];
     
@@ -590,12 +625,11 @@ static NSString *ALGoogleSDKVersion;
 #pragma clang diagnostic pop
 }
 
-- (GADAdSize)adSizeFromAdFormat:(MAAdFormat *)adFormat withServerParameters:(NSDictionary<NSString *, id> *)serverParameters
+- (GADAdSize)adSizeFromAdFormat:(MAAdFormat *)adFormat isAdaptiveBanner:(BOOL)isAdaptiveBanner
 {
     if ( adFormat == MAAdFormat.banner || adFormat == MAAdFormat.leader )
     {
-        // Check if adaptive banner sizes should be used
-        if ( [serverParameters al_boolForKey: @"adaptive_banner" defaultValue: NO] )
+        if ( isAdaptiveBanner )
         {
             UIViewController *viewController = [ALUtils topViewControllerFromKeyWindow];
             UIWindow *window = viewController.view.window;
@@ -672,15 +706,25 @@ static NSString *ALGoogleSDKVersion;
     }
 }
 
-- (GADRequest *)createAdRequestForBiddingAd:(BOOL)isBiddingAd withParameters:(id<MAAdapterParameters>)parameters
+- (GADRequest *)createAdRequestForBiddingAd:(BOOL)isBiddingAd
+                                   adFormat:(MAAdFormat *)adFormat
+                             withParameters:(id<MAAdapterParameters>)parameters
 {
     GADRequest *request = [GADRequest request];
-    NSMutableDictionary<NSString *, NSString *> *extraParameters = [NSMutableDictionary dictionaryWithCapacity: 3];
+    NSMutableDictionary<NSString *, id> *extraParameters = [NSMutableDictionary dictionaryWithCapacity: 5];
     
+    NSDictionary<NSString *, id> *serverParameters = parameters.serverParameters;
     if ( isBiddingAd )
     {
         // Requested by Google for signal collection
         extraParameters[@"query_info_type"] = @"requester_type_2";
+        
+        if ( ALSdk.versionCode >= 11000000 && [adFormat isAdViewAd] && [parameters.localExtraParameters al_boolForKey: @"adaptive_banner"] )
+        {
+            GADAdSize adaptiveAdSize = [self adSizeFromAdFormat: adFormat isAdaptiveBanner: YES];
+            extraParameters[@"adaptive_banner_w"] = @(adaptiveAdSize.size.width);
+            extraParameters[@"adaptive_banner_h"] = @(adaptiveAdSize.size.height);
+        }
         
         if ( [parameters respondsToSelector: @selector(bidResponse)] )
         {
@@ -692,7 +736,6 @@ static NSString *ALGoogleSDKVersion;
         }
     }
     
-    NSDictionary<NSString *, id> *serverParameters = parameters.serverParameters;
     if ( [serverParameters al_numberForKey: @"set_mediation_identifier" defaultValue: @(YES)].boolValue )
     {
         // Use "applovin" instead of mediationTag for Google's specs
@@ -797,11 +840,19 @@ static NSString *ALGoogleSDKVersion;
     return nativeAd.headline != nil;
 }
 
-- (NSInteger)adChoicesPlacementFromLocalExtra:(NSDictionary<NSString *, id>*)localExtraParams
+- (NSInteger)adChoicesPlacementFromParameters:(id<MAAdapterParameters>)parameters
 {
-    // Publishers can set via nativeAdLoader.setLocalExtraParameterForKey("admob_ad_choices_placement", value: .bottomLeftCorner.rawValue)
-    id adChoicesPlacementObj = localExtraParams[@"admob_ad_choices_placement"];
-    return [self isValidAdChoicesPlacement: adChoicesPlacementObj] ? ((NSNumber *) adChoicesPlacementObj).integerValue : GADAdChoicesPositionTopRightCorner;
+    // Publishers can set via nativeAdLoader.setLocalExtraParameterForKey("admob_ad_choices_placement", value: Int)
+    // Note: This feature requires AppLovin v11.0.0+
+    if ( ALSdk.versionCode >= 11000000 )
+    {
+        NSDictionary<NSString *, id> *localExtraParams = parameters.localExtraParameters;
+        id adChoicesPlacementObj = localExtraParams ? localExtraParams[@"admob_ad_choices_placement"] : nil;
+        
+        return [self isValidAdChoicesPlacement: adChoicesPlacementObj] ? ((NSNumber *) adChoicesPlacementObj).integerValue : GADAdChoicesPositionTopRightCorner;
+    }
+    
+    return GADAdChoicesPositionTopRightCorner;
 }
 
 - (BOOL)isValidAdChoicesPlacement:(id)placementObj
@@ -1017,12 +1068,26 @@ static NSString *ALGoogleSDKVersion;
 	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
 	
     
-    NSString *responseId = bannerView.responseInfo.responseIdentifier;
-    if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )
+    if ( ALSdk.versionCode >= 6150000 )
     {
+        NSMutableDictionary *extraInfo = [NSMutableDictionary dictionaryWithCapacity: 3];
+        
+        NSString *responseId = bannerView.responseInfo.responseIdentifier;
+        if ( [responseId al_isValidString] )
+        {
+            extraInfo[@"creative_id"] = responseId;
+        }
+        
+        CGSize adSize = bannerView.adSize.size;
+        if ( !CGSizeEqualToSize(CGSizeZero, adSize) )
+        {
+            extraInfo[@"ad_width"] = @(adSize.width);
+            extraInfo[@"ad_height"] = @(adSize.height);
+        }
+        
         [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
                             withObject: bannerView
-                            withObject: @{@"creative_id" : responseId}];
+                            withObject: extraInfo];
     }
     else
     {

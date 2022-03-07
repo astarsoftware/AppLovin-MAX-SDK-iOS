@@ -9,7 +9,7 @@
 #import "ALByteDanceMediationAdapter.h"
 #import <BUAdSDK/BUAdSDK.h>
 
-#define ADAPTER_VERSION @"4.2.5.4.2"
+#define ADAPTER_VERSION @"4.3.0.2.2"
 
 @interface ALByteDanceInterstitialAdDelegate : NSObject<BUFullscreenVideoAdDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
@@ -108,8 +108,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
             configuration.logLevel = BUAdSDKLogLevelDebug;
         }
         
-        [BUAdSDKManager setUserExtData: [NSString stringWithFormat: @"[{\"name\":\"mediation\",\"value\":\"MAX\"},{\"name\":\"adapter_version\",\"value\":\"%@\"}]", self.adapterVersion]];
-        
+        [BUAdSDKManager setUserExtData: [self createUserExtData: parameters isInitializing: YES]];
         [self updateConsentWithParameters: parameters];
         
         [BUAdSDKManager startWithAsyncCompletionHandler:^(BOOL success, NSError *error) {
@@ -185,6 +184,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     NSString *bidResponse = parameters.bidResponse;
     [self log: @"Loading %@interstitial ad for slot id \"%@\"...", [bidResponse al_isValidString] ? @"bidding " : @"", slotId];
     
+    [BUAdSDKManager setUserExtData: [self createUserExtData: parameters isInitializing: NO]];
     [self updateConsentWithParameters: parameters];
     
     // Determine whether we allow streaming or not - allow by default
@@ -207,7 +207,18 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
 - (void)showInterstitialAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MAInterstitialAdapterDelegate>)delegate
 {
     [self log: @"Showing interstitial..."];
-    [self.interstitialAd showAdFromRootViewController: [ALUtils topViewControllerFromKeyWindow]];
+    
+    UIViewController *presentingViewController;
+    if ( ALSdk.versionCode >= 11020199 )
+    {
+        presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+    }
+    else
+    {
+        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+    }
+    
+    [self.interstitialAd showAdFromRootViewController: presentingViewController];
 }
 
 #pragma mark - Rewarded Ad Methods
@@ -218,6 +229,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     NSString *bidResponse = parameters.bidResponse;
     [self log: @"Loading %@rewarded ad for slot id \"%@\"...", [bidResponse al_isValidString] ? @"bidding " : @"", slotId];
     
+    [BUAdSDKManager setUserExtData: [self createUserExtData: parameters isInitializing: NO]];
     [self updateConsentWithParameters: parameters];
     
     // Determine whether we allow streaming or not - allow by default
@@ -251,7 +263,17 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     // Configure reward from server.
     [self configureRewardForParameters: parameters];
     
-    [self.rewardedVideoAd showAdFromRootViewController: [ALUtils topViewControllerFromKeyWindow]];
+    UIViewController *presentingViewController;
+    if ( ALSdk.versionCode >= 11020199 )
+    {
+        presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+    }
+    else
+    {
+        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+    }
+    
+    [self.rewardedVideoAd showAdFromRootViewController: presentingViewController];
 }
 
 #pragma mark - AdView Ad Methods
@@ -263,6 +285,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     NSString *bidResponse = parameters.bidResponse;
     [self log: @"Loading %@%@%@ ad for slot id \"%@\"...", isNative ? @"native " : @"", [bidResponse al_isValidString] ? @"bidding " : @"", adFormat.label, slotId];
     
+    [BUAdSDKManager setUserExtData: [self createUserExtData: parameters isInitializing: NO]];
     [self updateConsentWithParameters: parameters];
     
     if ( isNative )
@@ -318,6 +341,8 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     NSString *bidResponse = parameters.bidResponse;
     [self log: @"Loading %@native ad for slot id \"%@\"...", [bidResponse al_isValidString] ? @"bidding " : @"", slotId];
     
+    [BUAdSDKManager setUserExtData: [self createUserExtData: parameters isInitializing: NO]];
+    
     BUAdSlot *slot = [[BUAdSlot alloc] init];
     slot.ID = slotId;
     slot.AdType = BUAdSlotAdTypeFeed;
@@ -357,6 +382,18 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     {
         [NSException raise: NSInvalidArgumentException format: @"Unsupported ad format: %@", adFormat];
         return CGSizeZero;
+    }
+}
+
+- (NSString *)createUserExtData:(id<MAAdapterParameters>)parameters isInitializing:(BOOL)isInitializing
+{
+    if ( isInitializing )
+    {
+        return [NSString stringWithFormat: @"[{\"name\":\"mediation\",\"value\":\"MAX\"},{\"name\":\"adapter_version\",\"value\":\"%@\"}]", self.adapterVersion];
+    }
+    else
+    {
+        return [NSString stringWithFormat: @"[{\"name\":\"mediation\",\"value\":\"MAX\"},{\"name\":\"adapter_version\",\"value\":\"%@\"},{\"name\":\"hybrid_id\",\"value\":\"%@\"}]", self.adapterVersion, [parameters.serverParameters al_stringForKey: @"event_id"]];
     }
 }
 

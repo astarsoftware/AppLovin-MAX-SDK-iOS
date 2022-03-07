@@ -9,7 +9,7 @@
 #import "ALVerveMediationAdapter.h"
 #import <HyBid.h>
 
-#define ADAPTER_VERSION @"2.10.0.0"
+#define ADAPTER_VERSION @"2.11.1.2"
 
 @interface ALVerveMediationAdapterInterstitialAdDelegate : NSObject<HyBidInterstitialAdDelegate>
 @property (nonatomic, weak) ALVerveMediationAdapter *parentAdapter;
@@ -73,11 +73,10 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
             [HyBidLogger setLogLevel: HyBidLogLevelDebug];
         }
         
-        [HyBid setLocationUpdates: NO];
         [HyBid initWithAppToken: appToken completion:^(BOOL success) {
             if ( success )
             {
-                [self log: @"Verve SDK initialized"];   
+                [self log: @"Verve SDK initialized"];
                 ALVerveInitializationStatus = MAAdapterInitializationStatusInitializedSuccess;
             }
             else
@@ -126,6 +125,9 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 {
     [self log: @"Collecting signal..."];
     
+    // Update local params, since not available on init
+    [self updateLocationCollectionEnabled: parameters];
+    
     NSString *signal = [HyBid getCustomRequestSignalData];
     [delegate didCollectSignal: signal];
 }
@@ -136,12 +138,13 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 {
     [self log: @"Loading interstitial ad"];
     
+    [self updateLocationCollectionEnabled: parameters];
     [self updateConsentWithParameters: parameters];
     [self updateMuteStateForParameters: parameters];
     
     self.interstitialAdapterDelegate = [[ALVerveMediationAdapterInterstitialAdDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.interstitialAd = [[HyBidInterstitialAd alloc] initWithDelegate: self.interstitialAdapterDelegate];
-
+    
     [self.interstitialAd prepareAdWithContent: parameters.bidResponse];
 }
 
@@ -166,9 +169,10 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 {
     [self log: @"Loading rewarded ad"];
     
+    [self updateLocationCollectionEnabled: parameters];
     [self updateConsentWithParameters: parameters];
     [self updateMuteStateForParameters: parameters];
-
+    
     self.rewardedAdapterDelegate = [[ALVerveMediationAdapterRewardedAdsDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.rewardedAd = [[HyBidRewardedAd alloc] initWithDelegate: self.rewardedAdapterDelegate];
     
@@ -197,24 +201,45 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 {
     [self log: @"Loading %@ ad view ad...", adFormat.label];
     
+    [self updateLocationCollectionEnabled: parameters];
     [self updateConsentWithParameters: parameters];
     [self updateMuteStateForParameters: parameters];
     
     self.adViewAd = [[HyBidAdView alloc] initWithSize: [self sizeFromAdFormat: adFormat]];
     self.adViewAdapterDelegate = [[ALVerveMediationAdapterAdViewDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.adViewAd.delegate = self.adViewAdapterDelegate;
-
+    
     [self.adViewAd renderAdWithContent: parameters.bidResponse withDelegate: self.adViewAdapterDelegate];
 }
 
 #pragma mark - Shared Methods
 
+- (void)updateLocationCollectionEnabled:(id<MAAdapterParameters>)parameters
+{
+    if ( ALSdk.versionCode >= 11000000 )
+    {
+        NSDictionary<NSString *, id> *localExtraParameters = parameters.localExtraParameters;
+        NSNumber *isLocationCollectionEnabled = [localExtraParameters al_numberForKey: @"is_location_collection_enabled"];
+        if ( isLocationCollectionEnabled )
+        {
+            // NOTE: iOS disables by defualt, whereas Android enables by default
+            [HyBid setLocationUpdates: isLocationCollectionEnabled.boolValue];
+        }
+    }
+}
+
 - (void)updateConsentWithParameters:(id<MAAdapterParameters>)parameters
 {
+    // From PubNative: "HyBid SDK is TCF v2 compliant, so any change in the IAB consent string will be picked up by the SDK."
+    // Because of this, they requested that we don't update consent values if one is already set.
+    // As a side effect, pubs that use the MAX consent flow will not be able to update consent values mid-session.
+    // Full context in this PR: https://github.com/AppLovin/AppLovin-MAX-SDK-iOS/pull/57
+    
     if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
     {
         NSNumber *hasUserConsent = parameters.hasUserConsent;
-        if ( hasUserConsent )
+        NSString *verveGDPRConsentString = [[HyBidUserDataManager sharedInstance] getIABGDPRConsentString];
+        if ( hasUserConsent && (!verveGDPRConsentString || [verveGDPRConsentString isEqualToString: @""]) )
         {
             [[HyBidUserDataManager sharedInstance] setIABGDPRConsentString: hasUserConsent.boolValue ? @"1" : @"0"];
         }
@@ -227,16 +252,14 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
         [HyBid setCoppa: isAgeRestrictedUser.boolValue];
     }
     
-    if ( ALSdk.versionCode >= 61100 )
+    NSString *verveUSPrivacyString = [[HyBidUserDataManager sharedInstance] getIABUSPrivacyString];
+    if ( ALSdk.versionCode >= 61100 && (!verveUSPrivacyString || [verveUSPrivacyString isEqualToString: @""]) )
     {
         NSNumber *isDoNotSell = parameters.doNotSell;
         if ( isDoNotSell && isDoNotSell.boolValue )
         {
+            // NOTE: PubNative suggested this US Privacy String, so it does not match other adapters.
             [[HyBidUserDataManager sharedInstance] setIABUSPrivacyString: @"1NYN"];
-        }
-        else
-        {
-            [[HyBidUserDataManager sharedInstance] removeIABUSPrivacyString];
         }
     }
 }

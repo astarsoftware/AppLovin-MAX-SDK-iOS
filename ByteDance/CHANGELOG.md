@@ -1,5 +1,20 @@
 # Changelog
 
+## 4.3.0.2.2
+* Add support for passing in a presenting view controller.
+
+## 4.3.0.2.1
+* Update to ingest `event_id` during ad load.
+
+## 4.3.0.2.0
+* Certified with ByteDance SDK 4.3.0.2.
+
+## 4.2.5.6.1
+* Update adapters to ingest `event_id`.
+
+## 4.2.5.6.0
+* Certified with ByteDance SDK 4.2.5.6.
+
 ## 4.2.5.4.2
 * Add privacy icon (ad logo view) for native ads.
 

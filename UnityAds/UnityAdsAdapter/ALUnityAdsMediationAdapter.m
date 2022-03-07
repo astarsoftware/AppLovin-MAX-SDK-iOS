@@ -10,7 +10,7 @@
 #import <UnityAds/UnityAds.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"4.0.0.1"
+#define ADAPTER_VERSION @"4.0.1.1"
 
 @interface ALUnityAdsInitializationDelegate : NSObject<UnityAdsInitializationDelegate>
 @property (nonatomic, weak) ALUnityAdsMediationAdapter *parentAdapter;
@@ -167,7 +167,17 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
         self.interstitialDelegate = [[ALUnityAdsInterstitialDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     }
     
-    [UnityAds show: [ALUtils topViewControllerFromKeyWindow]
+    UIViewController *presentingViewController;
+    if ( ALSdk.versionCode >= 11020199 )
+    {
+        presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+    }
+    else
+    {
+        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+    }
+    
+    [UnityAds show: presentingViewController
        placementId: placementIdentifier
            options: [self createAdShowOptions]
       showDelegate: self.interstitialDelegate];
@@ -218,7 +228,17 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
     // Configure reward from server.
     [self configureRewardForParameters: parameters];
     
-    [UnityAds show: [ALUtils topViewControllerFromKeyWindow]
+    UIViewController *presentingViewController;
+    if ( ALSdk.versionCode >= 11020199 )
+    {
+        presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+    }
+    else
+    {
+        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+    }
+    
+    [UnityAds show: presentingViewController
        placementId: placementIdentifier
            options: [self createAdShowOptions]
       showDelegate: self.rewardedDelegate];

@@ -1,5 +1,20 @@
 # Changelog
 
+## 8.13.0.11
+* Add support for passing in a presenting view controller.
+
+## 8.13.0.10
+* Fix version check minimum for local extra parameter API usage.
+
+## 8.13.0.9
+* Add adaptive banner size info for bidding ad requests.
+
+## 8.13.0.8
+* Fix AdChoices `localExtraParameters` crash. Publishers can set a custom placement on AppLovin SDKs 11.0.0+ and the placement is defaulted to the top right corner otherwise.
+
+## 8.13.0.7
+* Add support for sending ad size information for adview ads. This value can be retrieved in the `didLoad()` callback using the `size` property from `MAAd.h` available in MAX SDK v11.2.0.
+
 ## 8.13.0.6
 * Add support for custom [AdChoices placements](https://developers.google.com/admob/ios/api/reference/Enums/GADAdChoicesPosition.html), which publishers can set by calling `setLocalExtraParameterForKey("admob_ad_choices_placement", GADAdChoicesPosition)` on the `MANativeAdLoader` instance.
 

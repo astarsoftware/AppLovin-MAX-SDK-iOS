@@ -9,7 +9,7 @@
 #import <IronSource/IronSource.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"7.2.0.0.0"
+#define ADAPTER_VERSION @"7.2.1.0.1"
 
 @interface ALIronSourceMediationAdapterRouter : ALMediationAdapterRouter<ISDemandOnlyInterstitialDelegate, ISDemandOnlyRewardedVideoDelegate, ISLogDelegate>
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
@@ -124,7 +124,17 @@
     
     if ( [IronSource hasISDemandOnlyInterstitial: instanceID] )
     {
-        [IronSource showISDemandOnlyInterstitial: [ALUtils topViewControllerFromKeyWindow] instanceId: instanceID];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [IronSource showISDemandOnlyInterstitial: presentingViewController instanceId: instanceID];
     }
     else
     {
@@ -172,7 +182,17 @@
         // Configure reward from server.
         [self configureRewardForParameters: parameters];
         
-        [IronSource showISDemandOnlyRewardedVideo: [ALUtils topViewControllerFromKeyWindow] instanceId: instanceID];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [IronSource showISDemandOnlyRewardedVideo: presentingViewController instanceId: instanceID];
     }
     else
     {

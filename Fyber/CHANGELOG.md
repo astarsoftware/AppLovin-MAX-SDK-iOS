@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.1.3.2
+* Add support for passing in a presenting view controller.
+
+## 8.1.3.1
+* Add support for IAB's CCPA Privacy String.
+
 ## 8.1.3.0
 * Certified with Fyber SDK 8.1.3.
 

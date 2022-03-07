@@ -9,7 +9,7 @@
 #import "ALGoogleAdManagerMediationAdapter.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 
-#define ADAPTER_VERSION @"8.13.0.5"
+#define ADAPTER_VERSION @"8.13.0.8"
 
 @interface ALGoogleAdManagerInterstitialDelegate : NSObject<GADFullScreenContentDelegate>
 @property (nonatomic,   weak) ALGoogleAdManagerMediationAdapter *parentAdapter;
@@ -212,7 +212,17 @@ static NSString *ALGoogleSDKVersion;
     
     if ( self.interstitialAd )
     {
-        [self.interstitialAd presentFromRootViewController: [ALUtils topViewControllerFromKeyWindow]];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.interstitialAd presentFromRootViewController: presentingViewController];
     }
     else
     {
@@ -282,7 +292,18 @@ static NSString *ALGoogleSDKVersion;
     if ( self.rewardedInterstitialAd )
     {
         [self configureRewardForParameters: parameters];
-        [self.rewardedInterstitialAd presentFromRootViewController: [ALUtils topViewControllerFromKeyWindow] userDidEarnRewardHandler:^{
+        
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.rewardedInterstitialAd presentFromRootViewController: presentingViewController userDidEarnRewardHandler:^{
             
             [self log: @"Rewarded interstitial ad user earned reward: %@", placementIdentifier];
             self.rewardedInterstitialAdapterDelegate.grantedReward = YES;
@@ -385,7 +406,7 @@ static NSString *ALGoogleSDKVersion;
     if ( isNative )
     {
         GADNativeAdViewAdOptions *adViewAdOptions = [[GADNativeAdViewAdOptions alloc] init];
-        adViewAdOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromLocalExtra: parameters.localExtraParameters];
+        adViewAdOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromParameters: parameters];
         
         GADNativeAdImageAdLoaderOptions *nativeAdImageAdLoaderOptions = [[GADNativeAdImageAdLoaderOptions alloc] init];
         nativeAdImageAdLoaderOptions.shouldRequestMultipleImages = (adFormat == MAAdFormat.mrec); // MRECs can handle multiple images via AdMob's media view
@@ -411,7 +432,7 @@ static NSString *ALGoogleSDKVersion;
         GADAdSize adSize = [self adSizeFromAdFormat: adFormat withServerParameters: parameters.serverParameters];
         self.adView = [[GAMBannerView alloc] initWithAdSize: adSize];
         self.adView.frame = CGRectMake(0, 0, adSize.size.width, adSize.size.height);
-        self.adView.adUnitID = parameters.thirdPartyAdPlacementIdentifier;
+        self.adView.adUnitID = placementIdentifier;
         self.adView.rootViewController = [ALUtils topViewControllerFromKeyWindow];
         self.adViewAdapterDelegate = [[ALGoogleAdManagerAdViewDelegate alloc] initWithParentAdapter: self
                                                                                            adFormat: adFormat
@@ -433,7 +454,7 @@ static NSString *ALGoogleSDKVersion;
     GADRequest *request = [self createAdRequestWithParameters: parameters];
     
     GADNativeAdViewAdOptions *nativeAdViewOptions = [[GADNativeAdViewAdOptions alloc] init];
-    nativeAdViewOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromLocalExtra: parameters.localExtraParameters];
+    nativeAdViewOptions.preferredAdChoicesPosition = [self adChoicesPlacementFromParameters: parameters];
     
     GADNativeAdImageAdLoaderOptions *nativeAdImageAdLoaderOptions = [[GADNativeAdImageAdLoaderOptions alloc] init];
     
@@ -696,11 +717,19 @@ static NSString *ALGoogleSDKVersion;
     return nativeAd.headline != nil;
 }
 
-- (NSInteger)adChoicesPlacementFromLocalExtra:(NSDictionary<NSString *, id>*)localExtraParams
+- (NSInteger)adChoicesPlacementFromParameters:(id<MAAdapterParameters>)parameters
 {
-    // Publishers can set via nativeAdLoader.setLocalExtraParameterForKey("gam_ad_choices_placement", value: .bottomLeftCorner.rawValue)
-    id adChoicesPlacementObj = localExtraParams[@"gam_ad_choices_placement"];
-    return [self isValidAdChoicesPlacement: adChoicesPlacementObj] ? ((NSNumber *) adChoicesPlacementObj).integerValue : GADAdChoicesPositionTopRightCorner;
+    // Publishers can set via nativeAdLoader.setLocalExtraParameterForKey("gam_ad_choices_placement", value: Int)
+    // Note: This feature requires AppLovin v11.0.0+
+    if ( ALSdk.versionCode >= 11000000 )
+    {
+        NSDictionary<NSString *, id> *localExtraParams = parameters.localExtraParameters;
+        id adChoicesPlacementObj = localExtraParams ? localExtraParams[@"gam_ad_choices_placement"] : nil;
+        
+        return [self isValidAdChoicesPlacement: adChoicesPlacementObj] ? ((NSNumber *) adChoicesPlacementObj).integerValue : GADAdChoicesPositionTopRightCorner;
+    }
+    
+    return GADAdChoicesPositionTopRightCorner;
 }
 
 - (BOOL)isValidAdChoicesPlacement:(id)placementObj
@@ -906,12 +935,26 @@ static NSString *ALGoogleSDKVersion;
 {
     [self.parentAdapter log: @"%@ ad loaded: %@", self.adFormat.label, bannerView.adUnitID];
     
-    NSString *responseId = bannerView.responseInfo.responseIdentifier;
-    if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )
+    if ( ALSdk.versionCode >= 6150000 )
     {
+        NSMutableDictionary *extraInfo = [NSMutableDictionary dictionaryWithCapacity: 3];
+        
+        NSString *responseId = bannerView.responseInfo.responseIdentifier;
+        if ( [responseId al_isValidString] )
+        {
+            extraInfo[@"creative_id"] = responseId;
+        }
+        
+        CGSize adSize = bannerView.adSize.size;
+        if ( !CGSizeEqualToSize(CGSizeZero, adSize) )
+        {
+            extraInfo[@"ad_width"] = @(adSize.width);
+            extraInfo[@"ad_height"] = @(adSize.height);
+        }
+        
         [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
                             withObject: bannerView
-                            withObject: @{@"creative_id" : responseId}];
+                            withObject: extraInfo];
     }
     else
     {
