@@ -58,6 +58,10 @@
 @interface ALAmazonAdMarketplaceMediationAdapter()
 
 @property (nonatomic, strong) ALAmazonSignalCollectionDelegate *signalCollectionDelegate;
+@property (nonatomic, strong) ALTAMAmazonMediationHints *loadedBannerHints;
+@property (nonatomic, strong) ALTAMAmazonMediationHints *loadedInterstitialHints;
+
+
 
 // AdView
 @property (nonatomic, strong) ALAmazonAdMarketplaceMediationAdapterAdViewDelegate *adViewAdapterDelegate;
@@ -119,6 +123,8 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
     self.adViewAdapterDelegate = nil;
     self.interstitialDispatcher = nil;
     self.interstitialAdapterDelegate = nil;
+    self.loadedBannerHints = nil;
+    self.loadedInterstitialHints = nil;
 }
 
 #pragma mark - MASignalProvider Methods
@@ -281,6 +287,7 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
     else
     {
         [self failSignalCollectionWithErrorMessage: @"Received empty bid id" andNotify: delegate];
+        self.loadedBannerHints = nil;
     }
 }
 
@@ -324,11 +331,13 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
     if ( mediationHints )
     {
         [dispatcher fetchBannerAdWithParameters: mediationHints.value];
+        self.loadedBannerHints = mediationHints;
     }
     else
     {
         [self e: @"Unable to find mediation hints"];
         [delegate didFailToLoadAdViewAdWithError: MAAdapterError.invalidLoadState];
+        self.loadedBannerHints = nil;
     }
 }
 
@@ -528,7 +537,12 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
     
     // astar
     ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"banner" data:nil];
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if(self.parentAdapter.loadedBannerHints.value[@"amazon_ad_info"]) {
+        networkInfo = self.parentAdapter.loadedBannerHints.value[@"amazon_ad_info"];
+    }
+    
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"banner" data:networkInfo];
 
     [self.delegate didLoadAdForAdView: adView];
 }
