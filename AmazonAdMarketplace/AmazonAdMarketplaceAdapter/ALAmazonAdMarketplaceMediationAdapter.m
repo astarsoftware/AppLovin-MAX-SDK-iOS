@@ -348,11 +348,13 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
     if ( mediationHints )
     {
         [self.interstitialDispatcher fetchAdWithParameters: mediationHints.value];
+        self.loadedInterstitialHints = mediationHints;
     }
     else
     {
         [self e: @"Unable to find mediation hints"];
         [delegate didFailToLoadInterstitialAdWithError: MAAdapterError.invalidLoadState];
+        self.loadedInterstitialHints = nil;
     }
 }
 
@@ -578,7 +580,11 @@ static NSMutableSet<DTBAdLoader *> *ALUsedAmazonAdLoaders;
     
     // astar
     ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"fullscreen" data:nil];
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if(self.parentAdapter.loadedInterstitialHints.value[@"amazon_ad_info"]) {
+        networkInfo = self.parentAdapter.loadedInterstitialHints.value[@"amazon_ad_info"];
+    }
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"fullscreen" data:networkInfo];
     
     [self.delegate didLoadInterstitialAd];
 }
