@@ -1,5 +1,37 @@
 # Changelog
 
+## 21.7.6.2
+* Use local scope copy of native ad while preparing view.
+* Update privacy settings before collecting signal. 
+
+## 21.7.6.1
+* Add support for returning the main image asset in `MANativeAd` for native ads.
+
+## 21.7.6.0
+* Certified with Smaato SDK 21.7.6.
+* Distribute adapter as an XCFramework.
+
+## 21.7.5.1
+* Update ad display failed error code.
+
+## 21.7.5.0
+* Certified with Smaato SDK 21.7.5.
+
+## 21.7.4.1
+* Remove check for manual native ad assets.
+
+## 21.7.4.0
+* Certified with Smaato SDK 21.7.4.
+
+## 21.7.3.0
+* Certified with Smaato SDK 21.7.3.
+
+## 21.7.1.4
+* Add log for "is_location_collection_enabled" value.
+
+## 21.7.1.3
+* Add support for passing in a presenting view controller.
+
 ## 21.7.1.2
 * Add support for passing local parameter "is_location_collection_enabled" to set `SmaatoSDK.gpsEnabled` for signal collection.
  

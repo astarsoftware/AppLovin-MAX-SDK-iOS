@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.14.0.0
+* Certified with Verve SDK 2.14.0.
+
+## 2.13.1.0
+* Certified with Verve SDK 2.13.1.
+
+## 2.13.0.0
+* Certified with Verve SDK 2.13.0.
+* Distribute adapter as an XCFramework.
+
+## 2.12.1.1
+* Update ad display failed error code.
+
+## 2.12.1.0
+* Certified with Verve SDK 2.12.1.
+
+## 2.11.1.4
+* Add check for SDK initialization before loading an ad.
+
+## 2.11.1.3
+* Add support for passing in a presenting view controller.
+
 ## 2.11.1.2
 * Add support for passing local parameter "is_location_collection_enabled" to set `+[HyBid setLocationUpdates:]`.
 

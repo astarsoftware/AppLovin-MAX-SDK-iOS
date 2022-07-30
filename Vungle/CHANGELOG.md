@@ -1,5 +1,23 @@
 # Changelog
 
+## 6.11.0.3
+* Silence API deprecation warnings.
+* Update privacy settings before collecting signal. 
+
+## 6.11.0.2
+* Distribute adapter as an XCFramework.
+* Add support for COPPA.
+
+## 6.11.0.1
+* Update ad display failed error code.
+* Update error code mapping to include new error codes.
+
+## 6.11.0.0
+* Certified with Vungle SDK 6.11.0.
+
+## 6.10.6.2
+* Add support for passing in a presenting view controller.
+
 ## 6.10.6.1
 * Add missing call to configure rewards for rewarded ads.
 

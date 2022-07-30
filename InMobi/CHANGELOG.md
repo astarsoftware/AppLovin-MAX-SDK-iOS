@@ -1,5 +1,38 @@
 # Changelog
 
+## 10.0.8.1
+* Silence API deprecation warnings.
+* Use local scope copy of native ad while preparing view.
+* Update consent status before collecting signal. 
+
+## 10.0.8.0
+* Certified with InMobi SDK 10.0.8.
+
+## 10.0.7.0
+* Certified with InMobi SDK 10.0.7.
+
+## 10.0.6.0
+* Certified with InMobi SDK 10.0.6.
+* Distribute adapter as an XCFramework.
+
+## 10.0.5.4
+* Update ad display failed error code.
+
+## 10.0.5.3
+* Specify `MANativeAdAdapter` for adapter to enable it for test ads in Mediation Debugger.
+
+## 10.0.5.2
+* Fix native ad media content rendering.
+
+## 10.0.5.1
+* Remove check for manual native ad assets.
+
+## 10.0.5.0
+* Certified with InMobi SDK 10.0.5.
+
+## 10.0.2.2
+* Add support for passing native ads.
+
 ## 10.0.2.1
 * Add support for passing in a presenting view controller.
 

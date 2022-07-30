@@ -10,7 +10,7 @@
 #import <YahooAds/YahooAds.h>
 
 // Major version number is '2' since certifying against the rebranded Yahoo SDK
-#define ADAPTER_VERSION @"2.0.0.3"
+#define ADAPTER_VERSION @"2.0.0.7"
 
 /**
  * Dedicated delegate object for Verizon Ads interstitial ads.
@@ -117,6 +117,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         
         // ...GDPR settings, which is part of verizon Ads SDK data, should be established after initialization and prior to making any ad requests... (https://sdk.verizonmedia.com/gdpr-coppa.html)
         [self updatePrivacyStatesForParameters: parameters];
+        [self updateLocationCollectionEnabled: parameters];
     }
     else
     {
@@ -162,6 +163,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 {
     [self log: @"Collecting signal..."];
     
+    [self updatePrivacyStatesForParameters: parameters];
+    [self updateLocationCollectionEnabled: parameters];
+
     NSString *token = [[YASAds sharedInstance] biddingTokenTrimmedToSize: 4000];
     if ( !token )
     {
@@ -183,6 +187,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     [self log: @"Loading %@ interstitial ad for placement: %@...", ([bidResponse al_isValidString] ? @"bidding" : @""), placementId];
     
     [self updatePrivacyStatesForParameters: parameters];
+    [self updateLocationCollectionEnabled: parameters];
     
     self.interstitialDelegate = [[ALVerizonAdsMediationAdapterInterstitialDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.interstitialAd = [[YASInterstitialAd alloc] initWithPlacementId: placementId];
@@ -229,6 +234,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     [self log: @"Loading %@ interstitial ad for placement: %@...", ([bidResponse al_isValidString] ? @"bidding" : @""), placementId];
     
     [self updatePrivacyStatesForParameters: parameters];
+    [self updateLocationCollectionEnabled: parameters];
     
     self.rewardedDelegate = [[ALVerizonAdsMediationAdapterRewardedDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.rewardedAd = [[YASInterstitialAd alloc] initWithPlacementId: placementId];
@@ -277,6 +283,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     [self log: @"Loading %@%@ for placement: %@...", ([bidResponse al_isValidString] ? @"bidding " : @""), adFormat.label, placementId];
     
     [self updatePrivacyStatesForParameters: parameters];
+    [self updateLocationCollectionEnabled: parameters];
     
     self.inlineAdViewDelegate = [[ALVerizonAdsMediationAdapterInlineAdViewDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.inlineAdView = [[YASInlineAdView alloc] initWithPlacementId: placementId];
@@ -306,6 +313,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     self.nativeAd.delegate = self.nativeAdDelegate;
     
     [self updatePrivacyStatesForParameters: parameters];
+    [self updateLocationCollectionEnabled: parameters];
     
     YASRequestMetadata *requestMetadata = [self createRequestMetadataForBidResponse: bidResponse];
     YASNativePlacementConfig *placementConfig = [[YASNativePlacementConfig alloc] initWithPlacementId: placementId
@@ -316,6 +324,19 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 #pragma mark - Shared Methods
 
+- (void)updateLocationCollectionEnabled:(id<MAAdapterParameters>)parameters
+{
+    if ( ALSdk.versionCode >= 11000000 )
+    {
+        NSDictionary<NSString *, id> *localExtraParamters = parameters.localExtraParameters;
+        NSNumber *isLocationCollectionEnabled = [localExtraParamters al_numberForKey: @"is_location_collection_enabled"];
+        if ( isLocationCollectionEnabled )
+        {
+            [self log: @"Setting location collection: %@", isLocationCollectionEnabled];
+            [[YASAds sharedInstance] setLocationAccessMode: isLocationCollectionEnabled.boolValue ? YASLocationAccessModePrecise : YASLocationAccessModeDenied];
+        }
+    }
+}
 - (void)updatePrivacyStatesForParameters:(id<MAAdapterParameters>)parameters
 {
     if ( ALSdk.versionCode >= 11040299 )
@@ -762,6 +783,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         
         UIView *mediaView;
         CGFloat mediaContentAspectRatio = 0.0f;
+        MANativeAdImage *mainImage = nil;
         id<YASNativeVideoComponent> videoComponent = (id<YASNativeVideoComponent>)[nativeAd component: @"video"];
         id<YASNativeImageComponent> mainImageComponent = (id<YASNativeImageComponent>)[nativeAd component: @"mainImage"];
         
@@ -780,6 +802,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
             mediaView = [[UIImageView alloc] init];
             mediaView.contentMode = UIViewContentModeScaleAspectFit;
             [mainImageComponent prepareView: (UIImageView *) mediaView];
+            
+            UIImage *image = ((UIImageView *) mediaView).image;
+            mainImage = [[MANativeAdImage alloc] initWithImage: image];
         }
         
         NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
@@ -803,6 +828,10 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
             builder.advertiser = advertiser;
             builder.callToAction = callToAction;
             builder.icon = iconImage;
+            if ( ALSdk.versionCode >= 11040299 )
+            {
+                [builder performSelector: @selector(setMainImage:) withObject: mainImage];
+            }
             builder.mediaView = mediaView;
             
 #pragma clang diagnostic push
@@ -883,7 +912,8 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
-    if ( !self.parentAdapter.nativeAd )
+    YASNativeAd *nativeAd = self.parentAdapter.nativeAd;
+    if ( !nativeAd )
     {
         [self.parentAdapter e: @"Failed to register native ad view for interaction: Native ad is nil."];
         return;
@@ -894,8 +924,6 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     id<YASNativeTextComponent> bodyComponent = (id<YASNativeTextComponent>)[self.parentAdapter.nativeAd component: @"body"];
     id<YASNativeTextComponent> ctaComponent = (id<YASNativeTextComponent>)[self.parentAdapter.nativeAd component: @"callToAction"];
     id<YASNativeImageComponent> iconComponent = (id<YASNativeImageComponent>)[self.parentAdapter.nativeAd component: @"iconImage"];
-    id<YASNativeImageComponent> imageComponent = (id<YASNativeImageComponent>)[self.parentAdapter.nativeAd component: @"mainImage"];
-    id<YASNativeVideoComponent> videoComponent = (id<YASNativeVideoComponent>)[self.parentAdapter.nativeAd component: @"video"];
 
     if ( titleComponent && maxNativeAdView.titleLabel )
     {
@@ -916,14 +944,6 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     if ( iconComponent && maxNativeAdView.iconImageView )
     {
         [iconComponent prepareView: maxNativeAdView.iconImageView];
-    }
-    if ( videoComponent && self.mediaView )
-    {
-        [videoComponent prepareView: (YASVideoPlayerView *)self.mediaView];
-    }
-    else if ( imageComponent && self.mediaView )
-    {
-        [imageComponent prepareView: (UIImageView *)self.mediaView];
     }
     
     [self.parentAdapter.nativeAd registerContainerView: maxNativeAdView];

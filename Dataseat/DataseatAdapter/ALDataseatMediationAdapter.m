@@ -10,7 +10,7 @@
 #import <DataseatSDK/Dataseat.h>
 #import <DataseatSDK/DSErrorCode.h>
 
-#define ADAPTER_VERSION @"1.0.9.0"
+#define ADAPTER_VERSION @"1.0.9.2"
 
 @interface ALDataseatMediationAdapterRouter : ALMediationAdapterRouter<DSSDKDelegate>
 @end
@@ -91,12 +91,22 @@
     
     if ( [[Dataseat shared] hasInterstitialAdAvailable] )
     {
-        [[Dataseat shared] showInterstitialAd: [ALUtils topViewControllerFromKeyWindow]];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [[Dataseat shared] showInterstitialAd: presentingViewController];
     }
     else
     {
         [self log: @"Unable to show interstitial - ad not ready"];
-        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: MAAdapterError.adNotReady];
+        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -142,12 +152,22 @@
     {
         [self configureRewardForParameters: parameters];
         
-        [[Dataseat shared] showRewardedAd: [ALUtils topViewControllerFromKeyWindow]];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [[Dataseat shared] showRewardedAd: presentingViewController];
     }
     else
     {
         [self log: @"Unable to show rewarded ad with tag: %@", self.routerPlacementIdentifer];
-        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: MAAdapterError.adNotReady];
+        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 

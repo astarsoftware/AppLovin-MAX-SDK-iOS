@@ -5,10 +5,10 @@ s.authors =
 	'AppLovin Corporation' => 'devsupport@applovin.com'
 }
 s.name = 'AppLovinMediationChartboostAdapter'
-s.version = '8.5.0.2'
+s.version = '9.0.0.0'
 s.platform = :ios, '9.0'
 s.summary = 'Chartboost adapter used for mediation with the AppLovin MAX SDK'
-s.homepage = 'https://github.com/CocoaPods/Specs/search?o=desc&q=AppLovinMediationChartboostAdapter&s=indexed'
+s.homepage = "https://github.com/CocoaPods/Specs/search?o=desc&q=#{s.name}&s=indexed"
 s.license = 
 { 
   :type => 'Commercial License',
@@ -23,20 +23,21 @@ LICENSE
 
 s.source = 
 { 
-  :http => 'https://artifacts.applovin.com/ios/com/applovin/mediation/chartboost-adapter/AppLovinMediationChartboostAdapter-8.5.0.2.zip',
+  :http => "https://artifacts.applovin.com/ios/com/applovin/mediation/chartboost-adapter/#{s.name}-#{s.version}.zip",
   :type => 'zip'
 }
 
-s.vendored_frameworks = 'AppLovinMediationChartboostAdapter-8.5.0.2/AppLovinMediationChartboostAdapter.framework'
+s.vendored_frameworks = "#{s.name}-#{s.version}/#{s.name}.xcframework"
 
-s.dependency 'ChartboostSDK', '= 8.5.0.1'
+s.dependency 'ChartboostSDK', '= 9.0.0'
 s.dependency 'AppLovinSDK'
+s.swift_version = '5.0'
 
 s.pod_target_xcconfig =
 {
   'VALID_ARCHS' => 'arm64 arm64e armv7 armv7s x86_64',
   'VALID_ARCHS[sdk=iphoneos*]' => 'arm64 arm64e armv7 armv7s',
-  'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64'
+  'VALID_ARCHS[sdk=iphonesimulator*]' => 'arm64 arm64e x86_64'
 }
 
 s.description = <<-DESC

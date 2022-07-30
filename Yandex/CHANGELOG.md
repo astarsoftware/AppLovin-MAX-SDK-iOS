@@ -1,5 +1,18 @@
 # Changelog
 
+## 5.1.0.0
+* Certified with Yandex SDK 5.1.0.
+* Add bidding support.
+* Update click callback for ads.
+* Distribute adapter as an XCFramework.
+* Silence API deprecation warnings.
+
+## 4.4.2.3
+* Update ad display failed error code.
+
+## 4.4.2.2
+* Add support for passing in a presenting view controller.
+
 ## 4.4.2.1
 * Update open source versions to allow compilation with AppLovin SDK v11.0.0+.
 * Add impression callback for ad view ads.

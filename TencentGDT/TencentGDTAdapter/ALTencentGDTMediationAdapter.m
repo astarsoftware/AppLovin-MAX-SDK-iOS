@@ -12,7 +12,7 @@
 #import "GDTUnifiedInterstitialAd.h"
 #import "GDTRewardVideoAd.h"
 
-#define ADAPTER_VERSION @"4.12.4.2"
+#define ADAPTER_VERSION @"4.12.4.4"
 
 /**
  * Interstitial Delegate
@@ -137,8 +137,18 @@ static ALAtomicBoolean *ALTencentGDTInitialized;
 {
     [self log: @"Showing interstitial: %@...", parameters.thirdPartyAdPlacementIdentifier];
     
+    UIViewController *presentingViewController;
+    if ( ALSdk.versionCode >= 11020199 )
+    {
+        presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+    }
+    else
+    {
+        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+    }
+    
     // No need to check `isAdValid`
-    [self.interstitialAd presentAdFromRootViewController: [ALUtils topViewControllerFromKeyWindow]];
+    [self.interstitialAd presentAdFromRootViewController: presentingViewController];
 }
 
 #pragma mark - Rewarded Adapter
@@ -179,7 +189,7 @@ static ALAtomicBoolean *ALTencentGDTInitialized;
     if ( ![self.rewardedAd isAdValid] )
     {
         [self log: @"Rewarded ad not ready"];
-        [delegate didFailToDisplayRewardedAdWithError: MAAdapterError.adNotReady];
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
         
         return;
     }
@@ -187,7 +197,17 @@ static ALAtomicBoolean *ALTencentGDTInitialized;
     // Configure reward from server.
     [self configureRewardForParameters: parameters];
     
-    [self.rewardedAd showAdFromRootViewController: [ALUtils topViewControllerFromKeyWindow]];
+    UIViewController *presentingViewController;
+    if ( ALSdk.versionCode >= 11020199 )
+    {
+        presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+    }
+    else
+    {
+        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+    }
+    
+    [self.rewardedAd showAdFromRootViewController: presentingViewController];
 }
 
 #pragma mark - Banner Adapter
@@ -310,7 +330,7 @@ static ALAtomicBoolean *ALTencentGDTInitialized;
 {
     [self.parentAdapter log: @"Interstitial ad failed to show with error: %@", error];
     
-    MAAdapterError *adapterError = [ALTencentGDTMediationAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed" thirdPartySdkErrorCode: error.code thirdPartySdkErrorMessage: error.localizedDescription];
     [self.delegate didFailToDisplayInterstitialAdWithError: adapterError];
 }
 

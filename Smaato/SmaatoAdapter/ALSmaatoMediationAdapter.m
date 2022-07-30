@@ -14,7 +14,7 @@
 #import <SmaatoSDKNative/SmaatoSDKNative.h>
 #import <SmaatoSDKInAppBidding/SmaatoSDKInAppBidding.h>
 
-#define ADAPTER_VERSION @"21.7.1.2"
+#define ADAPTER_VERSION @"21.7.6.2"
 
 /**
  * Router for interstitial/rewarded ad events.
@@ -133,6 +133,7 @@
 {
     [self log: @"Collecting signal..."];
     
+    [self updateAgeRestrictedUser: parameters];
     [self updateLocationCollectionEnabled: parameters];
     
     NSString *signal = [SmaatoSDK collectSignals];
@@ -233,12 +234,22 @@
     self.interstitialAd = [self.router interstitialAdForPlacementIdentifier: placementIdentifier];
     if ( [self.interstitialAd availableForPresentation] )
     {
-        [self.interstitialAd showFromViewController: [ALUtils topViewControllerFromKeyWindow]];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.interstitialAd showFromViewController: presentingViewController];
     }
     else
     {
         [self log: @"Interstitial ad not ready"];
-        [self.router didFailToDisplayAdForPlacementIdentifier: placementIdentifier error: MAAdapterError.adNotReady];
+        [self.router didFailToDisplayAdForPlacementIdentifier: placementIdentifier error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -299,12 +310,22 @@
         // Configure reward from server.
         [self configureRewardForParameters: parameters];
         
-        [self.rewardedAd showFromViewController: [ALUtils topViewControllerFromKeyWindow]];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.rewardedAd showFromViewController: presentingViewController];
     }
     else
     {
         [self log: @"Rewarded ad not ready"];
-        [self.router didFailToDisplayAdForPlacementIdentifier: placementIdentifier error: MAAdapterError.adNotReady];
+        [self.router didFailToDisplayAdForPlacementIdentifier: placementIdentifier error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -374,6 +395,7 @@
         NSNumber *isLocationCollectionEnabled = [localExtraParameters al_numberForKey: @"is_location_collection_enabled"];
         if ( isLocationCollectionEnabled )
         {
+            [self log: @"Setting location collection enabled: %@", isLocationCollectionEnabled];
             // NOTE: According to docs - this is disabled by default
             SmaatoSDK.gpsEnabled = isLocationCollectionEnabled.boolValue;
         }
@@ -804,8 +826,7 @@
         SMANativeAdAssets *assets = renderer.nativeAssets;
         NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
         BOOL isTemplateAd = [templateName al_isValidString];
-        
-        if ( ![self hasRequiredAssetsInNativeAd: isTemplateAd nativeAdAssets: assets] )
+        if ( isTemplateAd && ![assets.title al_isValidString] )
         {
             [self.parentAdapter e: @"Native ad (%@) does not have required assets.", nativeAd];
             [self.delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
@@ -841,6 +862,11 @@
                     UIImageView *mediaImageView = [[UIImageView alloc] initWithImage: image.image];
                     mediaImageView.contentMode = UIViewContentModeScaleAspectFit;
                     builder.mediaView = mediaImageView;
+                    if ( ALSdk.versionCode >= 11040299 )
+                    {
+                        MANativeAdImage *mainImage = [[MANativeAdImage alloc] initWithImage: image.image];
+                        [builder performSelector: @selector(setMainImage:) withObject: mainImage];
+                    }
                 }
             }
         }];
@@ -878,21 +904,6 @@
     return [ALUtils topViewControllerFromKeyWindow];
 }
 
-- (BOOL)hasRequiredAssetsInNativeAd:(BOOL)isTemplateAd nativeAdAssets:(SMANativeAdAssets *)assets
-{
-    if ( isTemplateAd )
-    {
-        return [assets.title al_isValidString];
-    }
-    else
-    {
-        return [assets.title al_isValidString]
-        && [assets.cta al_isValidString]
-        && assets.images.count > 0
-        && assets.images.firstObject.image;
-    }
-}
-
 @end
 
 @implementation MASmaatoNativeAd
@@ -909,7 +920,8 @@
 
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
-    if ( !self.parentAdapter.nativeAdRenderer )
+    SMANativeAdRenderer *nativeAdRenderer = self.parentAdapter.nativeAdRenderer;
+    if ( !nativeAdRenderer )
     {
         [self.parentAdapter e: @"Failed to register native ad views: native ad renderer is nil."];
         return;

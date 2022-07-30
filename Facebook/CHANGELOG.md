@@ -1,5 +1,31 @@
 # Changelog
 
+## 6.11.2.1
+* Use local scope copy of native ad while preparing view.
+* Update privacy settings before collecting signal. 
+
+## 6.11.2.0
+* Certified with Facebook SDK 6.11.2.
+
+## 6.11.1.0
+* Certified with Facebook SDK 6.11.1.
+
+## 6.10.0.3
+* Add support for providing native media content aspect ratio in `MANativeAdView`.
+* Distribute adapter as an XCFramework.
+
+## 6.10.0.2
+* Downgrade Facebook SDK to 6.9.0 due to instability in 6.10.0. (Issue: https://github.com/AppLovin/AppLovin-MAX-SDK-iOS/issues/99)
+
+## 6.10.0.1
+* Remove check for manual native ad assets.
+
+## 6.10.0.0
+* Certified with Facebook SDK 6.10.0.
+
+## 6.9.0.10
+* Update error code mapping for SDK error reports.
+
 ## 6.9.0.9
 * Add support for passing in a presenting view controller.
 

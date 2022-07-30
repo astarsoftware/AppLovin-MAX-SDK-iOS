@@ -1,5 +1,38 @@
 # Changelog
 
+## 4.3.0.0
+* Certified with UnityAds SDK 4.3.0.
+
+## 4.2.1.1
+* Distribute adapter as an XCFramework.
+* Silence API deprecation warnings.
+* Update consent status before collecting signal. 
+
+## 4.2.1.0
+* Certified with UnityAds SDK 4.2.1.
+
+## 4.2.0.0
+* Certified with UnityAds SDK 4.2.0.
+
+## 4.1.0.3
+* Update ad display failed error code.
+
+## 4.1.0.2
+* Set UnityAds "adapter_version" metadata correctly.
+
+## 4.1.0.1
+* Fix init failure from `[mediationMetaData setValue: ADAPTER_VERSION forKey: @"adapter_version"];`.
+
+## 4.1.0.0
+* Certified with UnityAds SDK 4.1.0.
+* Remove checks for UnityAds SDK being initialized before loading ads.
+
+## 4.0.1.3
+* Add support for COPPA. 
+
+## 4.0.1.2
+* Fix privacy consent by using `commit()` after each value is set to the metadata.
+
 ## 4.0.1.1
 * Add support for passing in a presenting view controller.
 

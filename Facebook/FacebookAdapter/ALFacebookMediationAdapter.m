@@ -10,7 +10,7 @@
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"6.9.0.9"
+#define ADAPTER_VERSION @"6.11.2.1"
 #define MEDIATION_IDENTIFIER [NSString stringWithFormat: @"APPLOVIN_%@:%@", [ALSdk version], self.adapterVersion]
 
 @interface ALFacebookMediationAdapterInterstitialAdDelegate : NSObject<FBInterstitialAdDelegate>
@@ -200,6 +200,8 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
 {
     [self log: @"Collecting signal..."];
     
+    [self updateAdSettingsWithParameters: parameters];
+    
     NSString *signal = FBAdSettings.bidderToken;
     [delegate didCollectSignal: signal];
 }
@@ -358,6 +360,7 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
     
     [self updateAdSettingsWithParameters: parameters];
     
+    // NOTE: FB native is no longer supported in banners but is kept in for backwards compatibility for existing users.
     if ( isNative )
     {
         self.nativeAd = [[FBNativeAd alloc] initWithPlacementID: placementIdentifier];
@@ -511,22 +514,24 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
     switch ( facebookErrorCode )
     {
         case 1000: // Network Error
-            adapterError = MAAdapterError.noConnection; // -5003
+            adapterError = MAAdapterError.noConnection;
             break;
         case 1001: // No Fill
-            adapterError = MAAdapterError.noFill; // 204
+            adapterError = MAAdapterError.noFill;
             break;
         case 1002: // Ad Load Too Frequently
+        case 1203: // Not An App Admin, Developer or Tester
             adapterError = MAAdapterError.invalidLoadState;
             break;
         case 1011: // Display Format Mismatch
-            adapterError = MAAdapterError.invalidConfiguration; // -5202
+        case 1012: // Unsupported SDK Version for New Apps
+            adapterError = MAAdapterError.invalidConfiguration;
             break;
         case 2000: // Server Error
-            adapterError = MAAdapterError.serverError; // -5206
+            adapterError = MAAdapterError.serverError;
             break;
         case 2001: // Internal Error - actually a timeout error
-            adapterError = MAAdapterError.timeout; // -5206 (to be changed)
+            adapterError = MAAdapterError.timeout;
             break;
     }
     
@@ -562,7 +567,7 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
     
     NSString *templateName = [serverParameters al_stringForKey: @"template" defaultValue: @""];
     BOOL isTemplateAd = [templateName al_isValidString];
-    if ( ![self hasRequiredAssetsInAd: nativeAd isTemplateAd: isTemplateAd] )
+    if ( isTemplateAd && ![nativeAd.headline al_isValidString] )
     {
         [self e: @"Native ad (%@) does not have required assets.", nativeAd];
         [delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
@@ -588,16 +593,31 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
             }
 #pragma clang diagnostic pop
             
+            CGFloat mediaContentAspectRatio = 0.0f;
             if ( self.nativeBannerAd )
             {
                 // Facebook true native banners do not provide media views so use icon asset in place of it
                 UIImageView *mediaImageView = [[UIImageView alloc] initWithImage: nativeAd.iconImage];
                 builder.mediaView = mediaImageView;
+                
+                mediaContentAspectRatio = nativeAd.iconImage.size.width / nativeAd.iconImage.size.height;
             }
             else
             {
-                builder.mediaView = [[FBMediaView alloc] init];
+                FBMediaView *mediaView = [[FBMediaView alloc] init];
+                builder.mediaView = mediaView;
+                
+                mediaContentAspectRatio = mediaView.aspectRatio;
             }
+            
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+            // Introduced in 11.4.0
+            if ( [builder respondsToSelector: @selector(setMediaContentAspectRatio:)] )
+            {
+                [builder performSelector: @selector(setMediaContentAspectRatio:) withObject: @(mediaContentAspectRatio)];
+            }
+#pragma clang diagnostic pop
             
             FBAdOptionsView *adOptionsView = [[FBAdOptionsView alloc] init];
             adOptionsView.nativeAd = nativeAd;
@@ -607,20 +627,6 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
         
         [delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
     });
-}
-
-- (BOOL)hasRequiredAssetsInAd:(FBNativeAdBase *)nativeAd isTemplateAd:(BOOL)isTemplateAd
-{
-    if ( isTemplateAd )
-    {
-        return [nativeAd.headline al_isValidString];
-    }
-    else
-    {
-        // NOTE: Media view is created and will always be non-nil.
-        return [nativeAd.headline al_isValidString]
-        && [nativeAd.callToAction al_isValidString];
-    }
 }
 
 @end
@@ -1183,7 +1189,9 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
 
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
-    if ( !self.parentAdapter.nativeAd && !self.parentAdapter.nativeBannerAd )
+    FBNativeAd *nativeAd = self.parentAdapter.nativeAd;
+    FBNativeBannerAd *nativeBannerAd = self.parentAdapter.nativeBannerAd;
+    if ( !nativeAd && !nativeBannerAd )
     {
         [self.parentAdapter e: @"Failed to register native ad views: native ad is nil."];
         return;

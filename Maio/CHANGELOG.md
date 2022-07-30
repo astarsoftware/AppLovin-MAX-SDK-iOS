@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.2.0
+* Certified with Maio SDK 1.6.2.
+* Distribute adapter as an XCFramework.
+
+## 1.6.1.1
+* Update ad display failed error code.
+
+## 1.6.1.0
+* Certified with Maio SDK 1.6.1.
+
 ## 1.5.8.1
 * Remove `ALMaioZoneIds` since it is unused.
 * Update open source versions to allow compilation with AppLovin SDK v11.0.0+.

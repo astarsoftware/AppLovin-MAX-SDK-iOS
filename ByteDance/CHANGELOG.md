@@ -1,5 +1,52 @@
 # Changelog
 
+## 4.6.1.3.0
+* Certified with ByteDance SDK 4.6.1.3.
+
+## 4.5.2.8.1
+* Update privacy settings before collecting signal. 
+
+## 4.5.2.8.0
+* Certified with ByteDance SDK 4.5.2.8.
+
+## 4.5.2.7.0
+* Certified with ByteDance SDK 4.5.2.7.
+
+## 4.5.2.4.2
+* Downgrade ByteDance SDK to 4.3.1.9 due to discontinued support for `-all_load` linker flag resulting in duplicate symbol warnings.
+* Use local scope copy of native ad while preparing view.
+
+## 4.5.2.4.1
+* Add support for returning the main image asset in `MANativeAd` for native ads.
+
+## 4.5.2.4.0
+* Certified with ByteDance SDK 4.5.2.4.
+
+## 4.5.2.3.0
+* Certified with ByteDance SDK 4.5.2.3.
+
+## 4.5.1.3.0
+* Certified with ByteDance SDK 4.5.1.3.
+* Distribute adapter as an XCFramework.
+
+## 4.3.1.9.1
+* Update ad display failed error code.
+
+## 4.3.1.9.0
+* Certified with ByteDance SDK 4.3.1.9.
+
+## 4.3.0.5.2
+* Update to check SDK initialization status before collecting signal.
+
+## 4.3.0.5.1
+* Remove check for manual native ad assets.
+
+## 4.3.0.5.0
+* Certified with ByteDance SDK 4.3.0.5.
+
+## 4.3.0.2.3
+* Fix UI thread assertion crashes by running ad view and native ad creation and loads on main thread.
+
 ## 4.3.0.2.2
 * Add support for passing in a presenting view controller.
 

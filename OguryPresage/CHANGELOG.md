@@ -1,6 +1,25 @@
 # Changelog
 
-## x.x.x.x
+## 2.6.2.1
+* Update privacy settings before collecting signal. 
+
+## 2.6.2.0
+* Certified with OguryPresage SDK 2.1.0.
+* Distribute adapter as an XCFramework.
+* Silence API deprecation warnings.
+
+## 2.6.1.1
+* Update ad display failed error code.
+
+## 2.6.1.0
+* Certified with OguryPresage SDK 2.0.1.
+* Remove `OguryChoiceManager` dependency from podspec and Podfile as it is now part of `OgurySdk` pod.
+
+## 2.6.0.1
+* Add support for passing in a presenting view controller.
+
+## 2.6.0.0
+* Use Ogury SDK 2.0.0 and Ogury Ads 3.0.0. Support for Header Bidding.
 * Update open source versions to allow compilation with AppLovin SDK v11.0.0+.
 
 ## 2.5.1.0

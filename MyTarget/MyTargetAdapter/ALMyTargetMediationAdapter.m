@@ -9,7 +9,7 @@
 #import "ALMyTargetMediationAdapter.h"
 #import <myTargetSDK/MyTargetSDK.h>
 
-#define ADAPTER_VERSION @"5.15.0.2"
+#define ADAPTER_VERSION @"5.15.2.2"
 
 @interface ALMyTargetMediationAdapterInterstitialAdDelegate : NSObject<MTRGInterstitialAdDelegate>
 @property (nonatomic,   weak) ALMyTargetMediationAdapter *parentAdapter;
@@ -116,6 +116,8 @@
 - (void)collectSignalWithParameters:(id<MASignalCollectionParameters>)parameters andNotify:(id<MASignalCollectionDelegate>)delegate
 {
     [self log: @"Collecting signal..."];
+    
+    [self updatePrivacyStates: parameters];
     
     NSString *signal = [MTRGManager getBidderToken];
     [delegate didCollectSignal: signal];
@@ -265,7 +267,7 @@
 
 #pragma mark - Helper Methods
 
-- (void)updatePrivacyStates:(id<MAAdapterResponseParameters>)parameters
+- (void)updatePrivacyStates:(id<MAAdapterParameters>)parameters
 {
     if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
     {
@@ -559,8 +561,8 @@
     
     NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
     BOOL isTemplateAd = [templateName al_isValidString];
-    
-    if ( ![self hasRequiredAssetsInAd: nativeAd isTemplateAd: isTemplateAd] )
+    MTRGNativePromoBanner *banner = nativeAd.banner;
+    if ( isTemplateAd && ![banner.title al_isValidString] )
     {
         [self.parentAdapter e: @"Native ad (%@) does not have required assets.", nativeAd];
         [self.delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
@@ -583,7 +585,23 @@
             builder.icon = [[MANativeAdImage alloc] initWithURL: [NSURL URLWithString: promoBanner.icon.url]];
         }
         
-        builder.mediaView = [MTRGNativeViewsFactory createMediaAdView];
+        MANativeAdImage *mainImage = nil;
+        if ( promoBanner.image.image )
+        {
+            mainImage = [[MANativeAdImage alloc] initWithImage: promoBanner.image.image];
+        }
+        else
+        {
+            mainImage = [[MANativeAdImage alloc] initWithURL: [NSURL URLWithString: promoBanner.image.url]];
+        }
+        
+        if ( ALSdk.versionCode >= 11040299 )
+        {
+            [builder performSelector: @selector(setMainImage:) withObject: mainImage];
+        }
+        
+        MTRGMediaAdView *mediaView = [MTRGNativeViewsFactory createMediaAdView];
+        builder.mediaView = mediaView;
         
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
@@ -591,6 +609,15 @@
         if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
         {
             [builder performSelector: @selector(setAdvertiser:) withObject: promoBanner.advertisingLabel];
+        }
+#pragma clang diagnostic pop
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+        // Introduced in 11.4.0
+        if ( [builder respondsToSelector: @selector(setMediaContentAspectRatio:)] )
+        {
+            [builder performSelector: @selector(setMediaContentAspectRatio:) withObject: @(mediaView.aspectRatio)];
         }
 #pragma clang diagnostic pop
     }];
@@ -657,23 +684,6 @@
 - (void)onImageLoadWithNativeAd:(MTRGNativeAd *)nativeAd
 {
     [self.parentAdapter log: @"Native ad image loaded: %@", self.slotId];
-}
-
-#pragma mark - Helper Methods
-
-- (BOOL)hasRequiredAssetsInAd:(MTRGNativeAd *)nativeAd isTemplateAd:(BOOL)isTemplateAd
-{
-    MTRGNativePromoBanner *banner = nativeAd.banner;
-    
-    if ( isTemplateAd )
-    {
-        return [banner.title al_isValidString];
-    }
-    else
-    {
-        // NOTE: Media view is created and will always be non-nil.
-        return [banner.title al_isValidString] && [banner.ctaText al_isValidString];
-    }
 }
 
 @end

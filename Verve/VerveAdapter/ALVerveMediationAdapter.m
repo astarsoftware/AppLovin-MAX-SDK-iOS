@@ -9,7 +9,7 @@
 #import "ALVerveMediationAdapter.h"
 #import <HyBid.h>
 
-#define ADAPTER_VERSION @"2.11.1.2"
+#define ADAPTER_VERSION @"2.14.0.0"
 
 @interface ALVerveMediationAdapterInterstitialAdDelegate : NSObject<HyBidInterstitialAdDelegate>
 @property (nonatomic, weak) ALVerveMediationAdapter *parentAdapter;
@@ -138,6 +138,14 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 {
     [self log: @"Loading interstitial ad"];
     
+    if ( ![HyBid isInitialized] )
+    {
+        [self log: @"Verve SDK is not initialized: failing interstitial ad load..."];
+        [delegate didFailToLoadInterstitialAdWithError: MAAdapterError.notInitialized];
+        
+        return;
+    }
+    
     [self updateLocationCollectionEnabled: parameters];
     [self updateConsentWithParameters: parameters];
     [self updateMuteStateForParameters: parameters];
@@ -154,12 +162,22 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
     
     if ( [self.interstitialAd isReady] )
     {
-        [self.interstitialAd showFromViewController: [ALUtils topViewControllerFromKeyWindow]];
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.interstitialAd showFromViewController: presentingViewController];
     }
     else
     {
         [self log: @"Interstitial ad not ready"];
-        [delegate didFailToDisplayInterstitialAdWithError: MAAdapterError.adNotReady];
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -168,6 +186,14 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 - (void)loadRewardedAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MARewardedAdapterDelegate>)delegate
 {
     [self log: @"Loading rewarded ad"];
+    
+    if ( ![HyBid isInitialized] )
+    {
+        [self log: @"Verve SDK is not initialized: failing rewarded ad load..."];
+        [delegate didFailToLoadRewardedAdWithError: MAAdapterError.notInitialized];
+        
+        return;
+    }
     
     [self updateLocationCollectionEnabled: parameters];
     [self updateConsentWithParameters: parameters];
@@ -186,12 +212,23 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
     if ( [self.rewardedAd isReady] )
     {
         [self configureRewardForParameters: parameters];
-        [self.rewardedAd showFromViewController: [ALUtils topViewControllerFromKeyWindow]];
+        
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.rewardedAd showFromViewController: presentingViewController];
     }
     else
     {
         [self log: @"Rewarded ad not ready"];
-        [delegate didFailToDisplayRewardedAdWithError: MAAdapterError.adNotReady];
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -200,6 +237,14 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 - (void)loadAdViewAdForParameters:(id<MAAdapterResponseParameters>)parameters adFormat:(MAAdFormat *)adFormat andNotify:(id<MAAdViewAdapterDelegate>)delegate
 {
     [self log: @"Loading %@ ad view ad...", adFormat.label];
+    
+    if ( ![HyBid isInitialized] )
+    {
+        [self log: @"Verve SDK is not initialized: failing %@ ad load...", adFormat.label];
+        [delegate didFailToLoadAdViewAdWithError: MAAdapterError.notInitialized];
+        
+        return;
+    }
     
     [self updateLocationCollectionEnabled: parameters];
     [self updateConsentWithParameters: parameters];

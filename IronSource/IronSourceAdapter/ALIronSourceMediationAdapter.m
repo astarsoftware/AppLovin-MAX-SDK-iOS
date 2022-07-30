@@ -9,7 +9,7 @@
 #import <IronSource/IronSource.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"7.2.1.0.1"
+#define ADAPTER_VERSION @"7.2.3.1.0"
 
 @interface ALIronSourceMediationAdapterRouter : ALMediationAdapterRouter<ISDemandOnlyInterstitialDelegate, ISDemandOnlyRewardedVideoDelegate, ISLogDelegate>
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
@@ -140,7 +140,7 @@
     {
         [self log: @"Unable to show ironSource interstitial - no ad loaded for instance ID: %@", instanceID];
         [self.router didFailToDisplayAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter interstitialRouterIdentifierForInstanceID: instanceID]
-                                                        error: MAAdapterError.adNotReady];
+                                                        error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -198,7 +198,7 @@
     {
         [self log: @"Unable to show ironSource rewarded - no ad loaded for instance ID: %@", instanceID];
         [self.router didFailToDisplayAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceID]
-                                                        error: MAAdapterError.adNotReady];
+                                                        error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -326,8 +326,15 @@
 - (void)interstitialDidFailToShowWithError:(NSError *)error instanceId:(NSString *)instanceId
 {
     [self log: @"Interstitial failed to show for instance ID: %@ with error: %@", instanceId, error];
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     [self didFailToDisplayAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter interstitialRouterIdentifierForInstanceID: instanceId]
-                                             error: [ALIronSourceMediationAdapterRouter toMaxError: error]];
+                                             error: [MAAdapterError errorWithCode: -4205
+                                                                      errorString: @"Ad Display Failed"
+                                                           thirdPartySdkErrorCode: error.code
+                                                        thirdPartySdkErrorMessage: error.localizedDescription]];
+#pragma clang diagnostic pop
 }
 
 - (void)didClickInterstitial:(NSString *)instanceId
@@ -401,8 +408,15 @@
 - (void)rewardedVideoDidFailToShowWithError:(NSError *)error instanceId:(NSString *)instanceId
 {
     [self log: @"Rewarded ad failed to show for instance ID: %@ with error: %@", instanceId, error];
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     [self didFailToDisplayAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceId]
-                                             error: [ALIronSourceMediationAdapterRouter toMaxError: error]];
+                                             error: [MAAdapterError errorWithCode: -4205
+                                                                      errorString: @"Ad Display Failed"
+                                                           thirdPartySdkErrorCode: error.code
+                                                        thirdPartySdkErrorMessage: error.localizedDescription]];
+#pragma clang diagnostic pop
 }
 
 - (void)rewardedVideoDidClick:(NSString *)instanceId

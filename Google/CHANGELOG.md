@@ -1,5 +1,56 @@
 # Changelog
 
+## 9.8.0.0
+* Certified with Google SDK 9.8.0.
+
+## 9.7.0.1
+* Add support for DV360 Bidding by updating the requester type (`requester_type_3`) and request agent (`applovin_dv360`).
+
+## 9.7.0.0
+* Certified with Google SDK 9.7.0.
+* Use local scope copy of native ad while preparing view.
+
+## 9.6.0.2
+* Add support for returning the main image asset in `MANativeAd` for native ads.
+
+## 9.6.0.1
+* Fix usage of incorrect pre-processor macros for silencing deprecation warnings.
+
+## 9.6.0.0
+* Certified with Google SDK 9.6.0.
+* Silence API deprecation warnings.
+
+## 9.5.0.0
+* Certified with Google SDK 9.5.0.
+
+## 9.4.0.2
+* Add support for providing native media content aspect ratio in `MANativeAdView`.
+* Distribute adapter as an XCFramework.
+
+## 9.4.0.1
+* Update ad display failed error code.
+
+## 9.4.0.0
+* Certified with Google SDK 9.4.0.
+
+## 9.3.0.2
+* Add ability to set [content mapping URLs](https://support.google.com/admob/answer/11050896) via local extra parameters by calling `setLocalExtraParameterForKey: "google_content_url" value: NSString` or set multiple URLs by calling `setLocalExtraParameterForKey: "google_neighbouring_content_url_strings" value: NSArray<NSString *>`.
+
+## 9.3.0.1
+* Remove check for manual native ad assets.
+
+## 9.3.0.0
+* Certified with Google SDK 9.3.0.
+
+## 9.2.0.1
+* Add ability to set [maximum ad content rating](https://support.google.com/admob/answer/10477886) via local extra parameters by calling `setLocalExtraParameterForKey: "google_max_ad_content_rating" value: NSString`.
+
+## 9.2.0.0
+* Certified with Google SDK 9.2.0.
+
+## 9.1.0.0
+* Certified with Google SDK 9.1.0.
+
 ## 8.13.0.11
 * Add support for passing in a presenting view controller.
 

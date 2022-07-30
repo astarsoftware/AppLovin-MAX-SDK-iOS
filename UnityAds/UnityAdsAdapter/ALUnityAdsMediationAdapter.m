@@ -10,7 +10,7 @@
 #import <UnityAds/UnityAds.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"4.0.1.1"
+#define ADAPTER_VERSION @"4.3.0.0"
 
 @interface ALUnityAdsInitializationDelegate : NSObject<UnityAdsInitializationDelegate>
 @property (nonatomic, weak) ALUnityAdsMediationAdapter *parentAdapter;
@@ -45,10 +45,6 @@
 @end
 
 @implementation ALUnityAdsMediationAdapter
-
-static NSString *const kMAKeyGameID = @"game_id";
-static NSString *const kMAKeySetMediationIdentifier = @"set_mediation_identifier";
-
 static ALAtomicBoolean *ALUnityAdsInitialized;
 static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerMin;
 
@@ -67,16 +63,14 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
     if ( [ALUnityAdsInitialized compareAndSet: NO update: YES] )
     {
         NSDictionary<NSString *, id> *serverParameters = parameters.serverParameters;
-        NSString *gameId = [serverParameters al_stringForKey: kMAKeyGameID];
+        NSString *gameId = [serverParameters al_stringForKey: @"game_id"];
         [self log: @"Initializing UnityAds SDK with game id: %@...", gameId];
         
-        if ( [serverParameters al_numberForKey: kMAKeySetMediationIdentifier].boolValue )
-        {
-            UADSMediationMetaData *mediationMetaData = [[UADSMediationMetaData alloc] init];
-            [mediationMetaData setName: @"AppLovin"];
-            [mediationMetaData setVersion: [ALSdk version]];
-            [mediationMetaData commit];
-        }
+        UADSMediationMetaData *mediationMetaData = [[UADSMediationMetaData alloc] init];
+        [mediationMetaData setName: @"MAX"];
+        [mediationMetaData setVersion: [ALSdk version]];
+        [mediationMetaData set: @"adapter_version" value: ADAPTER_VERSION];
+        [mediationMetaData commit];
         
         [UnityAds setDebugMode: [parameters isTesting]];
         
@@ -122,8 +116,12 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 {
     [self log: @"Collecting signal..."];
     
-    NSString *signal = [UnityAds getToken];
-    [delegate didCollectSignal: signal];
+    [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
+    
+    [UnityAds getToken:^(NSString *signal) {
+        [self log: @"Signal collected"];
+        [delegate didCollectSignal: signal];
+    }];
 }
 
 #pragma mark - MAInterstitialAdapter Methods
@@ -132,14 +130,6 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 {
     NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading %@interstitial ad for placement \"%@\"...", ( [parameters.bidResponse al_isValidString] ? @"bidding " : @"" ), placementIdentifier];
-    
-    if ( ![UnityAds isInitialized] )
-    {
-        [self log: @"Unity Ads SDK is not initialized: failing interstitial ad load..."];
-        [delegate didFailToLoadInterstitialAdWithError: MAAdapterError.notInitialized];
-        
-        return;
-    }
     
     [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
     
@@ -189,15 +179,6 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 {
     NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading %@rewarded ad for placement \"%@\"...", ( [parameters.bidResponse al_isValidString] ? @"bidding " : @"" ), placementIdentifier];
-    
-    if ( ![UnityAds isInitialized] )
-    {
-        [self log: @"Unity Ads SDK is not initialized: failing rewarded ad load..."];
-        [delegate didFailToLoadRewardedAdWithError: MAAdapterError.notInitialized];
-        
-        return;
-    }
-    
     
     [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
     
@@ -252,15 +233,6 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 {
     NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading banner ad for placement \"%@\"...", placementIdentifier];
-    
-    if ( ![UnityAds isInitialized] )
-    {
-        [self log: @"Unity Ads SDK is not initialized: failing banner ad load..."];
-        [delegate didFailToLoadAdViewAdWithError: MAAdapterError.notInitialized];
-        
-        return;
-    }
-    
     
     [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
     
@@ -422,6 +394,7 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
         if ( hasUserConsent )
         {
             [privacyConsentMetaData set: @"gdpr.consent" value: @(hasUserConsent.boolValue)];
+            [privacyConsentMetaData commit];
         }
     }
     
@@ -432,10 +405,19 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
         if ( isDoNotSell )
         {
             [privacyConsentMetaData set: @"privacy.consent" value: @(!isDoNotSell.boolValue)]; // isDoNotSell means user has opted out and is equivalent to NO.
+            [privacyConsentMetaData commit];
         }
     }
     
+    [privacyConsentMetaData set: @"privacy.mode" value: @"mixed"];
     [privacyConsentMetaData commit];
+    
+    NSNumber *isAgeRestrictedUser = [self privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
+    if ( isAgeRestrictedUser )
+    {
+        [privacyConsentMetaData set: @"user.nonbehavioral" value: @(isAgeRestrictedUser.boolValue)];
+        [privacyConsentMetaData commit];
+    }
 }
 
 - (nullable NSNumber *)privacySettingForSelector:(SEL)selector fromParameters:(id<MAAdapterParameters>)parameters
@@ -527,7 +509,13 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 {
     [self.parentAdapter log: @"Interstitial placement \"%@\" failed to display with error: %ld: %@", placementId, error, message];
     
-    MAAdapterError *adapterError = [ALUnityAdsMediationAdapter toMaxErrorWithShowError: error withMessage: message];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
+                                                     errorString: @"Ad Display Failed"
+                                          thirdPartySdkErrorCode: error
+                                       thirdPartySdkErrorMessage: message];
+#pragma clang diagnostic pop
     [self.delegate didFailToDisplayInterstitialAdWithError: adapterError];
 }
 
@@ -599,7 +587,13 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 {
     [self.parentAdapter log: @"Rewarded ad placement \"%@\" failed to display with error: %ld: %@", placementId, error, message];
     
-    MAAdapterError *adapterError = [ALUnityAdsMediationAdapter toMaxErrorWithShowError: error withMessage: message];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
+                                                     errorString: @"Ad Display Failed"
+                                          thirdPartySdkErrorCode: error
+                                       thirdPartySdkErrorMessage: message];
+#pragma clang diagnostic pop
     [self.delegate didFailToDisplayRewardedAdWithError: adapterError];
 }
 

@@ -14,7 +14,7 @@
 #import <MTGSDKBanner/MTGBannerAdView.h>
 #import <MTGSDKBanner/MTGBannerAdViewDelegate.h>
 
-#define ADAPTER_VERSION @"7.1.0.0.0"
+#define ADAPTER_VERSION @"7.1.8.0.0"
 
 // List of Mintegral error codes not defined in API, but in their docs
 //
@@ -257,17 +257,39 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
     if ( [self.bidInterstitialVideoManager isVideoReadyToPlayWithPlacementId: placementId unitId: unitId] )
     {
         [self log: @"Showing bidding interstitial..."];
-        [self.bidInterstitialVideoManager showFromViewController: [ALUtils topViewControllerFromKeyWindow]];
+        
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.bidInterstitialVideoManager showFromViewController: presentingViewController];
     }
     else if ( [self.interstitialVideoManager isVideoReadyToPlayWithPlacementId: placementId unitId: unitId] )
     {
         [self log: @"Showing mediated interstitial..."];
-        [self.interstitialVideoManager showFromViewController: [ALUtils topViewControllerFromKeyWindow]];
+        
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
+        [self.interstitialVideoManager showFromViewController: presentingViewController];
     }
     else
     {
         [self log: @"Unable to show interstitial - no ad loaded..."];
-        [delegate didFailToDisplayInterstitialAdWithError: MAAdapterError.adNotReady];
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -339,28 +361,48 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
     {
         [self log: @"Showing bidding rewarded ad..."];
         
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
+        
         [[MTGBidRewardAdManager sharedInstance] showVideoWithPlacementId: placementId
                                                                   unitId: unitId
                                                             withRewardId: rewardId
                                                                   userId: userId
                                                                 delegate: self.rewardedDelegate
-                                                          viewController: [ALUtils topViewControllerFromKeyWindow]];
+                                                          viewController: presentingViewController];
     }
     else if ( [[MTGRewardAdManager sharedInstance] isVideoReadyToPlayWithPlacementId: placementId unitId: unitId] )
     {
         [self log: @"Showing mediated rewarded ad..."];
+        
+        UIViewController *presentingViewController;
+        if ( ALSdk.versionCode >= 11020199 )
+        {
+            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
+        }
+        else
+        {
+            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+        }
         
         [[MTGRewardAdManager sharedInstance] showVideoWithPlacementId: placementId
                                                                unitId: unitId
                                                          withRewardId: rewardId
                                                                userId: userId
                                                              delegate: self.rewardedDelegate
-                                                       viewController: [ALUtils topViewControllerFromKeyWindow]];
+                                                       viewController: presentingViewController];
     }
     else
     {
         [self log: @"Unable to show rewarded ad - no ad loaded..."];
-        [delegate didFailToDisplayRewardedAdWithError: MAAdapterError.adNotReady];
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -445,6 +487,7 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
             adapterError = MAAdapterError.noFill;
             break;
         case kMTGErrorCodeConnectionLost:
+        case kMTGErrorCodeSocketIO:
             adapterError = MAAdapterError.noConnection;
             break;
         case kMTGErrorCodeDailyLimit:
@@ -479,6 +522,7 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
         case kMTGErrorCodeMaterialLoadFailed:
         case kMTGErrorCodeNoSupportPopupWindow:
         case kMTGErrorCodeFailedDiskIO:
+        case kMTGErrorCodeImageURLisEmpty:
             adapterError = MAAdapterError.internalError;
             break;
     }
@@ -569,7 +613,13 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
 {
     [self.parentAdapter log: @"Interstitial failed to show: %@", error];
     
-    MAAdapterError *adapterError = [ALMintegralMediationAdapter toMaxError: error];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
+                                                     errorString: @"Ad Display Failed"
+                                          thirdPartySdkErrorCode: error.code
+                                       thirdPartySdkErrorMessage: error.localizedDescription];
+#pragma clang diagnostic pop
     [self.delegate didFailToDisplayInterstitialAdWithError: adapterError];
 }
 
@@ -661,7 +711,13 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
 {
     [self.parentAdapter log: @"Rewarded ad failed to show: %@", error];
     
-    MAAdapterError *adapterError = [ALMintegralMediationAdapter toMaxError: error];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
+                                                     errorString: @"Ad Display Failed"
+                                          thirdPartySdkErrorCode: error.code
+                                       thirdPartySdkErrorMessage: error.localizedDescription];
+#pragma clang diagnostic pop
     [self.delegate didFailToDisplayRewardedAdWithError: adapterError];
 }
 
@@ -811,21 +867,21 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
     }
     
     MTGCampaign *campaign = nativeAds[0];
+    
     NSString *templateName = [self.serverParameters al_stringForKey: @"template"];
     BOOL isTemplateAd = [templateName al_isValidString];
-    
-    if ( [self hasRequiredAssets: campaign isTemplateAd: isTemplateAd] )
-    {
-        self.parentAdapter.nativeAdCampaign = campaign;
-        
-        [self.parentAdapter log: @"Native ad loaded for unit id: %@ placement id: %@", self.unitId, self.placementId];
-        [self processNativeAd: campaign unitId: self.unitId];
-    }
-    else
+    if ( isTemplateAd && ![campaign.appName al_isValidString] )
     {
         [self.parentAdapter log: @"Native ad failed to load for unit id: %@ placement id: %@ with error: missing required assets", self.unitId, self.placementId];
         [self.delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
+        
+        return;
     }
+    
+    self.parentAdapter.nativeAdCampaign = campaign;
+    
+    [self.parentAdapter log: @"Native ad loaded for unit id: %@ placement id: %@", self.unitId, self.placementId];
+    [self processNativeAd: campaign unitId: self.unitId];
 }
 
 - (void)nativeAdsFailedToLoadWithError:(NSError *)error bidNativeManager:(MTGBidNativeAdManager *)bidNativeManager
@@ -868,12 +924,21 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
     dispatch_group_t group = dispatch_group_create();
     
     __block MANativeAdImage *iconImage = nil;
+    __block MANativeAdImage *mainImage = nil;
     NSString *iconURL = campaign.iconUrl;
+    NSString *mainImageURL = campaign.imageUrl;
     if ( [iconURL al_isValidURL] )
     {
         [self.parentAdapter log: @"Fetching native ad icon: %@", iconURL];
         [self loadImageForURLString: iconURL group: group successHandler:^(UIImage *image) {
             iconImage = [[MANativeAdImage alloc] initWithImage: image];
+        }];
+    }
+    if ( [mainImageURL al_isValidString] )
+    {
+        [self.parentAdapter log: @"Fetching native ad main image: %@", mainImageURL];
+        [self loadImageForURLString: mainImageURL group: group successHandler:^(UIImage *image) {
+            mainImage = [[MANativeAdImage alloc] initWithImage: image];
         }];
     }
     
@@ -896,6 +961,10 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
                 builder.body = campaign.appDesc;
                 builder.callToAction = campaign.adCall;
                 builder.icon = iconImage;
+                if ( ALSdk.versionCode >= 11040299 )
+                {
+                    [builder performSelector: @selector(setMainImage:) withObject: mainImage];
+                }
                 builder.mediaView = mediaView;
                 builder.optionsView = adChoicesView;
             }];
@@ -938,20 +1007,6 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
             dispatch_group_leave(group);
         }] resume];
     });
-}
-
-- (BOOL)hasRequiredAssets:(MTGCampaign *)campaign isTemplateAd:(BOOL)isTemplateAd
-{
-    if ( isTemplateAd )
-    {
-        return [campaign.appName al_isValidString];
-    }
-    else
-    {
-        return [campaign.appName al_isValidString] &&
-        [campaign.adCall al_isValidString] &&
-        [campaign.imageUrl al_isValidURL];
-    }
 }
 
 #pragma mark MTGMediaViewDelegate methods
@@ -1001,6 +1056,7 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
 - (void)nativeAdImpressionWithType:(MTGAdSourceType)type mediaView:(MTGMediaView *)mediaView;
 {
     [self.parentAdapter log: @"Media view impression did start"];
+    [self.delegate didDisplayNativeAdWithExtraInfo: nil];
 }
 
 @end

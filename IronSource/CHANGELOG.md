@@ -1,5 +1,28 @@
 # Changelog
 
+## 7.2.3.1.0
+* Certified with IronSource SDK 7.2.3.1.
+
+## 7.2.3.0.0
+* Certified with IronSource SDK 7.2.3.0.
+
+## 7.2.2.1.0
+* Certified with IronSource SDK 7.2.2.1.
+
+## 7.2.2.0.0
+* Certified with IronSource SDK 7.2.2.0.
+* Distribute adapter as an XCFramework.
+* Silence API deprecation warnings.
+
+## 7.2.1.2.1
+* Update ad display failed error code.
+
+## 7.2.1.2.0
+* Certified with IronSource SDK 7.2.1.2.
+
+## 7.2.1.0.2
+* Downgrade IronSource SDK to 7.2.0.0, because newer SDK versions break AppLovin SDK's initialization logic.
+
 ## 7.2.1.0.1
 * Add support for passing in a presenting view controller.
 
@@ -7,7 +30,7 @@
 * Certified with IronSource SDK 7.2.1.0.
 
 ## 7.2.0.0.0
-* Certified with IronSource SDK 7.2.0.0.
+* Certified with IronSource SDK 7.2.0.
 
 ## 7.1.14.0.0
 * Certified with IronSource SDK 7.1.14.0.

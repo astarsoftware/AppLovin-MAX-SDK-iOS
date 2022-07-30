@@ -1,5 +1,26 @@
 # Changelog
 
+## 6.0.1.7
+* Update consent status before collecting signal. 
+
+## 6.0.1.6
+* Add support to set `hasUserConsent` on initialization.
+* Pass HyprMX error message for ad display errors.
+* Distribute adapter as an XCFramework.
+* Silence API deprecation warnings.
+
+## 6.0.1.5
+* Update ad display failed error code.
+
+## 6.0.1.4
+* Set GDPR consent status regardless of users' region.
+
+## 6.0.1.3
+* Remove setting GDPR consent status to `CONSENT_STATUS_UNKNOWN`.
+
+## 6.0.1.2
+* Add support for GDPR.
+
 ## 6.0.1.1
 * Update open source versions to allow compilation with AppLovin SDK v11.0.0+.
 * Add support for passing in a presenting view controller.

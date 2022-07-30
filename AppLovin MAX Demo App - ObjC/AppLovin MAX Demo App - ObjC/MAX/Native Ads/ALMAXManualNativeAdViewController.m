@@ -28,7 +28,7 @@
 {
     [super viewDidLoad];
     
-    UINib *nativeAdViewNib = [UINib nibWithNibName: @"NativeCustomAdView" bundle: NSBundle.mainBundle];
+    UINib *nativeAdViewNib = [UINib nibWithNibName: @"NativeManualAdView" bundle: NSBundle.mainBundle];
     self.nativeAdView = [nativeAdViewNib instantiateWithOwner: nil options: nil].firstObject;
     
     MANativeAdViewBinder *binder = [[MANativeAdViewBinder alloc] initWithBuilderBlock:^(MANativeAdViewBinderBuilder *builder) {
@@ -80,7 +80,7 @@
 
 #pragma mark - NativeAdDelegate Protocol
 
-- (void)didLoadNativeAd:(MANativeAdView *)nativeAdView forAd:(MAAd *)ad
+- (void)didLoadNativeAd:(nullable MANativeAdView *)nativeAdView forAd:(MAAd *)ad
 {
     [self logCallback: __PRETTY_FUNCTION__];
     
