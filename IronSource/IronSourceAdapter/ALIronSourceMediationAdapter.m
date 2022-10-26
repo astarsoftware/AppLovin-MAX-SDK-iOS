@@ -9,7 +9,7 @@
 #import <IronSource/IronSource.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"7.2.3.1.0"
+#define ADAPTER_VERSION @"7.2.5.1.0"
 
 @interface ALIronSourceMediationAdapterRouter : ALMediationAdapterRouter<ISDemandOnlyInterstitialDelegate, ISDemandOnlyRewardedVideoDelegate, ISLogDelegate>
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;

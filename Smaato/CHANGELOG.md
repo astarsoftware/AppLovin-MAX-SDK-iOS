@@ -1,5 +1,11 @@
 # Changelog
 
+## 21.7.8.0
+* Certified with Smaato SDK 21.7.8.
+
+## 21.7.7.0
+* Certified with Smaato SDK 21.7.7.
+
 ## 21.7.6.2
 * Use local scope copy of native ad while preparing view.
 * Update privacy settings before collecting signal. 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.5.0.0
+* Certified with BidMachine SDK 1.9.5.0.
+* Add CCPA support.
+
+## 1.9.4.8.0
+* Certified with BidMachine SDK 1.9.4.8.
+
 ## 1.9.4.1.2
 * Add support for passing creative id to SDK.
 

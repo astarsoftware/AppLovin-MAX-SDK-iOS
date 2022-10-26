@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.2.0.1
+* Add support for native ad view ads.
+* Call `-[YASNativeAd clear]` and `-[YASNativeAd destroy]` when destroying adapter instance.
+
+## 2.2.0.0
+* Certified with Yahoo Mobile SDK 1.2.0.
+
+## 2.1.0.0
+* Fix issue with calling Yahoo Mobile SDK's `applyCoppa` for false `isAgeRestrictedUser` values.  
+* Certified with Yahoo Mobile SDK 1.1.0.
+
 ## 2.0.0.7
 * Use local scope copy of native ad while preparing view.
 * Update privacy settings before collecting signal. 

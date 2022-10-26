@@ -1,6 +1,6 @@
 //
 //  ALGoogleMediationAdapter.m
-//  AppLovinSDK
+//  AppLovin MAX Google AdMob Adapter
 //
 //  Created by Santosh Bagadi on 8/31/18.
 //  Copyright © 2022 AppLovin Corporation. All rights reserved.
@@ -8,77 +8,23 @@
 
 #import "ALGoogleMediationAdapter.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
+#import "ALGoogleInterstitialDelegate.h"
+#import "ALGoogleAppOpenDelegate.h"
+#import "ALGoogleRewardedDelegate.h"
+#import "ALGoogleRewardedInterstitialDelegate.h"
+#import "ALGoogleAdViewDelegate.h"
+#import "ALGoogleNativeAdViewDelegate.h"
+#import "ALGoogleNativeAdDelegate.h"
+
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"9.8.0.0"
-
-@interface ALGoogleMediationAdapterInterstitialDelegate : NSObject<GADFullScreenContentDelegate>
-@property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
-@property (nonatomic, strong) NSString *placementIdentifier;
-@property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                  placementIdentifier:(NSString *)placementIdentifier
-                            andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
-@end
-
-@interface ALGoogleMediationAdapterRewardedInterstitialDelegate : NSObject<GADFullScreenContentDelegate>
-@property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
-@property (nonatomic, strong) NSString *placementIdentifier;
-@property (nonatomic, strong) id<MARewardedInterstitialAdapterDelegate> delegate;
-@property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                  placementIdentifier:(NSString *)placementIdentifier
-                            andNotify:(id<MARewardedInterstitialAdapterDelegate>)delegate;
-@end
-
-@interface ALGoogleMediationAdapterRewardedDelegate : NSObject<GADFullScreenContentDelegate>
-@property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
-@property (nonatomic, strong) NSString *placementIdentifier;
-@property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
-@property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                  placementIdentifier:(NSString *)placementIdentifier
-                            andNotify:(id<MARewardedAdapterDelegate>)delegate;
-@end
-
-@interface ALGoogleMediationAdapterAdViewDelegate : NSObject<GADBannerViewDelegate>
-@property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
-@property (nonatomic,   weak) MAAdFormat *adFormat;
-@property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                             adFormat:(MAAdFormat *)adFormat
-                            andNotify:(id<MAAdViewAdapterDelegate>)delegate;
-@end
-
-@interface ALGoogleMediationAdapterNativeAdViewDelegate : NSObject<GADNativeAdLoaderDelegate, GADAdLoaderDelegate, GADNativeAdDelegate>
-@property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
-@property (nonatomic,   weak) MAAdFormat *adFormat;
-@property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
-@property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                             adFormat:(MAAdFormat *)adFormat
-                     serverParameters:(NSDictionary<NSString *, id> *)serverParameters
-                            andNotify:(id<MAAdViewAdapterDelegate>)delegate;
-@end
-
-@interface ALGoogleMediationAdapterNativeAdDelegate : NSObject<GADNativeAdLoaderDelegate, GADAdLoaderDelegate, GADNativeAdDelegate>
-@property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
-@property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
-@property (nonatomic, strong) id<MANativeAdAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                     serverParameters:(NSDictionary<NSString *, id> *)serverParameters
-                            andNotify:(id<MANativeAdAdapterDelegate>)delegate;
-@end
-
-@interface MAGoogleNativeAd : MANativeAd
-@property (nonatomic, weak) ALGoogleMediationAdapter *parentAdapter;
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock;
-- (instancetype)initWithFormat:(MAAdFormat *)format builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock NS_UNAVAILABLE;
-@end
+#define ADAPTER_VERSION @"9.11.0.5"
 
 @interface ALGoogleMediationAdapter()
 
 @property (nonatomic, strong) GADInterstitialAd *interstitialAd;
+@property (nonatomic, strong) GADAppOpenAd *appOpenAd;
+@property (nonatomic, strong) GADInterstitialAd *appOpenInterstitialAd;
 @property (nonatomic, strong) GADRewardedInterstitialAd *rewardedInterstitialAd;
 @property (nonatomic, strong) GADRewardedAd *rewardedAd;
 @property (nonatomic, strong) GADBannerView *adView;
@@ -86,12 +32,14 @@
 @property (nonatomic, strong) GADAdLoader *nativeAdLoader;
 @property (nonatomic, strong) GADNativeAd *nativeAd;
 
-@property (nonatomic, strong) ALGoogleMediationAdapterInterstitialDelegate *interstitialAdapterDelegate;
-@property (nonatomic, strong) ALGoogleMediationAdapterRewardedInterstitialDelegate *rewardedInterstitialAdapterDelegate;
-@property (nonatomic, strong) ALGoogleMediationAdapterRewardedDelegate *rewardedAdapterDelegate;
-@property (nonatomic, strong) ALGoogleMediationAdapterAdViewDelegate *adViewAdapterDelegate;
-@property (nonatomic, strong) ALGoogleMediationAdapterNativeAdViewDelegate *nativeAdViewAdapterDelegate;
-@property (nonatomic, strong) ALGoogleMediationAdapterNativeAdDelegate *nativeAdAdapterDelegate;
+@property (nonatomic, strong) ALGoogleInterstitialDelegate *interstitialDelegate;
+@property (nonatomic, strong) ALGoogleAppOpenDelegate *appOpenDelegate;
+@property (nonatomic, strong) ALGoogleAppOpenDelegate *appOpenInterstitialAdDelegate;
+@property (nonatomic, strong) ALGoogleRewardedInterstitialDelegate *rewardedInterstitialDelegate;
+@property (nonatomic, strong) ALGoogleRewardedDelegate *rewardedDelegate;
+@property (nonatomic, strong) ALGoogleAdViewDelegate *adViewDelegate;
+@property (nonatomic, strong) ALGoogleNativeAdViewDelegate *nativeAdViewDelegate;
+@property (nonatomic, strong) ALGoogleNativeAdDelegate *nativeAdDelegate;
 
 @end
 
@@ -162,19 +110,27 @@ static NSString *ALGoogleSDKVersion;
     
     self.interstitialAd.fullScreenContentDelegate = nil;
     self.interstitialAd = nil;
-    self.interstitialAdapterDelegate = nil;
+    self.interstitialDelegate = nil;
+    
+    self.appOpenAd.fullScreenContentDelegate = nil;
+    self.appOpenAd = nil;
+    self.appOpenDelegate = nil;
+    
+    self.appOpenInterstitialAd.fullScreenContentDelegate = nil;
+    self.appOpenInterstitialAd = nil;
+    self.appOpenInterstitialAdDelegate   = nil;
     
     self.rewardedInterstitialAd.fullScreenContentDelegate = nil;
     self.rewardedInterstitialAd = nil;
-    self.rewardedInterstitialAdapterDelegate = nil;
+    self.rewardedInterstitialDelegate = nil;
     
     self.rewardedAd.fullScreenContentDelegate = nil;
     self.rewardedAd = nil;
-    self.rewardedAdapterDelegate = nil;
+    self.rewardedDelegate = nil;
     
     self.adView.delegate = nil;
     self.adView = nil;
-    self.adViewAdapterDelegate = nil;
+    self.adViewDelegate = nil;
     
     self.nativeAdLoader = nil;
     
@@ -184,7 +140,7 @@ static NSString *ALGoogleSDKVersion;
     // Remove the view from MANativeAdView in case the publisher decies to re-use the native ad view.
     [self.nativeAdView removeFromSuperview];
     self.nativeAdView = nil;
-    self.nativeAdViewAdapterDelegate = nil;
+    self.nativeAdViewDelegate = nil;
 }
 
 #pragma mark - MASignalProvider Methods
@@ -256,24 +212,22 @@ static NSString *ALGoogleSDKVersion;
             
             return;
         }
-		
-		
-		// astar
-		NSDictionary *data = @{
-			@"ResponseId": interstitialAd.responseInfo.responseIdentifier
-		};
-		
-		ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-		[adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"fullscreen" data:data];
-		
+        
+        // astar
+        NSDictionary *data = @{
+            @"ResponseId": interstitialAd.responseInfo.responseIdentifier
+        };
+        
+        ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+        [adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"fullscreen" data:data];
         
         [self log: @"Interstitial ad loaded: %@", placementIdentifier];
         
         self.interstitialAd = interstitialAd;
-        self.interstitialAdapterDelegate = [[ALGoogleMediationAdapterInterstitialDelegate alloc] initWithParentAdapter: self
-                                                                                                   placementIdentifier: placementIdentifier
-                                                                                                             andNotify: delegate];
-        self.interstitialAd.fullScreenContentDelegate = self.interstitialAdapterDelegate;
+        self.interstitialDelegate = [[ALGoogleInterstitialDelegate alloc] initWithParentAdapter: self
+                                                                            placementIdentifier: placementIdentifier
+                                                                                      andNotify: delegate];
+        self.interstitialAd.fullScreenContentDelegate = self.interstitialDelegate;
         
         NSString *responseId = self.interstitialAd.responseInfo.responseIdentifier;
         if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )
@@ -295,22 +249,145 @@ static NSString *ALGoogleSDKVersion;
     
     if ( self.interstitialAd )
     {
-        UIViewController *presentingViewController;
-        if ( ALSdk.versionCode >= 11020199 )
-        {
-            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
-        }
-        else
-        {
-            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
-        }
-        
+        UIViewController *presentingViewController = [self presentingViewControllerForParameters: parameters];
         [self.interstitialAd presentFromRootViewController: presentingViewController];
     }
     else
     {
         [self log: @"Interstitial ad failed to show: %@", placementIdentifier];
         [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+    }
+}
+
+#pragma mark - MAAppOpenAdapter Methods
+
+- (void)loadAppOpenAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MAAppOpenAdapterDelegateTemp>)delegate
+{
+    NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
+    BOOL isBiddingAd = [parameters.bidResponse al_isValidString];
+    BOOL isInterstitial = [parameters.serverParameters al_boolForKey: @"is_inter_placement"];
+    
+    [self log: @"Loading %@app open %@ad: %@...", ( isBiddingAd ? @"bidding " : @"" ), ( isInterstitial ? @"interstitial " : @"" ), placementIdentifier];
+    
+    [self updateMuteStateFromResponseParameters: parameters];
+    [self setRequestConfigurationWithParameters: parameters];
+    
+    if ( isInterstitial )
+    {
+        GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd
+                                                       adFormat: MAAdFormat.interstitial
+                                                 withParameters: parameters];
+        
+        [GADInterstitialAd loadWithAdUnitID: placementIdentifier
+                                    request: request
+                          completionHandler:^(GADInterstitialAd *_Nullable interstitialAd, NSError *_Nullable error) {
+            
+            if ( error )
+            {
+                MAAdapterError *adapterError = [ALGoogleMediationAdapter toMaxError: error];
+                [self log: @"App open interstitial ad (%@) failed to load with error: %@", placementIdentifier, adapterError];
+                [delegate didFailToLoadAppOpenAdWithError: adapterError];
+                
+                return;
+            }
+            
+            if ( !interstitialAd )
+            {
+                [self log: @"App open interstitial ad (%@) failed to load: ad is nil", placementIdentifier];
+                [delegate didFailToDisplayAppOpenAdWithError: MAAdapterError.adNotReady];
+                
+                return;
+            }
+            
+            [self log: @"App open interstitial ad loaded: %@", placementIdentifier];
+            
+            self.appOpenInterstitialAd = interstitialAd;
+            self.appOpenInterstitialAdDelegate = [[ALGoogleAppOpenDelegate alloc] initWithParentAdapter: self
+                                                                                    placementIdentifier: placementIdentifier
+                                                                                              andNotify: delegate];
+            self.appOpenInterstitialAd.fullScreenContentDelegate = self.appOpenInterstitialAdDelegate;
+            
+            NSString *responseId = self.appOpenInterstitialAd.responseInfo.responseIdentifier;
+            if ( [responseId al_isValidString] )
+            {
+                [delegate didLoadAppOpenAdWithExtraInfo: @{@"creative_id" : responseId}];
+            }
+            else
+            {
+                [delegate didLoadAppOpenAd];
+            }
+        }];
+    }
+    else
+    {
+        GADRequest *request = [self createAdRequestForBiddingAd: isBiddingAd
+                                                       adFormat: MAAdFormat.appOpen
+                                                 withParameters: parameters];
+        UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+        
+        [GADAppOpenAd loadWithAdUnitID: placementIdentifier
+                               request: request
+                           orientation: orientation
+                     completionHandler:^(GADAppOpenAd *_Nullable appOpenAd, NSError *_Nullable error) {
+            
+            if ( error )
+            {
+                MAAdapterError *adapterError = [ALGoogleMediationAdapter toMaxError: error];
+                [self log: @"App open ad (%@) failed to load with error: %@", placementIdentifier, adapterError];
+                [delegate didFailToLoadAppOpenAdWithError: adapterError];
+                
+                return;
+            }
+            
+            if ( !appOpenAd )
+            {
+                [self log: @"App open ad (%@) failed to load: ad is nil", placementIdentifier];
+                [delegate didFailToLoadAppOpenAdWithError: MAAdapterError.adNotReady];
+                
+                return;
+            }
+            
+            [self log: @"App open ad loaded: %@", placementIdentifier];
+            
+            self.appOpenAd = appOpenAd;
+            self.appOpenDelegate = [[ALGoogleAppOpenDelegate alloc] initWithParentAdapter: self
+                                                                      placementIdentifier: placementIdentifier
+                                                                                andNotify: delegate];
+            self.appOpenAd.fullScreenContentDelegate = self.appOpenDelegate;
+            
+            NSString *responseId = self.appOpenAd.responseInfo.responseIdentifier;
+            if ( [responseId al_isValidString] )
+            {
+                [delegate didLoadAppOpenAdWithExtraInfo: @{@"creative_id" : responseId}];
+            }
+            else
+            {
+                [delegate didLoadAppOpenAd];
+            }
+        }];
+    }
+}
+
+- (void)showAppOpenAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MAAppOpenAdapterDelegateTemp>)delegate
+{
+    NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
+    BOOL isInterstitial = [parameters.serverParameters al_boolForKey: @"is_inter_placement"];
+    [self log: @"Showing app open %@ad: %@...", ( isInterstitial ? @"interstitial " : @"" ), placementIdentifier];
+    
+    if ( self.appOpenInterstitialAd )
+    {
+        UIViewController *presentingViewController = [self presentingViewControllerForParameters: parameters];
+        [self.appOpenInterstitialAd presentFromRootViewController: presentingViewController];
+    }
+    else if ( self.appOpenAd )
+    {
+        UIViewController *presentingViewController = [self presentingViewControllerForParameters: parameters];
+        [self.appOpenAd presentFromRootViewController: presentingViewController];
+    }
+    else
+    {
+        [self log: @"App open ad failed to show: %@", placementIdentifier];
+        [delegate didFailToDisplayAppOpenAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
     }
 }
 
@@ -352,10 +429,10 @@ static NSString *ALGoogleSDKVersion;
         [self log: @"Rewarded interstitial ad loaded: %@", placementIdentifier];
         
         self.rewardedInterstitialAd = rewardedInterstitialAd;
-        self.rewardedInterstitialAdapterDelegate = [[ALGoogleMediationAdapterRewardedInterstitialDelegate alloc] initWithParentAdapter: self
-                                                                                                                   placementIdentifier: placementIdentifier
-                                                                                                                             andNotify: delegate];
-        self.rewardedInterstitialAd.fullScreenContentDelegate = self.rewardedInterstitialAdapterDelegate;
+        self.rewardedInterstitialDelegate = [[ALGoogleRewardedInterstitialDelegate alloc] initWithParentAdapter: self
+                                                                                            placementIdentifier: placementIdentifier
+                                                                                                      andNotify: delegate];
+        self.rewardedInterstitialAd.fullScreenContentDelegate = self.rewardedInterstitialDelegate;
         
         NSString *responseId = self.rewardedInterstitialAd.responseInfo.responseIdentifier;
         if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )
@@ -379,20 +456,10 @@ static NSString *ALGoogleSDKVersion;
     {
         [self configureRewardForParameters: parameters];
         
-        UIViewController *presentingViewController;
-        if ( ALSdk.versionCode >= 11020199 )
-        {
-            presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
-        }
-        else
-        {
-            presentingViewController = [ALUtils topViewControllerFromKeyWindow];
-        }
-        
+        UIViewController *presentingViewController = [self presentingViewControllerForParameters: parameters];
         [self.rewardedInterstitialAd presentFromRootViewController: presentingViewController userDidEarnRewardHandler:^{
-            
             [self log: @"Rewarded interstitial ad user earned reward: %@", placementIdentifier];
-            self.rewardedInterstitialAdapterDelegate.grantedReward = YES;
+            self.rewardedInterstitialDelegate.grantedReward = YES;
         }];
     }
     else
@@ -440,10 +507,10 @@ static NSString *ALGoogleSDKVersion;
         [self log: @"Rewarded ad loaded: %@", placementIdentifier];
         
         self.rewardedAd = rewardedAd;
-        self.rewardedAdapterDelegate = [[ALGoogleMediationAdapterRewardedDelegate alloc] initWithParentAdapter: self
-                                                                                           placementIdentifier: placementIdentifier
-                                                                                                     andNotify: delegate];
-        self.rewardedAd.fullScreenContentDelegate = self.rewardedAdapterDelegate;
+        self.rewardedDelegate = [[ALGoogleRewardedDelegate alloc] initWithParentAdapter: self
+                                                                    placementIdentifier: placementIdentifier
+                                                                              andNotify: delegate];
+        self.rewardedAd.fullScreenContentDelegate = self.rewardedDelegate;
         
         NSString *responseId = self.rewardedAd.responseInfo.responseIdentifier;
         if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )
@@ -466,10 +533,11 @@ static NSString *ALGoogleSDKVersion;
     if ( self.rewardedAd )
     {
         [self configureRewardForParameters: parameters];
-        [self.rewardedAd presentFromRootViewController: [ALUtils topViewControllerFromKeyWindow] userDidEarnRewardHandler:^{
-            
+        
+        UIViewController *presentingViewController = [self presentingViewControllerForParameters: parameters];
+        [self.rewardedAd presentFromRootViewController: presentingViewController userDidEarnRewardHandler:^{
             [self log: @"Rewarded ad user earned reward: %@", placementIdentifier];
-            self.rewardedAdapterDelegate.grantedReward = YES;
+            self.rewardedDelegate.grantedReward = YES;
         }];
     }
     else
@@ -503,17 +571,17 @@ static NSString *ALGoogleSDKVersion;
         GADNativeAdImageAdLoaderOptions *nativeAdImageAdLoaderOptions = [[GADNativeAdImageAdLoaderOptions alloc] init];
         nativeAdImageAdLoaderOptions.shouldRequestMultipleImages = (adFormat == MAAdFormat.mrec); // MRECs can handle multiple images via AdMob's media view
         
-        self.nativeAdViewAdapterDelegate = [[ALGoogleMediationAdapterNativeAdViewDelegate alloc] initWithParentAdapter: self
-                                                                                                              adFormat: adFormat
-                                                                                                      serverParameters: parameters.serverParameters
-                                                                                                             andNotify: delegate];
+        self.nativeAdViewDelegate = [[ALGoogleNativeAdViewDelegate alloc] initWithParentAdapter: self
+                                                                                       adFormat: adFormat
+                                                                               serverParameters: parameters.serverParameters
+                                                                                      andNotify: delegate];
         // Fetching the top view controller needs to be on the main queue
         dispatchOnMainQueue(^{
             self.nativeAdLoader = [[GADAdLoader alloc] initWithAdUnitID: placementIdentifier
                                                      rootViewController: [ALUtils topViewControllerFromKeyWindow]
                                                                 adTypes: @[GADAdLoaderAdTypeNative]
                                                                 options: @[nativeAdViewOptions, nativeAdImageAdLoaderOptions]];
-            self.nativeAdLoader.delegate = self.nativeAdViewAdapterDelegate;
+            self.nativeAdLoader.delegate = self.nativeAdViewDelegate;
             
             [self.nativeAdLoader loadRequest: request];
         });
@@ -527,10 +595,10 @@ static NSString *ALGoogleSDKVersion;
         self.adView.frame = (CGRect){.size = adSize.size};
         self.adView.adUnitID = placementIdentifier;
         self.adView.rootViewController = [ALUtils topViewControllerFromKeyWindow];
-        self.adViewAdapterDelegate = [[ALGoogleMediationAdapterAdViewDelegate alloc] initWithParentAdapter: self
-                                                                                                  adFormat: adFormat
-                                                                                                 andNotify: delegate];
-        self.adView.delegate = self.adViewAdapterDelegate;
+        self.adViewDelegate = [[ALGoogleAdViewDelegate alloc] initWithParentAdapter: self
+                                                                           adFormat: adFormat
+                                                                          andNotify: delegate];
+        self.adView.delegate = self.adViewDelegate;
         
         [self.adView loadRequest: request];
     }
@@ -558,9 +626,9 @@ static NSString *ALGoogleSDKVersion;
     NSString *templateName = [parameters.serverParameters al_stringForKey: @"template" defaultValue: @""];
     nativeAdImageAdLoaderOptions.shouldRequestMultipleImages = [templateName containsString: @"medium"];
     
-    self.nativeAdAdapterDelegate = [[ALGoogleMediationAdapterNativeAdDelegate alloc] initWithParentAdapter: self
-                                                                                          serverParameters: parameters.serverParameters
-                                                                                                 andNotify: delegate];
+    self.nativeAdDelegate = [[ALGoogleNativeAdDelegate alloc] initWithParentAdapter: self
+                                                                   serverParameters: parameters.serverParameters
+                                                                          andNotify: delegate];
     
     // Fetching the top view controller needs to be on the main queue
     dispatchOnMainQueue(^{
@@ -568,7 +636,7 @@ static NSString *ALGoogleSDKVersion;
                                                  rootViewController: [ALUtils topViewControllerFromKeyWindow]
                                                             adTypes: @[GADAdLoaderAdTypeNative]
                                                             options: @[nativeAdViewOptions, nativeAdImageAdLoaderOptions]];
-        self.nativeAdLoader.delegate = self.nativeAdAdapterDelegate;
+        self.nativeAdLoader.delegate = self.nativeAdDelegate;
         
         [self.nativeAdLoader loadRequest: request];
     });
@@ -632,18 +700,24 @@ static NSString *ALGoogleSDKVersion;
     {
         if ( isAdaptiveBanner )
         {
-            UIViewController *viewController = [ALUtils topViewControllerFromKeyWindow];
-            UIWindow *window = viewController.view.window;
-            CGRect frame = window.frame;
+            __block GADAdSize adSize;
             
-            // Use safe area insents when available.
-            if ( @available(iOS 11.0, *) )
-            {
-                frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
-            }
+            dispatchSyncOnMainQueue(^{
+                UIViewController *viewController = [ALUtils topViewControllerFromKeyWindow];
+                UIWindow *window = viewController.view.window;
+                CGRect frame = window.frame;
+                
+                // Use safe area insets when available.
+                if ( @available(iOS 11.0, *) )
+                {
+                    frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
+                }
+                
+                CGFloat viewWidth = CGRectGetWidth(frame);
+                adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth);
+            });
             
-            CGFloat viewWidth = CGRectGetWidth(frame);
-            return GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth);
+            return adSize;
         }
         else
         {
@@ -688,9 +762,7 @@ static NSString *ALGoogleSDKVersion;
     }
     else
     {
-        [NSException raise: NSInvalidArgumentException format: @"Unsupported ad format: %@", adFormat];
-        
-        return GADAdFormatBanner;
+        return GADAdFormatUnknown;
     }
 }
 
@@ -758,13 +830,10 @@ static NSString *ALGoogleSDKVersion;
         extraParameters[@"placement_req_id"] = eventIdentifier;
     }
     
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    if ( hasUserConsent && !hasUserConsent.boolValue )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-        if ( hasUserConsent && !hasUserConsent.boolValue )
-        {
-            extraParameters[@"npa"] = @"1"; // Non-personalized ads
-        }
+        extraParameters[@"npa"] = @"1"; // Non-personalized ads
     }
     
     if ( ALSdk.versionCode >= 61100 ) // Pre-beta versioning (6.14.0)
@@ -897,617 +966,16 @@ static NSString *ALGoogleSDKVersion;
     return NO;
 }
 
-@end
-
-@implementation ALGoogleMediationAdapterInterstitialDelegate
-
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                  placementIdentifier:(NSString *)placementIdentifier
-                            andNotify:(id<MAInterstitialAdapterDelegate>)delegate
+- (UIViewController *)presentingViewControllerForParameters:(id<MAAdapterResponseParameters>)parameters
 {
-    self = [super init];
-    if ( self )
+    if ( ALSdk.versionCode >= 11020199 )
     {
-        self.parentAdapter = parentAdapter;
-        self.placementIdentifier = placementIdentifier;
-        self.delegate = delegate;
-    }
-    return self;
-}
-
-- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Interstitial ad shown: %@", self.placementIdentifier];
-    [self.delegate didDisplayInterstitialAd];
-}
-
-- (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
-{
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
-                                                     errorString: @"Ad Display Failed"
-                                          thirdPartySdkErrorCode: error.code
-                                       thirdPartySdkErrorMessage: error.localizedDescription];
-#pragma clang diagnostic pop
-    
-    [self.parentAdapter log: @"Interstitial ad (%@) failed to show with error: %@", self.placementIdentifier, adapterError];
-    [self.delegate didFailToDisplayInterstitialAdWithError: adapterError];
-}
-
-- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Interstitial ad impression recorded: %@", self.placementIdentifier];
-}
-
-- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Interstitial ad click recorded: %@", self.placementIdentifier];
-    [self.delegate didClickInterstitialAd];
-}
-
-- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Interstitial ad hidden: %@", self.placementIdentifier];
-    [self.delegate didHideInterstitialAd];
-}
-
-@end
-
-@implementation ALGoogleMediationAdapterRewardedInterstitialDelegate
-
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                  placementIdentifier:(NSString *)placementIdentifier
-                            andNotify:(id<MARewardedInterstitialAdapterDelegate>)delegate
-{
-    self = [super init];
-    if ( self )
-    {
-        self.parentAdapter = parentAdapter;
-        self.placementIdentifier = placementIdentifier;
-        self.delegate = delegate;
-    }
-    return self;
-}
-
-- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Rewarded interstitial ad shown: %@", self.placementIdentifier];
-    
-    [self.delegate didDisplayRewardedInterstitialAd];
-    [self.delegate didStartRewardedInterstitialAdVideo];
-}
-
-- (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
-{
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
-                                                     errorString: @"Ad Display Failed"
-                                          thirdPartySdkErrorCode: error.code
-                                       thirdPartySdkErrorMessage: error.localizedDescription];
-#pragma clang diagnostic pop
-    
-    [self.parentAdapter log: @"Rewarded interstitial ad (%@) failed to show: %@", self.placementIdentifier, adapterError];
-    [self.delegate didFailToDisplayRewardedInterstitialAdWithError: adapterError];
-}
-
-- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Rewarded interstitial ad impression recorded: %@", self.placementIdentifier];
-}
-
-- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Rewarded interstitial ad click recorded: %@", self.placementIdentifier];
-    [self.delegate didClickRewardedInterstitialAd];
-}
-
-- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.delegate didCompleteRewardedInterstitialAdVideo];
-    
-    if ( [self hasGrantedReward] || [self.parentAdapter shouldAlwaysRewardUser] )
-    {
-        MAReward *reward = [self.parentAdapter reward];
-        [self.parentAdapter log: @"Rewarded interstitial ad rewarded user with reward: %@", reward];
-        [self.delegate didRewardUserWithReward: reward];
-    }
-    
-    [self.parentAdapter log: @"Rewarded interstitial ad hidden: %@", self.placementIdentifier];
-    [self.delegate didHideRewardedInterstitialAd];
-}
-
-@end
-
-@implementation ALGoogleMediationAdapterRewardedDelegate
-
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                  placementIdentifier:(NSString *)placementIdentifier
-                            andNotify:(id<MARewardedAdapterDelegate>)delegate
-{
-    self = [super init];
-    if ( self )
-    {
-        self.parentAdapter = parentAdapter;
-        self.placementIdentifier = placementIdentifier;
-        self.delegate = delegate;
-    }
-    return self;
-}
-
-- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Rewarded ad shown: %@", self.placementIdentifier];
-    
-    [self.delegate didDisplayRewardedAd];
-    [self.delegate didStartRewardedAdVideo];
-}
-
-- (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
-{
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
-                                                     errorString: @"Ad Display Failed"
-                                          thirdPartySdkErrorCode: error.code
-                                       thirdPartySdkErrorMessage: error.localizedDescription];
-#pragma clang diagnostic pop
-    
-    [self.parentAdapter log: @"Rewarded ad (%@) failed to show: %@", self.placementIdentifier, adapterError];
-    [self.delegate didFailToDisplayRewardedAdWithError: adapterError];
-}
-
-- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Rewarded ad impression recorded: %@", self.placementIdentifier];
-}
-
-- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.parentAdapter log: @"Rewarded ad click recorded: %@", self.placementIdentifier];
-    [self.delegate didClickRewardedAd];
-}
-
-- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
-{
-    [self.delegate didCompleteRewardedAdVideo];
-    
-    if ( [self hasGrantedReward] || [self.parentAdapter shouldAlwaysRewardUser] )
-    {
-        MAReward *reward = [self.parentAdapter reward];
-        [self.parentAdapter log: @"Rewarded user with reward: %@", reward];
-        [self.delegate didRewardUserWithReward: reward];
-    }
-    
-    [self.parentAdapter log: @"Rewarded ad hidden: %@", self.placementIdentifier];
-    [self.delegate didHideRewardedAd];
-}
-
-@end
-
-@implementation ALGoogleMediationAdapterAdViewDelegate
-
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                             adFormat:(MAAdFormat *)adFormat
-                            andNotify:(id<MAAdViewAdapterDelegate>)delegate
-{
-    self = [super init];
-    if ( self )
-    {
-        self.parentAdapter = parentAdapter;
-        self.adFormat = adFormat;
-        self.delegate = delegate;
-    }
-    return self;
-}
-
-- (void)bannerViewDidReceiveAd:(GADBannerView *)bannerView
-{
-    [self.parentAdapter log: @"%@ ad loaded: %@", self.adFormat.label, bannerView.adUnitID];
-	
-	
-	// astar
-	NSDictionary *data = @{
-		@"ResponseId": bannerView.responseInfo.responseIdentifier
-	};
-	
-	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
-	
-    
-    if ( ALSdk.versionCode >= 6150000 )
-    {
-        NSMutableDictionary *extraInfo = [NSMutableDictionary dictionaryWithCapacity: 3];
-        
-        NSString *responseId = bannerView.responseInfo.responseIdentifier;
-        if ( [responseId al_isValidString] )
-        {
-            extraInfo[@"creative_id"] = responseId;
-        }
-        
-        CGSize adSize = bannerView.adSize.size;
-        if ( !CGSizeEqualToSize(CGSizeZero, adSize) )
-        {
-            extraInfo[@"ad_width"] = @(adSize.width);
-            extraInfo[@"ad_height"] = @(adSize.height);
-        }
-        
-        [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
-                            withObject: bannerView
-                            withObject: extraInfo];
+        return parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
     }
     else
     {
-        [self.delegate didLoadAdForAdView: bannerView];
+        return [ALUtils topViewControllerFromKeyWindow];
     }
-}
-
-- (void)bannerView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(NSError *)error
-{
-    MAAdapterError *adapterError = [ALGoogleMediationAdapter toMaxError: error];
-    [self.parentAdapter log: @"%@ ad (%@) failed to load with error: %@", self.adFormat.label, bannerView.adUnitID, adapterError];
-    [self.delegate didFailToLoadAdViewAdWithError: adapterError];
-}
-
-- (void)bannerViewDidRecordImpression:(GADBannerView *)bannerView
-{
-    [self.parentAdapter log: @"%@ ad shown: %@", self.adFormat.label, bannerView.adUnitID];
-    [self.delegate didDisplayAdViewAd];
-}
-
-- (void)bannerViewWillPresentScreen:(GADBannerView *)bannerView
-{
-    [self.parentAdapter log: @"%@ ad clicked: %@", self.adFormat.label, bannerView.adUnitID];
-    
-    [self.delegate didClickAdViewAd];
-    [self.delegate didExpandAdViewAd];
-}
-
-- (void)bannerViewDidDismissScreen:(GADBannerView *)bannerView
-{
-    [self.parentAdapter log: @"%@ ad collapsed: %@", self.adFormat.label, bannerView.adUnitID];
-    [self.delegate didCollapseAdViewAd];
-}
-
-@end
-
-@implementation ALGoogleMediationAdapterNativeAdViewDelegate
-
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                             adFormat:(MAAdFormat *)adFormat
-                     serverParameters:(NSDictionary<NSString *, id> *)serverParameters
-                            andNotify:(id<MAAdViewAdapterDelegate>)delegate
-{
-    self = [super init];
-    if ( self )
-    {
-        self.adFormat = adFormat;
-        self.serverParameters = serverParameters;
-        self.parentAdapter = parentAdapter;
-        self.delegate = delegate;
-    }
-    return self;
-}
-
-- (void)adLoader:(GADAdLoader *)adLoader didReceiveNativeAd:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native %@ ad loaded: %@", self.adFormat.label, adLoader.adUnitID];
-    
-    if ( ![nativeAd.headline al_isValidString] )
-    {
-        [self.parentAdapter log: @"Native %@ ad failed to load: Google native ad is missing one or more required assets", self.adFormat.label];
-        [self.delegate didFailToLoadAdViewAdWithError: MAAdapterError.invalidConfiguration];
-        
-        return;
-    }
-    
-    GADMediaView *gadMediaView = [[GADMediaView alloc] init];
-    MANativeAd *maxNativeAd = [[MANativeAd alloc] initWithFormat: self.adFormat builderBlock:^(MANativeAdBuilder *builder) {
-        
-        builder.title = nativeAd.headline;
-        builder.body = nativeAd.body;
-        builder.callToAction = nativeAd.callToAction;
-        
-        if ( nativeAd.mediaContent )
-        {
-            [gadMediaView setMediaContent: nativeAd.mediaContent];
-            builder.mediaView = gadMediaView;
-        }
-        
-        if ( nativeAd.icon.image ) // Cached
-        {
-            builder.icon = [[MANativeAdImage alloc] initWithImage: nativeAd.icon.image];
-        }
-        else // URL may require fetching
-        {
-            builder.icon = [[MANativeAdImage alloc] initWithURL: nativeAd.icon.imageURL];
-        }
-    }];
-    
-    NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
-    if ( [templateName containsString: @"vertical"] && ALSdk.versionCode < 6140500 )
-    {
-        [self.parentAdapter log: @"Vertical native banners are only supported on MAX SDK 6.14.5 and above. Default native template will be used."];
-    }
-    
-    nativeAd.delegate = self;
-    
-    dispatchOnMainQueue(^{
-        
-        nativeAd.rootViewController = [ALUtils topViewControllerFromKeyWindow];
-        
-        MANativeAdView *maxNativeAdView;
-        if ( ALSdk.versionCode < 6140000 )
-        {
-            [self.parentAdapter log: @"Native ads with media views are only supported on MAX SDK version 6.14.0 and above. Default native template will be used."];
-            maxNativeAdView = [MANativeAdView nativeAdViewFromAd: maxNativeAd];
-        }
-        else
-        {
-            maxNativeAdView = [MANativeAdView nativeAdViewFromAd: maxNativeAd withTemplate: templateName];
-        }
-        
-        GADNativeAdView *gadNativeAdView = [[GADNativeAdView alloc] init];
-        gadNativeAdView.iconView = maxNativeAdView.iconImageView;
-        gadNativeAdView.headlineView = maxNativeAdView.titleLabel;
-        gadNativeAdView.bodyView = maxNativeAdView.bodyLabel;
-        gadNativeAdView.mediaView = gadMediaView;
-        gadNativeAdView.callToActionView = maxNativeAdView.callToActionButton;
-        gadNativeAdView.callToActionView.userInteractionEnabled = NO;
-        gadNativeAdView.nativeAd = nativeAd;
-        
-        self.parentAdapter.nativeAdView = gadNativeAdView;
-        
-        // NOTE: iOS needs order to be maxNativeAdView -> gadNativeAdView in order for assets to be sized correctly
-        [maxNativeAdView addSubview: self.parentAdapter.nativeAdView];
-        
-        // Pin view in order to make it clickable
-        [self.parentAdapter.nativeAdView al_pinToSuperview];
-        
-        NSString *responseId = nativeAd.responseInfo.responseIdentifier;
-        if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )
-        {
-            [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
-                                withObject: maxNativeAdView
-                                withObject: @{@"creative_id" : responseId}];
-        }
-        else
-        {
-            [self.delegate didLoadAdForAdView: maxNativeAdView];
-        }
-    });
-}
-
-- (void)adLoader:(GADAdLoader *)adLoader didFailToReceiveAdWithError:(NSError *)error;
-{
-    MAAdapterError *adapterError = [ALGoogleMediationAdapter toMaxError: error];
-    [self.parentAdapter log: @"Native %@ ad (%@) failed to load with error: %@", self.adFormat.label, adLoader.adUnitID, adapterError];
-    [self.delegate didFailToLoadAdViewAdWithError: adapterError];
-}
-
-- (void)nativeAdDidRecordImpression:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native %@ ad shown", self.adFormat.label];
-    [self.delegate didDisplayAdViewAd];
-}
-
-- (void)nativeAdDidRecordClick:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native %@ ad clicked", self.adFormat.label];
-    [self.delegate didClickAdViewAd];
-}
-
-- (void)nativeAdWillPresentScreen:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native %@ ad will present", self.adFormat.label];
-    [self.delegate didExpandAdViewAd];
-}
-
-- (void)nativeAdDidDismissScreen:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native %@ ad did dismiss", self.adFormat.label];
-    [self.delegate didCollapseAdViewAd];
-}
-
-@end
-
-@implementation ALGoogleMediationAdapterNativeAdDelegate
-
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                     serverParameters:(NSDictionary<NSString *,id> *)serverParameters
-                            andNotify:(id<MANativeAdAdapterDelegate>)delegate
-{
-    self = [super init];
-    if ( self )
-    {
-        self.serverParameters = serverParameters;
-        self.parentAdapter = parentAdapter;
-        self.delegate = delegate;
-    }
-    return self;
-}
-
-- (void)adLoader:(GADAdLoader *)adLoader didReceiveNativeAd:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native ad loaded: %@", adLoader.adUnitID];
-    
-    self.parentAdapter.nativeAd = nativeAd;
-    
-    NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
-    BOOL isTemplateAd = [templateName al_isValidString];
-    if ( isTemplateAd && ![nativeAd.headline al_isValidString] )
-    {
-        [self.parentAdapter e: @"Native ad (%@) does not have required assets.", nativeAd];
-        [self.delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
-        
-        return;
-    }
-    
-    UIView *mediaView;
-    GADMediaContent *mediaContent = nativeAd.mediaContent;
-    MANativeAdImage *mainImage = nil;
-    CGFloat mediaContentAspectRatio = 0.0f;
-    
-    if ( mediaContent )
-    {
-        GADMediaView *gadMediaView = [[GADMediaView alloc] init];
-        [gadMediaView setMediaContent: mediaContent];
-        mediaView = gadMediaView;
-        mainImage = [[MANativeAdImage alloc] initWithImage: mediaContent.mainImage];
-        
-        mediaContentAspectRatio = mediaContent.aspectRatio;
-    }
-    else if ( nativeAd.images.count > 0 )
-    {
-        GADNativeAdImage *mediaImage = nativeAd.images[0];
-        UIImageView *mediaImageView = [[UIImageView alloc] initWithImage: mediaImage.image];
-        mediaView = mediaImageView;
-        mainImage = [[MANativeAdImage alloc] initWithImage: mediaImage.image];
-        
-        mediaContentAspectRatio = mediaImage.image.size.width / mediaImage.image.size.height;
-    }
-    
-    nativeAd.delegate = self;
-    
-    // Fetching the top view controller needs to be on the main queue
-    dispatchOnMainQueue(^{
-        nativeAd.rootViewController = [ALUtils topViewControllerFromKeyWindow];
-    });
-    
-    MANativeAd *maxNativeAd = [[MAGoogleNativeAd alloc] initWithParentAdapter: self.parentAdapter builderBlock:^(MANativeAdBuilder *builder) {
-        
-        builder.title = nativeAd.headline;
-        builder.body = nativeAd.body;
-        builder.callToAction = nativeAd.callToAction;
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-        // Introduced in 10.4.0
-        if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
-        {
-            [builder performSelector: @selector(setAdvertiser:) withObject: nativeAd.advertiser];
-        }
-#pragma clang diagnostic pop
-        
-        builder.mediaView = mediaView;
-        if ( ALSdk.versionCode >= 11040299 )
-        {
-            [builder performSelector: @selector(setMainImage:) withObject: mainImage];
-        }
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-        // Introduced in 11.4.0
-        if ( [builder respondsToSelector: @selector(setMediaContentAspectRatio:)] )
-        {
-            [builder performSelector: @selector(setMediaContentAspectRatio:) withObject: @(mediaContentAspectRatio)];
-        }
-#pragma clang diagnostic pop
-        
-        if ( nativeAd.icon.image ) // Cached
-        {
-            builder.icon = [[MANativeAdImage alloc] initWithImage: nativeAd.icon.image];
-        }
-        else // URL may require fetching
-        {
-            builder.icon = [[MANativeAdImage alloc] initWithURL: nativeAd.icon.imageURL];
-        }
-    }];
-    
-    NSString *responseId = nativeAd.responseInfo.responseIdentifier;
-    NSDictionary *extraInfo = [responseId al_isValidString] ? @{@"creative_id" : responseId} : nil;
-    
-    [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: extraInfo];
-}
-
-- (void)adLoader:(GADAdLoader *)adLoader didFailToReceiveAdWithError:(NSError *)error
-{
-    MAAdapterError *adapterError = [ALGoogleMediationAdapter toMaxError: error];
-    [self.parentAdapter log: @"Native ad (%@) failed to load with error: %@", adLoader.adUnitID, adapterError];
-    [self.delegate didFailToLoadNativeAdWithError: adapterError];
-}
-
-- (void)nativeAdDidRecordImpression:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native ad shown"];
-    [self.delegate didDisplayNativeAdWithExtraInfo: nil];
-}
-
-- (void)nativeAdDidRecordClick:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native ad clicked"];
-    [self.delegate didClickNativeAd];
-}
-
-- (void)nativeAdWillPresentScreen:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native ad will present"];
-}
-
-- (void)nativeAdDidDismissScreen:(GADNativeAd *)nativeAd
-{
-    [self.parentAdapter log: @"Native ad did dismiss"];
-}
-
-@end
-
-@implementation MAGoogleNativeAd
-
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock
-{
-    self = [super initWithFormat: MAAdFormat.native builderBlock: builderBlock];
-    if ( self )
-    {
-        self.parentAdapter = parentAdapter;
-    }
-    return self;
-}
-
-- (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
-{
-    GADNativeAd *nativeAd = self.parentAdapter.nativeAd;
-    if ( !nativeAd )
-    {
-        [self.parentAdapter e: @"Failed to register native ad views: native ad is nil."];
-        return;
-    }
-    
-    GADNativeAdView *gadNativeAdView = [[GADNativeAdView alloc] init];
-    gadNativeAdView.iconView = maxNativeAdView.iconImageView;
-    gadNativeAdView.headlineView = maxNativeAdView.titleLabel;
-    gadNativeAdView.bodyView = maxNativeAdView.bodyLabel;
-    gadNativeAdView.callToActionView = maxNativeAdView.callToActionButton;
-    gadNativeAdView.callToActionView.userInteractionEnabled = NO;
-    
-    if ( [self.mediaView isKindOfClass: [GADMediaView class]] )
-    {
-        gadNativeAdView.mediaView = (GADMediaView *) self.mediaView;
-    }
-    else if ( [self.mediaView isKindOfClass: [UIImageView class]] )
-    {
-        gadNativeAdView.imageView = self.mediaView;
-    }
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-    // Introduced in 10.4.0
-    if ( [maxNativeAdView respondsToSelector: @selector(advertiserLabel)] )
-    {
-        id advertiserLabel = [maxNativeAdView performSelector: @selector(advertiserLabel)];
-        gadNativeAdView.advertiserView = advertiserLabel;
-    }
-#pragma clang diagnostic pop
-    
-    gadNativeAdView.nativeAd = self.parentAdapter.nativeAd;
-    
-    // NOTE: iOS needs order to be maxNativeAdView -> gadNativeAdView in order for assets to be sized correctly
-    [maxNativeAdView addSubview: gadNativeAdView];
-    
-    // Pin view in order to make it clickable
-    [gadNativeAdView al_pinToSuperview];
-    
-    self.parentAdapter.nativeAdView = gadNativeAdView;
 }
 
 @end

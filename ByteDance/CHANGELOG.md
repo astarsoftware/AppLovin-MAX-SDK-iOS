@@ -1,5 +1,35 @@
 # Changelog
 
+## 4.7.0.4.0
+* Certified with ByteDance Global SDK 4.7.0.4.
+* Certified with ByteDance China SDK 4.7.1.1.
+
+## 4.6.2.2.3
+* Revert back to depending on older `BUASDK` since newer `PAGSDK` is missing `@property (nonatomic, assign) BUAdSDKTerritory territory`, which is essential.
+
+## 4.6.2.2.2
+* Fix adapter open source compilation.
+
+## 4.6.2.2.1
+* Update to use new APIs introduced in ByteDance SDK 4.6.2.2. 
+* Add support for app open ads.
+* Remove setting `BUAdSDKTerritory` to China or not China.
+
+## 4.6.2.2.0
+* Certified with ByteDance SDK 4.6.2.2.
+
+## 4.6.1.9.0
+* Certified with ByteDance SDK 4.6.1.9.
+
+## 4.6.1.8.1
+* Request for leader size (728x90) on tablets.
+
+## 4.6.1.8.0
+* Certified with ByteDance SDK 4.6.1.8.
+
+## 4.6.1.5.0
+* Certified with ByteDance SDK 4.6.1.5.
+
 ## 4.6.1.3.0
 * Certified with ByteDance SDK 4.6.1.3.
 

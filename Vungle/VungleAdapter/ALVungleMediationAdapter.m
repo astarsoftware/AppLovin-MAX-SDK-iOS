@@ -11,7 +11,21 @@
 #import <VungleSDK/VungleSDKCreativeTracking.h>
 #import <VungleSDK/VungleSDK.h>
 
-#define ADAPTER_VERSION @"6.11.0.3"
+#define ADAPTER_VERSION @"6.12.0.3"
+
+// TODO: Remove when SDK with App Open APIs is released
+@protocol MAAppOpenAdapterDelegateTemp<MAAdapterDelegate>
+- (void)didLoadAppOpenAd;
+- (void)didLoadAppOpenAdWithExtraInfo:(nullable NSDictionary<NSString *, id> *)extraInfo;
+- (void)didFailToLoadAppOpenAdWithError:(MAAdapterError *)adapterError;
+- (void)didDisplayAppOpenAd;
+- (void)didDisplayAppOpenAdWithExtraInfo:(nullable NSDictionary<NSString *, id> *)extraInfo;
+- (void)didClickAppOpenAd;
+- (void)didClickAppOpenAdWithExtraInfo:(nullable NSDictionary<NSString *, id> *)extraInfo;
+- (void)didHideAppOpenAd;
+- (void)didHideAppOpenAdWithExtraInfo:(nullable NSDictionary<NSString *, id> *)extraInfo;
+- (void)didFailToDisplayAppOpenAdWithError:(MAAdapterError *)adapterError;
+@end
 
 @interface ALVungleMediationAdapterRouter : ALMediationAdapterRouter<VungleSDKDelegate, VungleSDKCreativeTracking, VungleSDKHBDelegate>
 @property (nonatomic, copy, nullable) void(^oldCompletionHandler)(void);
@@ -23,10 +37,30 @@
 - (nullable NSNumber *)privacySettingForSelector:(SEL)selector fromParameters:(id<MAAdapterParameters>)parameters;
 @end
 
+@interface ALVungleMediationAdapterNativeAdDelegate : NSObject<VungleNativeAdDelegate>
+@property (nonatomic,   weak) ALVungleMediationAdapter *parentAdapter;
+@property (nonatomic, strong) NSString *placementIdentifier;
+@property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
+@property (nonatomic, strong) id<MANativeAdAdapterDelegate> delegate;
+- (instancetype)initWithParentAdapter:(ALVungleMediationAdapter *)parentAdapter
+                           parameters:(id<MAAdapterResponseParameters>)parameters
+                            andNotify:(id<MANativeAdAdapterDelegate>)delegate;
+@end
+
+@interface MAVungleNativeAd : MANativeAd
+@property (nonatomic, weak) ALVungleMediationAdapter *parentAdapter;
+- (instancetype)initWithParentAdapter:(ALVungleMediationAdapter *)parentAdapter builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock;
+- (instancetype)initWithFormat:(MAAdFormat *)format builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock NS_UNAVAILABLE;
+@end
+
 @interface ALVungleMediationAdapter()
 @property (nonatomic, strong, readonly) ALVungleMediationAdapterRouter *router;
 @property (nonatomic, copy) NSString *placementIdentifier;
 @property (nonatomic, strong) UIView *adView;
+
+// Native Ad Properties
+@property (nonatomic, strong) VungleNativeAd *nativeAd;
+@property (nonatomic, strong) ALVungleMediationAdapterNativeAdDelegate *nativeAdDelegate;
 @end
 
 @implementation ALVungleMediationAdapter
@@ -57,13 +91,6 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
         
         NSString *appID = [parameters.serverParameters al_stringForKey: @"app_id"];
         [self log: @"Initializing Vungle SDK with app id: %@...", appID];
-        
-        // NOTE: Vungle's SDK will log error if setting COPPA state after it initializes.
-        NSNumber *isAgeRestrictedUser = [self.router privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
-        if ( isAgeRestrictedUser )
-        {
-            [[VungleSDK sharedSDK] updateCOPPAStatus: isAgeRestrictedUser.boolValue];
-        }
         
         [VungleSDK sharedSDK].delegate = self.router;
         [VungleSDK sharedSDK].creativeTrackingDelegate = self.router;
@@ -117,6 +144,11 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     }
     
     [self.router removeAdapter: self forPlacementIdentifier: self.placementIdentifier];
+    
+    [self.nativeAd unregisterView];
+    self.nativeAd.delegate = nil;
+    self.nativeAd = nil;
+    self.nativeAdDelegate = nil;
 }
 
 #pragma mark - Signal Collection
@@ -127,7 +159,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     
     [self.router updateUserPrivacySettingsForParameters: parameters consentDialogState: self.sdk.configuration.consentDialogState];
     
-    NSString *signal = [[VungleSDK sharedSDK] currentSuperToken];
+    NSString *signal = [[VungleSDK sharedSDK] currentSuperTokenForPlacementID: nil forSize: 0];
     [delegate didCollectSignal: signal];
 }
 
@@ -218,6 +250,97 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 #pragma clang diagnostic pop
         
         [self log: @"Interstitial ad failed to display with error: %@", adapterError];
+        [self.router didFailToDisplayAdForPlacementIdentifier: placementIdentifier error: adapterError];
+    }
+}
+
+#pragma mark - MAAppOpenAdapter Methods
+
+- (void)loadAppOpenAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MAAppOpenAdapterDelegateTemp>)delegate
+{
+    NSString *bidResponse = parameters.bidResponse;
+    BOOL isBiddingAd = [bidResponse al_isValidString];
+    self.placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
+    [self log: @"Loading %@app open ad for placement: %@...", ( isBiddingAd ? @"bidding " : @"" ), self.placementIdentifier];
+    
+    if ( ![[VungleSDK sharedSDK] isInitialized] )
+    {
+        [self log: @"Vungle SDK not successfully initialized: failing app open ad load..."];
+        [delegate didFailToLoadAppOpenAdWithError: MAAdapterError.notInitialized];
+        
+        return;
+    }
+    
+    [self.router addAppOpenAdapter: self
+                          delegate: delegate
+            forPlacementIdentifier: self.placementIdentifier];
+    
+    if ( isBiddingAd )
+    {
+        if ( [[VungleSDK sharedSDK] isAdCachedForPlacementID: self.placementIdentifier adMarkup: bidResponse] )
+        {
+            [self log: @"App open ad loaded"];
+            [delegate didLoadAppOpenAd];
+            
+            return;
+        }
+    }
+    else if ( [[VungleSDK sharedSDK] isAdCachedForPlacementID: self.placementIdentifier] )
+    {
+        [self log: @"App open ad loaded"];
+        [delegate didLoadAppOpenAd];
+        
+        return;
+    }
+    
+    NSError *error;
+    BOOL isLoaded = [self loadAdForParameters: parameters
+                                     adFormat: nil // MAAdFormat.appOpen
+                                        error: &error];
+    
+    // The `error` parameter may be populated with a return value of `true`
+    if ( !isLoaded || error )
+    {
+        MAAdapterError *adapterError = [ALVungleMediationAdapter toMaxError: error];
+        [self log: @"App open failed to load with error: %@", adapterError];
+        [delegate didFailToDisplayAppOpenAdWithError: adapterError];
+    }
+}
+
+- (void)showAppOpenAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MAAppOpenAdapterDelegateTemp>)delegate
+{
+    NSString *bidResponse = parameters.bidResponse;
+    BOOL isBiddingAd = [bidResponse al_isValidString];
+    NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
+    [self log: @"Showing %@app open ad for placement: %@...", ( isBiddingAd ? @"bidding " : @"" ), placementIdentifier];
+    
+    [self.router addShowingAdapter: self];
+    
+    NSError *error;
+    BOOL willShow = NO;
+    if ( isBiddingAd )
+    {
+        if ( [[VungleSDK sharedSDK] isAdCachedForPlacementID: placementIdentifier adMarkup: bidResponse] )
+        {
+            willShow = [self showFullscreenAdForParameters: parameters error: &error];
+        }
+    }
+    else if ( [[VungleSDK sharedSDK] isAdCachedForPlacementID: placementIdentifier] )
+    {
+        willShow = [self showFullscreenAdForParameters: parameters error: &error];
+    }
+    
+    if ( !willShow || error )
+    {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        MAAdapterError *adapterError = [MAAdapterError errorWithCode: -4205
+                                                         errorString: @"Ad Display Failed"
+                                              thirdPartySdkErrorCode: error.code
+                                           thirdPartySdkErrorMessage: error.localizedDescription];
+#pragma clang diagnostic pop
+        
+        [self log: @"App open ad failed to display with error: %@", adapterError];
         [self.router didFailToDisplayAdForPlacementIdentifier: placementIdentifier error: adapterError];
     }
 }
@@ -408,7 +531,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     [self.router updateAdView: self.adView forPlacementIdentifier: placementIdentifier];
     [self.router addShowingAdapter: self];
     
-    NSMutableDictionary *adOptions = [self adOptionsForServerParameters: parameters.serverParameters isFullscreenAd: NO];
+    NSMutableDictionary *adOptions = [self adOptionsForParameters: parameters isFullscreenAd: NO];
     NSError *error;
     
     // Note: Vungle ad view ads require an additional step to load. A failed [addAdViewToView:] would be considered a failed load.
@@ -445,6 +568,42 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     else
     {
         [delegate didLoadAdForAdView: self.adView];
+    }
+}
+
+#pragma mark - MANativeAdAdapter Methods
+
+- (void)loadNativeAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MANativeAdAdapterDelegate>)delegate
+{
+    NSString *bidResponse = parameters.bidResponse;
+    BOOL isBiddingAd = [bidResponse al_isValidString];
+    self.placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
+    
+    if ( ![[VungleSDK sharedSDK] isInitialized] )
+    {
+        [self log: @"Vungle SDK not successfully initialized: failing native ad load..."];
+        [delegate didFailToLoadNativeAdWithError: MAAdapterError.notInitialized];
+        
+        return;
+    }
+    
+    [self log: @"Loading %@native ad for placement: %@...", ( isBiddingAd ? @"bidding " : @"" ), self.placementIdentifier];
+    
+    [self.router updateUserPrivacySettingsForParameters: parameters consentDialogState: self.sdk.configuration.consentDialogState];
+    
+    self.nativeAd = [[VungleNativeAd alloc] initWithPlacementID: self.placementIdentifier];
+    self.nativeAdDelegate = [[ALVungleMediationAdapterNativeAdDelegate alloc] initWithParentAdapter: self
+                                                                                         parameters: parameters
+                                                                                          andNotify: delegate];
+    self.nativeAd.delegate = self.nativeAdDelegate;
+    
+    if ( isBiddingAd )
+    {
+        [self.nativeAd loadAdWithAdMarkup: bidResponse];
+    }
+    else
+    {
+        [self.nativeAd loadAd];
     }
 }
 
@@ -495,7 +654,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 
 - (BOOL)showFullscreenAdForParameters:(id<MAAdapterResponseParameters>)parameters error:(NSError **)error
 {
-    NSMutableDictionary *adOptions = [self adOptionsForServerParameters: parameters.serverParameters isFullscreenAd: YES];
+    NSMutableDictionary *adOptions = [self adOptionsForParameters: parameters isFullscreenAd: YES];
     NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
     NSString *bidResponse = parameters.bidResponse;
     
@@ -526,37 +685,19 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     }
 }
 
-- (NSMutableDictionary *)adOptionsForServerParameters:(NSDictionary<NSString *, id> *)serverParameters isFullscreenAd:(BOOL)isFullscreenAd
+- (NSMutableDictionary *)adOptionsForParameters:(id<MAAdapterResponseParameters>)parameters isFullscreenAd:(BOOL)isFullscreenAd
 {
     NSMutableDictionary *options = [NSMutableDictionary dictionary];
     
-    // Overwritten by `mute_state` setting, unless `mute_state` is disabled
-    if ( [serverParameters al_containsValueForKey: @"is_muted"] ) // Introduced in 6.10.0
+    // Vungle requested for mute state to only be updated if publisher explicitly muted
+    if ( [parameters.serverParameters al_boolForKey: @"is_muted"] )
     {
-        BOOL muted = [serverParameters al_numberForKey: @"is_muted"].boolValue;
-        [VungleSDK sharedSDK].muted = muted;
-        
-        options[VunglePlayAdOptionKeyStartMuted] = @(muted);
-    }
-    
-    if ( [serverParameters al_containsValueForKey: @"user_id"] )
-    {
-        options[VunglePlayAdOptionKeyUser] = [serverParameters al_stringForKey: @"user_id"];
-    }
-    
-    if ( [serverParameters al_containsValueForKey: @"ordinal"] )
-    {
-        options[VunglePlayAdOptionKeyOrdinal] = [serverParameters al_numberForKey: @"ordinal"];
-    }
-    
-    if ( [serverParameters al_containsValueForKey: @"flex_view_auto_dismiss_seconds"] )
-    {
-        options[VunglePlayAdOptionKeyFlexViewAutoDismissSeconds] = [serverParameters al_numberForKey: @"flex_view_auto_dismiss_seconds"];
+        [VungleSDK sharedSDK].muted = YES;
+        options[VunglePlayAdOptionKeyStartMuted] = @(YES);
     }
     
     // If the app is currently in landscape, lock the ad to landscape. This was an iOS-only bug where Vungle would quickly show an ad in portrait, then
     // landscape which is poor UX and caused issues in a pub app. Note that we can't set it for AdView ads as Vungle's SDK will rotate the publisher's app.
-    // https://app.asana.com/0/inbox/20387143076904
     if ( isFullscreenAd && ([ALUtils currentOrientationMask] & UIInterfaceOrientationMaskLandscape) )
     {
         options[VunglePlayAdOptionKeyOrientations] = @(UIInterfaceOrientationMaskLandscape);
@@ -664,6 +805,12 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
             VungleConsentStatus contentStatus = hasUserConsent.boolValue ? VungleConsentAccepted : VungleConsentDenied;
             [[VungleSDK sharedSDK] updateConsentStatus: contentStatus consentMessageVersion: @""];
         }
+    }
+    
+    NSNumber *isAgeRestrictedUser = [self privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
+    if ( isAgeRestrictedUser )
+    {
+        [[VungleSDK sharedSDK] updateCOPPAStatus: isAgeRestrictedUser.boolValue];
     }
     
     if ( ALSdk.versionCode >= 61100 )
@@ -897,6 +1044,156 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     {
         self.creativeIdentifiers[placementID] = creativeID;
     }
+}
+
+@end
+
+@implementation ALVungleMediationAdapterNativeAdDelegate
+
+- (instancetype)initWithParentAdapter:(ALVungleMediationAdapter *)parentAdapter
+                           parameters:(id<MAAdapterResponseParameters>)parameters
+                            andNotify:(id<MANativeAdAdapterDelegate>)delegate
+{
+    self = [super init];
+    if ( self )
+    {
+        self.placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
+        self.serverParameters = parameters.serverParameters;
+        self.parentAdapter = parentAdapter;
+        self.delegate = delegate;
+    }
+    return self;
+}
+
+- (void)nativeAdDidLoad:(VungleNativeAd *)nativeAd
+{    
+    if ( !nativeAd )
+    {
+        [self.parentAdapter log: @"Native ad failed to load: no fill"];
+        [self.delegate didFailToLoadNativeAdWithError: MAAdapterError.noFill];
+        
+        return;
+    }
+    
+    NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
+    BOOL isTemplateAd = [templateName al_isValidString];
+    if ( isTemplateAd && ![nativeAd.title al_isValidString] )
+    {
+        [self.parentAdapter e: @"Native ad (%@) does not have required assets.", nativeAd];
+        [self.delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
+        
+        return;
+    }
+    
+    [self.parentAdapter log: @"Native ad loaded: %@", self.placementIdentifier];
+    
+    dispatchOnMainQueue(^{
+        VungleMediaView *mediaView = [[VungleMediaView alloc] init];
+        
+        MANativeAd *maxNativeAd = [[MAVungleNativeAd alloc] initWithParentAdapter: self.parentAdapter builderBlock:^(MANativeAdBuilder *builder) {
+            builder.title = nativeAd.title;
+            builder.body = nativeAd.bodyText;
+            builder.callToAction = nativeAd.callToAction;
+            builder.icon = [[MANativeAdImage alloc] initWithImage: nativeAd.iconImage];
+            builder.mediaView = mediaView;
+            
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+            // Introduced in 10.4.0
+            if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
+            {
+                [builder performSelector: @selector(setAdvertiser:) withObject: nativeAd.sponsoredText];
+            }
+#pragma clang diagnostic pop
+        }];
+        
+        [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
+    });
+}
+
+- (void)nativeAd:(VungleNativeAd *)nativeAd didFailWithError:(NSError *)error
+{
+    MAAdapterError *adapterError = [ALVungleMediationAdapter toMaxError: error];
+    [self.parentAdapter log: @"Native ad failed to load with error: %@", adapterError];
+    [self.delegate didFailToLoadNativeAdWithError: adapterError];
+}
+
+- (void)nativeAdDidTrackImpression:(VungleNativeAd *)nativeAd
+{
+    [self.parentAdapter log: @"Native ad shown: %@", self.placementIdentifier];
+    [self.delegate didDisplayNativeAdWithExtraInfo: nil];
+}
+
+- (void)nativeAdDidClick:(VungleNativeAd *)nativeAd
+{
+    [self.parentAdapter log: @"Native ad clicked: %@", self.placementIdentifier];
+    [self.delegate didClickNativeAd];
+}
+
+@end
+
+@implementation MAVungleNativeAd
+
+- (instancetype)initWithParentAdapter:(ALVungleMediationAdapter *)parentAdapter builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock
+{
+    self = [super initWithFormat: MAAdFormat.native builderBlock: builderBlock];
+    if ( self )
+    {
+        self.parentAdapter = parentAdapter;
+    }
+    return self;
+}
+
+- (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
+{
+    VungleNativeAd *nativeAd = self.parentAdapter.nativeAd;
+    if ( !nativeAd )
+    {
+        [self.parentAdapter e: @"Failed to register native ad views: native ad is nil."];
+        return;
+    }
+    
+    NSMutableArray *clickableViews = [NSMutableArray array];
+    if ( [self.title al_isValidString] && maxNativeAdView.titleLabel )
+    {
+        [clickableViews addObject: maxNativeAdView.titleLabel];
+    }
+    if ( [self.body al_isValidString] && maxNativeAdView.bodyLabel )
+    {
+        [clickableViews addObject: maxNativeAdView.bodyLabel];
+    }
+    if ( [self.callToAction al_isValidString] && maxNativeAdView.callToActionButton )
+    {
+        [clickableViews addObject: maxNativeAdView.callToActionButton];
+    }
+    if ( self.icon && maxNativeAdView.iconImageView )
+    {
+        [clickableViews addObject: maxNativeAdView.iconImageView];
+    }
+    if ( self.mediaView && maxNativeAdView.mediaContentView )
+    {
+        [clickableViews addObject: maxNativeAdView.mediaContentView];
+    }
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+    // Introduced in 10.4.0
+    if ( [maxNativeAdView respondsToSelector: @selector(advertiserLabel)] && [self respondsToSelector: @selector(advertiser)] )
+    {
+        id advertiserLabel = [maxNativeAdView performSelector: @selector(advertiserLabel)];
+        id advertiser = [self performSelector: @selector(advertiser)];
+        if ( [advertiser al_isValidString] && advertiserLabel )
+        {
+            [clickableViews addObject: advertiserLabel];
+        }
+    }
+#pragma clang diagnostic pop
+    
+    [nativeAd registerViewForInteraction: maxNativeAdView
+                               mediaView: (VungleMediaView *) self.mediaView
+                           iconImageView: maxNativeAdView.iconImageView
+                          viewController: [ALUtils topViewControllerFromKeyWindow]
+                          clickableViews: clickableViews];
 }
 
 @end

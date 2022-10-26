@@ -1,5 +1,38 @@
 # Changelog
 
+## 9.11.0.4
+* Remove redundant client side check for setting user consent.
+
+## 9.11.0.3
+* Add ability to set [publisher provided id](https://support.google.com/admanager/answer/2880055) via local extra parameters by calling `setLocalExtraParameterForKey: @"ppid" value: NSString`.
+
+## 9.11.0.2
+* Fix UI methods being called on background thread.
+
+## 9.11.0.1
+* Certified with GoogleAdManager SDK 9.11.0.1.
+
+## 9.11.0.0
+* Certified with GoogleAdManager SDK 9.11.0.
+
+## 9.10.0.1
+* Fix adapter open source compilation.
+
+## 9.10.0.0
+* Certified with GoogleAdManager SDK 9.10.0.
+
+## 9.9.0.2
+* Add support for `bannerViewDidRecordClick` callback.
+
+## 9.9.0.1
+* Add support for app open ads.
+
+## 9.9.0.0
+* Certified with GoogleAdManager SDK 9.9.0.
+
+## 9.8.0.1
+* Fix impression tracking for fullscreen ads.
+
 ## 9.8.0.0
 * Certified with GoogleAdManager SDK 9.8.0.
 

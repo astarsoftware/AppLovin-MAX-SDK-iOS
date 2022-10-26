@@ -8,8 +8,9 @@
 
 #import "ALVerveMediationAdapter.h"
 #import <HyBid.h>
+#import "HyBid-Swift.h"
 
-#define ADAPTER_VERSION @"2.14.0.0"
+#define ADAPTER_VERSION @"2.16.0.0"
 
 @interface ALVerveMediationAdapterInterstitialAdDelegate : NSObject<HyBidInterstitialAdDelegate>
 @property (nonatomic, weak) ALVerveMediationAdapter *parentAdapter;
@@ -127,6 +128,7 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
     
     // Update local params, since not available on init
     [self updateLocationCollectionEnabled: parameters];
+    [self updateConsentWithParameters: parameters];
     
     NSString *signal = [HyBid getCustomRequestSignalData];
     [delegate didCollectSignal: signal];

@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.2.1.0
+* Certified with Yandex SDK 5.2.1.
+
+## 5.2.0.0
+* Certified with Yandex SDK 5.2.0.
+
 ## 5.1.0.0
 * Certified with Yandex SDK 5.1.0.
 * Add bidding support.

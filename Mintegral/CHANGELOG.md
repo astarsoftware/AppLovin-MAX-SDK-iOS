@@ -1,5 +1,23 @@
 # Changelog
 
+## 7.2.4.0.0
+* Certified with Mintegral SDK 7.2.4.
+
+## 7.2.3.0.1
+* Add support for app open ads.
+
+## 7.2.3.0.0
+* Certified with Mintegral SDK 7.2.3.
+
+## 7.2.1.0.1
+* Remove `-[MTGBidInterstitialVideoAdManager isVideoReadyToPlayWithPlacementId:unitId:]` and `-[MTGBidRewardAdManager isVideoReadyToPlayWithPlacementId:unitId:]` checks for interstitial and rewarded bidding ads.
+
+## 7.2.1.0.0
+* Certified with Mintegral SDK 7.2.1.
+
+## 7.1.9.0.0
+* Certified with Mintegral SDK 7.1.9.0.
+
 ## 7.1.8.0.0
 * Certified with Mintegral SDK 7.1.8.0.
 

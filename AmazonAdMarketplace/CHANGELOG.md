@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.5.5.0
+* Certified with APS SDK 4.5.5.
+
+## 4.5.4.0
+* Certified with APS SDK 4.5.4.
+
+## 4.5.2.2
+* Fix `ALTAmazonMediationHints` memory leaks.
+
 ## 4.5.2.1
 * Prevent crashes while retrieving APS SDK version.
 
