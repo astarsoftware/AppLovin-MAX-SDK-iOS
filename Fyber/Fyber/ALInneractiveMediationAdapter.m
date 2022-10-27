@@ -812,7 +812,7 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     }
     
     ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"digitalturbine" ofType:@"banner" data:data];
 }
 
 @end
