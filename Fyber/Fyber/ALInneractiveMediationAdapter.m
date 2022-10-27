@@ -8,6 +8,7 @@
 
 #import "ALInneractiveMediationAdapter.h"
 #import <IASDKCore/IASDKCore.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"8.1.6.0"
 
@@ -388,6 +389,7 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
             UIView *adViewContainer = [[UIView alloc] init];
             [weakSelf.adViewUnitController showAdInParentView: adViewContainer];
             [delegate didLoadAdForAdView: weakSelf.adViewUnitController.adView];
+            
         }
         else
         {
@@ -739,6 +741,24 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
         {
             [adapter.interstitialDelegate.delegate performSelector: @selector(didDisplayInterstitialAdWithExtraInfo:)
                                                         withObject: @{@"creative_id" : creativeID}];
+            // astar
+            NSMutableDictionary *data = [NSMutableDictionary dictionary];
+            data[@"creative_id"] = creativeID;
+            if([impressionData.demandSourceName al_isValidString]) {
+                data[@"demand_source_name"] = impressionData.demandSourceName;
+            }
+            if([impressionData.advertiserDomain al_isValidString]) {
+                data[@"advertiser_domain"] = impressionData.advertiserDomain;
+            }
+            if([impressionData.sessionID al_isValidString]) {
+                data[@"session_id"] = impressionData.sessionID;
+            }
+            if([impressionData.campaignID al_isValidString]) {
+                data[@"campaign_id"] = impressionData.campaignID;
+            }
+            
+            ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+            [adTracker adDidLoadForMediator:@"max" fromNetwork:@"digitalturbine" ofType:@"interstitial" data:data];
         }
         else
         {
@@ -751,6 +771,11 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
         {
             [adapter.rewardedDelegate.delegate performSelector: @selector(didDisplayRewardedAdWithExtraInfo:)
                                                     withObject: @{@"creative_id" : creativeID}];
+            // astar
+            NSDictionary *data = @{@"creative_id" : creativeID};
+            
+            ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+            [adTracker adDidLoadForMediator:@"max" fromNetwork:@"digitalturbine" ofType:@"banner" data:data];
         }
         else
         {
@@ -769,6 +794,25 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
             [adapter.adViewDelegate.delegate didDisplayAdViewAd];
         }
     }
+    
+    // astar
+    NSMutableDictionary *data = [NSMutableDictionary dictionary];
+    data[@"creative_id"] = creativeID;
+    if([impressionData.demandSourceName al_isValidString]) {
+        data[@"demand_source_name"] = impressionData.demandSourceName;
+    }
+    if([impressionData.advertiserDomain al_isValidString]) {
+        data[@"advertiser_domain"] = impressionData.advertiserDomain;
+    }
+    if([impressionData.sessionID al_isValidString]) {
+        data[@"session_id"] = impressionData.sessionID;
+    }
+    if([impressionData.campaignID al_isValidString]) {
+        data[@"campaign_id"] = impressionData.campaignID;
+    }
+    
+    ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
 }
 
 @end
