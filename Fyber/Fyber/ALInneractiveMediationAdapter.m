@@ -788,31 +788,34 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
         {
             [adapter.adViewDelegate.delegate performSelector: @selector(didDisplayAdViewAdWithExtraInfo:)
                                                   withObject: @{@"creative_id" : creativeID}];
+            
+            // astar
+            NSMutableDictionary *data = [NSMutableDictionary dictionary];
+            data[@"creative_id"] = creativeID;
+            if([impressionData.demandSourceName al_isValidString]) {
+                data[@"demand_source_name"] = impressionData.demandSourceName;
+            }
+            if([impressionData.advertiserDomain al_isValidString]) {
+                data[@"advertiser_domain"] = impressionData.advertiserDomain;
+            }
+            if([impressionData.sessionID al_isValidString]) {
+                data[@"session_id"] = impressionData.sessionID;
+            }
+            if([impressionData.campaignID al_isValidString]) {
+                data[@"campaign_id"] = impressionData.campaignID;
+            }
+            
+            ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+            [adTracker adDidLoadForMediator:@"max" fromNetwork:@"digitalturbine" ofType:@"banner" data:data];
         }
         else
         {
             [adapter.adViewDelegate.delegate didDisplayAdViewAd];
         }
+        
     }
     
-    // astar
-    NSMutableDictionary *data = [NSMutableDictionary dictionary];
-    data[@"creative_id"] = creativeID;
-    if([impressionData.demandSourceName al_isValidString]) {
-        data[@"demand_source_name"] = impressionData.demandSourceName;
-    }
-    if([impressionData.advertiserDomain al_isValidString]) {
-        data[@"advertiser_domain"] = impressionData.advertiserDomain;
-    }
-    if([impressionData.sessionID al_isValidString]) {
-        data[@"session_id"] = impressionData.sessionID;
-    }
-    if([impressionData.campaignID al_isValidString]) {
-        data[@"campaign_id"] = impressionData.campaignID;
-    }
-    
-    ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"digitalturbine" ofType:@"banner" data:data];
+
 }
 
 @end
