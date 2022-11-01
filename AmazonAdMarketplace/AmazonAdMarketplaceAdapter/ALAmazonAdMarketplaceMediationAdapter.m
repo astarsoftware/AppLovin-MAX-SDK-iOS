@@ -8,6 +8,7 @@
 
 #import "ALAmazonAdMarketplaceMediationAdapter.h"
 #import <DTBiOSSDK/DTBiOSSDK.h>
+#import "ASAdTracker.h"
 
 #define ADAPTER_VERSION @"4.5.6.0"
 
@@ -64,6 +65,9 @@
 @interface ALAmazonAdMarketplaceMediationAdapter()
 
 @property (nonatomic, strong) ALAmazonSignalCollectionDelegate *signalCollectionDelegate;
+@property (nonatomic, strong) ALTAMAmazonMediationHints *loadedBannerHints;
+@property (nonatomic, strong) ALTAMAmazonMediationHints *loadedInterstitialHints;
+
 
 // AdView
 @property (nonatomic, strong) ALAmazonAdMarketplaceMediationAdapterAdViewDelegate *adViewAdapterDelegate;
@@ -138,6 +142,8 @@ static NSString *ALAPSSDKVersion;
     self.interstitialAdapterDelegate = nil;
     self.rewardedDispatcher = nil;
     self.rewardedAdapterDelegate = nil;
+    self.loadedBannerHints = nil;
+    self.loadedInterstitialHints = nil;
 }
 
 #pragma mark - MASignalProvider Methods
@@ -293,6 +299,7 @@ static NSString *ALAPSSDKVersion;
         else
         {
             [self failSignalCollectionWithErrorMessage: @"Received empty bid id" andNotify: delegate];
+            self.loadedBannerHints = nil;
         }
     }
     @catch ( NSException *exception )
@@ -342,11 +349,13 @@ static NSString *ALAPSSDKVersion;
     if ( mediationHints )
     {
         [dispatcher fetchBannerAdWithParameters: mediationHints.value];
+        self.loadedBannerHints = mediationHints;
     }
     else
     {
         [self e: @"Unable to find mediation hints"];
         [delegate didFailToLoadAdViewAdWithError: MAAdapterError.invalidLoadState];
+        self.loadedBannerHints = nil;
     }
 }
 
@@ -438,10 +447,12 @@ static NSString *ALAPSSDKVersion;
     if ( !mediationHints )
     {
         [self e: @"Unable to find mediation hints"];
+        self.loadedInterstitialHints = nil;
         return NO;
     }
     
     [interstitialDispatcher fetchAdWithParameters: mediationHints.value];
+    self.loadedInterstitialHints = mediationHints;
     
     return YES;
 }
@@ -612,6 +623,16 @@ static NSString *ALAPSSDKVersion;
 - (void)adDidLoad:(UIView *)adView
 {
     [self.parentAdapter d: @"AdView ad loaded"];
+    
+    // astar
+    ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if(self.parentAdapter.loadedBannerHints.value[@"amazon_ad_info"]) {
+        networkInfo = self.parentAdapter.loadedBannerHints.value[@"amazon_ad_info"];
+    }
+    
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"banner" data:networkInfo];
+    
     [self.delegate didLoadAdForAdView: adView];
 }
 
@@ -658,6 +679,15 @@ static NSString *ALAPSSDKVersion;
 - (void)interstitialDidLoad:(nullable DTBAdInterstitialDispatcher *)interstitial
 {
     [self.parentAdapter d: @"Interstitial loaded"];
+
+    // astar
+    ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if(self.parentAdapter.loadedInterstitialHints.value[@"amazon_ad_info"]) {
+        networkInfo = self.parentAdapter.loadedInterstitialHints.value[@"amazon_ad_info"];
+    }
+    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"fullscreen" data:networkInfo];
+    
     [self.delegate didLoadInterstitialAd];
 }
 
