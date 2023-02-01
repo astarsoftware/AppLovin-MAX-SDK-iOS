@@ -9,28 +9,28 @@
 #import "ALMyTargetMediationAdapter.h"
 #import <myTargetSDK/MyTargetSDK.h>
 
-#define ADAPTER_VERSION @"5.16.0.0"
+#define ADAPTER_VERSION @"5.16.0.2"
 
-@interface ALMyTargetMediationAdapterInterstitialAdDelegate : NSObject<MTRGInterstitialAdDelegate>
+@interface ALMyTargetMediationAdapterInterstitialAdDelegate : NSObject <MTRGInterstitialAdDelegate>
 @property (nonatomic,   weak) ALMyTargetMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALMyTargetMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 @end
 
-@interface ALMyTargetMediationAdapterRewardedAdDelegate : NSObject<MTRGRewardedAdDelegate>
+@interface ALMyTargetMediationAdapterRewardedAdDelegate : NSObject <MTRGRewardedAdDelegate>
 @property (nonatomic,   weak) ALMyTargetMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
 - (instancetype)initWithParentAdapter:(ALMyTargetMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 @end
 
-@interface ALMyTargetMediationAdapterAdViewDelegate : NSObject<MTRGAdViewDelegate>
+@interface ALMyTargetMediationAdapterAdViewDelegate : NSObject <MTRGAdViewDelegate>
 @property (nonatomic,   weak) ALMyTargetMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALMyTargetMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALMyTargetMediationAdapterNativeDelegate : NSObject<MTRGNativeAdDelegate, MTRGNativeAdMediaDelegate>
+@interface ALMyTargetMediationAdapterNativeDelegate : NSObject <MTRGNativeAdDelegate, MTRGNativeAdMediaDelegate>
 @property (nonatomic,   weak) ALMyTargetMediationAdapter *parentAdapter;
 @property (nonatomic,   copy) NSString *slotId;
 @property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
@@ -44,7 +44,7 @@
 - (instancetype)initWithFormat:(MAAdFormat *)format builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock NS_UNAVAILABLE;
 @end
 
-@interface ALMyTargetMediationAdapter()
+@interface ALMyTargetMediationAdapter ()
 
 @property (nonatomic, strong) MTRGInterstitialAd *interstitialAd;
 @property (nonatomic, strong) MTRGRewardedAd *rewardedAd;
@@ -269,13 +269,10 @@
 
 - (void)updatePrivacyStates:(id<MAAdapterParameters>)parameters
 {
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    if ( hasUserConsent )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-        if ( hasUserConsent )
-        {
-            [MTRGPrivacy setUserConsent: hasUserConsent.boolValue];
-        }
+        [MTRGPrivacy setUserConsent: hasUserConsent.boolValue];
     }
     
     NSNumber *isAgeRestrictedUser = [self privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
@@ -702,13 +699,6 @@
 
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
-    MTRGNativeAd *nativeAd = self.parentAdapter.nativeAd;
-    if ( !nativeAd )
-    {
-        [self.parentAdapter e: @"Failed to register native ad views: native ad is nil."];
-        return;
-    }
-    
     NSMutableArray *clickableViews = [NSMutableArray array];
     if ( [self.title al_isValidString] && maxNativeAdView.titleLabel )
     {
@@ -746,9 +736,25 @@
 #pragma clang diagnostic pop
     
     
-    [nativeAd registerView: maxNativeAdView
+    [self prepareForInteractionClickableViews: clickableViews withContainer: maxNativeAdView];
+}
+
+- (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container
+{
+    MTRGNativeAd *nativeAd = self.parentAdapter.nativeAd;
+    if ( !nativeAd )
+    {
+        [self.parentAdapter e: @"Failed to register native ad views: native ad is nil."];
+        return NO;
+    }
+    
+    [self.parentAdapter d: @"Preparing views for interaction: %@ with container: %@", clickableViews, container];
+
+    [nativeAd registerView: container
             withController: [ALUtils topViewControllerFromKeyWindow]
         withClickableViews: clickableViews];
+    
+    return YES;
 }
 
 @end

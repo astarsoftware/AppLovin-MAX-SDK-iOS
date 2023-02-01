@@ -9,12 +9,12 @@
 #import "ALYandexMediationAdapter.h"
 #import <YandexMobileAds/YandexMobileAds.h>
 
-#define ADAPTER_VERSION @"5.2.1.0"
+#define ADAPTER_VERSION @"5.4.0.1"
 
 /**
  * Dedicated delegate object for Yandex interstitial ads.
  */
-@interface ALYandexMediationAdapterInterstitialAdDelegate : NSObject<YMAInterstitialAdDelegate>
+@interface ALYandexMediationAdapterInterstitialAdDelegate : NSObject <YMAInterstitialAdDelegate>
 
 @property (nonatomic,   weak) ALYandexMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdapterResponseParameters> parameters;
@@ -27,7 +27,7 @@
 /**
  * Dedicated delegate object for Yandex rewarded ads.
  */
-@interface ALYandexMediationAdapterRewardedAdDelegate : NSObject<YMARewardedAdDelegate>
+@interface ALYandexMediationAdapterRewardedAdDelegate : NSObject <YMARewardedAdDelegate>
 
 @property (nonatomic,   weak) ALYandexMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdapterResponseParameters> parameters;
@@ -41,7 +41,7 @@
 /**
  * Dedicated delegate object for Yandex AdView ads.
  */
-@interface ALYandexMediationAdapterAdViewDelegate : NSObject<YMAAdViewDelegate>
+@interface ALYandexMediationAdapterAdViewDelegate : NSObject <YMAAdViewDelegate>
 
 @property (nonatomic,   weak) ALYandexMediationAdapter *parentAdapter;
 @property (nonatomic,   weak) NSString *adFormatLabel;
@@ -53,7 +53,7 @@
 
 @end
 
-@interface ALYandexMediationAdapter()
+@interface ALYandexMediationAdapter ()
 
 // Interstitial
 @property (nonatomic, strong) YMAInterstitialAd *interstitialAd;
@@ -92,7 +92,7 @@ static YMABidderTokenLoader *ALYandexBidderTokenLoader;
     return ADAPTER_VERSION;
 }
 
-- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler
+- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler
 {
     [self log: @"Initializing Yandex SDK%@...", [parameters isTesting] ? @" in test mode" : @""];
     
@@ -123,7 +123,7 @@ static YMABidderTokenLoader *ALYandexBidderTokenLoader;
 - (void)collectSignalWithParameters:(id<MASignalCollectionParameters>)parameters andNotify:(id<MASignalCollectionDelegate>)delegate
 {
     [self log: @"Collecting signal..."];
-
+    
     [ALYandexBidderTokenLoader loadBidderTokenWithCompletionHandler:^(NSString *bidderToken) {
         [self log: @"Collected signal"];
         [delegate didCollectSignal: bidderToken];
@@ -163,7 +163,14 @@ static YMABidderTokenLoader *ALYandexBidderTokenLoader;
     if ( !self.interstitialAd || ![self.interstitialAd loaded] )
     {
         [self log: @"Interstitial ad failed to show - ad not ready"];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
         
         return;
     }
@@ -214,7 +221,14 @@ static YMABidderTokenLoader *ALYandexBidderTokenLoader;
     if ( !self.rewardedAd || ![self.rewardedAd loaded] )
     {
         [self log: @"Rewarded ad failed to show - ad not ready"];
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                         errorString: @"Ad Display Failed"
+                                                              thirdPartySdkErrorCode: 0
+                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
         
         return;
     }
@@ -243,11 +257,11 @@ static YMABidderTokenLoader *ALYandexBidderTokenLoader;
     [self log: @"Loading %@%@ ad for placement id: %@...", ( [parameters.bidResponse al_isValidString] ? @"bidding " : @"" ), adFormat.label, placementId];
     
     [self updateUserConsent: parameters];
-
+    
     self.adViewAdapterDelegate = [[ALYandexMediationAdapterAdViewDelegate alloc] initWithParentAdapter: self adFormatLabel: adFormat.label andNotify: delegate];
     // NOTE: iOS banner ads do not auto-refresh by default
     self.adView = [[YMAAdView alloc] initWithAdUnitID: placementId
-                                              adSize: [self adSizeFromAdFormat: adFormat]];
+                                               adSize: [self adSizeFromAdFormat: adFormat]];
     self.adView.delegate = self.adViewAdapterDelegate;
     [self.adView loadAdWithRequest: [self createAdRequestWithParameters: parameters]];
 }
@@ -256,13 +270,10 @@ static YMABidderTokenLoader *ALYandexBidderTokenLoader;
 
 - (void)updateUserConsent:(id<MAAdapterParameters>)parameters
 {
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    if ( hasUserConsent )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-        if ( hasUserConsent )
-        {
-            [YMAMobileAds setUserConsent: hasUserConsent.boolValue];
-        }
+        [YMAMobileAds setUserConsent: hasUserConsent.boolValue];
     }
 }
 

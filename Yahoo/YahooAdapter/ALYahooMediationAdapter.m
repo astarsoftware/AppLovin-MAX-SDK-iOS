@@ -1,57 +1,57 @@
 //
-//  MAVerizonAdsMediationAdapter.m
+//  ALYahooMediationAdapter.m
 //  AppLovinSDK
 //
 //  Created by Santosh Bagadi on 4/7/19.
 //  Copyright © 2022 AppLovin Corporation. All rights reserved.
 //
 
-#import "ALVerizonAdsMediationAdapter.h"
+#import "ALYahooMediationAdapter.h"
 #import <YahooAds/YahooAds.h>
-
+ 
 // Major version number is '2' since certifying against the rebranded Yahoo SDK
-#define ADAPTER_VERSION @"2.2.0.1"
+#define ADAPTER_VERSION @"2.2.0.7"
 
 /**
- * Dedicated delegate object for Verizon Ads interstitial ads.
+ * Dedicated delegate object for Yahoo interstitial ads.
  */
-@interface ALVerizonAdsMediationAdapterInterstitialDelegate : NSObject<YASInterstitialAdDelegate>
-@property (nonatomic,   weak) ALVerizonAdsMediationAdapter *parentAdapter;
+@interface ALYahooMediationAdapterInterstitialDelegate : NSObject<YASInterstitialAdDelegate>
+@property (nonatomic,   weak) ALYahooMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 - (instancetype)init NS_UNAVAILABLE;
 @end
 
 /**
- * Dedicated delegate object for Verizon Ads rewarded ads.
+ * Dedicated delegate object for Yahoo rewarded ads.
  */
-@interface ALVerizonAdsMediationAdapterRewardedDelegate : NSObject<YASInterstitialAdDelegate>
-@property (nonatomic,   weak) ALVerizonAdsMediationAdapter *parentAdapter;
+@interface ALYahooMediationAdapterRewardedDelegate : NSObject<YASInterstitialAdDelegate>
+@property (nonatomic,   weak) ALYahooMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 - (instancetype)init NS_UNAVAILABLE;
 @end
 
 /**
- * Dedicated delegate object for Verizon Ads AdView ads.
+ * Dedicated delegate object for Yahoo AdView ads.
  */
-@interface ALVerizonAdsMediationAdapterInlineAdViewDelegate : NSObject<YASInlineAdViewDelegate>
-@property (nonatomic,   weak) ALVerizonAdsMediationAdapter *parentAdapter;
+@interface ALYahooMediationAdapterInlineAdViewDelegate : NSObject<YASInlineAdViewDelegate>
+@property (nonatomic,   weak) ALYahooMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 - (instancetype)init NS_UNAVAILABLE;
 @end
 
 /**
- * Dedicated delegate object for Verizon Ads native ad view ads.
+ * Dedicated delegate object for Yahoo native ad view ads.
  */
-@interface ALVerizonAdsMediationAdapterNativeAdViewAdDelegate : NSObject<YASNativeAdDelegate>
-@property (nonatomic,   weak) ALVerizonAdsMediationAdapter *parentAdapter;
+@interface ALYahooMediationAdapterNativeAdViewAdDelegate : NSObject<YASNativeAdDelegate>
+@property (nonatomic,   weak) ALYahooMediationAdapter *parentAdapter;
 @property (nonatomic,   weak) MAAdFormat *adFormat;
 @property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter
                              adFormat:(MAAdFormat *)adFormat
                      serverParameters:(NSDictionary<NSString *, id> *)serverParameters
                             andNotify:(id<MAAdViewAdapterDelegate>)delegate;
@@ -59,47 +59,47 @@
 @end
 
 /**
- * Dedicated delegate object for Verizon Ads native ads.
+ * Dedicated delegate object for Yahoo native ads.
  */
-@interface ALVerizonAdsMediationAdapterNativeAdDelegate : NSObject<YASNativeAdDelegate>
-@property (nonatomic,   weak) ALVerizonAdsMediationAdapter *parentAdapter;
+@interface ALYahooMediationAdapterNativeAdDelegate : NSObject<YASNativeAdDelegate>
+@property (nonatomic,   weak) ALYahooMediationAdapter *parentAdapter;
 @property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
 @property (nonatomic, strong) id<MANativeAdAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter
                      serverParameters:(NSDictionary<NSString *, id> *)serverParameters
                             andNotify:(id<MANativeAdAdapterDelegate>)delegate;
 - (instancetype)init NS_UNAVAILABLE;
 @end
 
-@interface MAVerizonNativeAd : MANativeAd
-@property (nonatomic, weak) ALVerizonAdsMediationAdapter *parentAdapter;
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter adFormat:(MAAdFormat *)adFormat builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock;
+@interface MAYahooNativeAd : MANativeAd
+@property (nonatomic, weak) ALYahooMediationAdapter *parentAdapter;
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter adFormat:(MAAdFormat *)adFormat builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock;
 - (instancetype)initWithFormat:(MAAdFormat *)format builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock NS_UNAVAILABLE;
 @end
 
-@interface ALVerizonAdsMediationAdapter()
+@interface ALYahooMediationAdapter()
 
 // Interstitial
 @property (nonatomic, strong) YASInterstitialAd *interstitialAd;
-@property (nonatomic, strong) ALVerizonAdsMediationAdapterInterstitialDelegate *interstitialDelegate;
+@property (nonatomic, strong) ALYahooMediationAdapterInterstitialDelegate *interstitialDelegate;
 
 // Rewarded
 @property (nonatomic, strong) YASInterstitialAd *rewardedAd;
-@property (nonatomic, strong) ALVerizonAdsMediationAdapterRewardedDelegate *rewardedDelegate;
+@property (nonatomic, strong) ALYahooMediationAdapterRewardedDelegate *rewardedDelegate;
 
 // AdView
 @property (nonatomic, strong) YASInlineAdView *inlineAdView;
-@property (nonatomic, strong) ALVerizonAdsMediationAdapterInlineAdViewDelegate *inlineAdViewDelegate;
+@property (nonatomic, strong) ALYahooMediationAdapterInlineAdViewDelegate *inlineAdViewDelegate;
 @property (nonatomic, strong) YASNativeAd *nativeAdViewAd;
-@property (nonatomic, strong) ALVerizonAdsMediationAdapterNativeAdViewAdDelegate *nativeAdViewAdDelegate;
+@property (nonatomic, strong) ALYahooMediationAdapterNativeAdViewAdDelegate *nativeAdViewAdDelegate;
 
 // Native
 @property (nonatomic, strong) YASNativeAd *nativeAd;
-@property (nonatomic, strong) ALVerizonAdsMediationAdapterNativeAdDelegate *nativeAdDelegate;
+@property (nonatomic, strong) ALYahooMediationAdapterNativeAdDelegate *nativeAdDelegate;
 
 @end
 
-@implementation ALVerizonAdsMediationAdapter
+@implementation ALYahooMediationAdapter
 
 static NSArray *kNativeAdAdTypes;
 
@@ -131,7 +131,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         BOOL initialized = [YASAds initializeWithSiteId: siteID];
         status = initialized ? MAAdapterInitializationStatusInitializedSuccess : MAAdapterInitializationStatusInitializedFailure;
         
-        // ...GDPR settings, which is part of verizon Ads SDK data, should be established after initialization and prior to making any ad requests... (https://sdk.verizonmedia.com/gdpr-coppa.html)
+        // ...GDPR settings, which is part of Yahoo SDK data, should be established after initialization and prior to making any ad requests... (https://sdk.yahooinc.com/yahoo-ads/publisher-privacy.html#general-data-protection-regulation-gdpr)
         [self updatePrivacyStatesForParameters: parameters];
         [self updateLocationCollectionEnabled: parameters];
     }
@@ -210,7 +210,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     [self updatePrivacyStatesForParameters: parameters];
     [self updateLocationCollectionEnabled: parameters];
     
-    self.interstitialDelegate = [[ALVerizonAdsMediationAdapterInterstitialDelegate alloc] initWithParentAdapter: self andNotify: delegate];
+    self.interstitialDelegate = [[ALYahooMediationAdapterInterstitialDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.interstitialAd = [[YASInterstitialAd alloc] initWithPlacementId: placementId];
     self.interstitialAd.delegate = self.interstitialDelegate;
     
@@ -227,7 +227,14 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     if ( !self.interstitialAd )
     {
         [self log: @"Unable to show interstitial - no ad loaded"];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
         
         return;
     }
@@ -257,7 +264,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     [self updatePrivacyStatesForParameters: parameters];
     [self updateLocationCollectionEnabled: parameters];
     
-    self.rewardedDelegate = [[ALVerizonAdsMediationAdapterRewardedDelegate alloc] initWithParentAdapter: self andNotify: delegate];
+    self.rewardedDelegate = [[ALYahooMediationAdapterRewardedDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.rewardedAd = [[YASInterstitialAd alloc] initWithPlacementId: placementId];
     self.rewardedAd.delegate = self.rewardedDelegate;
     
@@ -274,7 +281,14 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     if ( !self.rewardedAd )
     {
         [self log: @"Unable to show rewarded ad - no ad loaded"];
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                         errorString: @"Ad Display Failed"
+                                                              thirdPartySdkErrorCode: 0
+                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
         
         return;
     }
@@ -312,7 +326,15 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     
     if ( isNative )
     {
-        self.nativeAdViewAdDelegate = [[ALVerizonAdsMediationAdapterNativeAdViewAdDelegate alloc] initWithParentAdapter: self
+        if ( ALSdk.versionCode < 11050500 )
+        {
+            [self log: @"Failing ad load for AppLovin SDK < 11.5.5 since native ad view ad templates don't have some assets required by Yahoo SDK on older AppLovin SDKs."];
+            [delegate didFailToLoadAdViewAdWithError: MAAdapterError.unspecified];
+            
+            return;
+        }
+        
+        self.nativeAdViewAdDelegate = [[ALYahooMediationAdapterNativeAdViewAdDelegate alloc] initWithParentAdapter: self
                                                                                                                adFormat: adFormat
                                                                                                        serverParameters: parameters.serverParameters
                                                                                                               andNotify: delegate];
@@ -327,7 +349,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     }
     else
     {
-        self.inlineAdViewDelegate = [[ALVerizonAdsMediationAdapterInlineAdViewDelegate alloc] initWithParentAdapter: self andNotify: delegate];
+        self.inlineAdViewDelegate = [[ALYahooMediationAdapterInlineAdViewDelegate alloc] initWithParentAdapter: self andNotify: delegate];
         self.inlineAdView = [[YASInlineAdView alloc] initWithPlacementId: placementId];
         self.inlineAdView.delegate = self.inlineAdViewDelegate;
         
@@ -347,7 +369,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     NSString *placementId = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading %@ native for placement: %@...", ([bidResponse al_isValidString] ? @"bidding " : @""), placementId];
     
-    self.nativeAdDelegate = [[ALVerizonAdsMediationAdapterNativeAdDelegate alloc] initWithParentAdapter: self
+    self.nativeAdDelegate = [[ALYahooMediationAdapterNativeAdDelegate alloc] initWithParentAdapter: self
                                                                                        serverParameters: parameters.serverParameters
                                                                                               andNotify: delegate];
     
@@ -379,6 +401,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         }
     }
 }
+
 - (void)updatePrivacyStatesForParameters:(id<MAAdapterParameters>)parameters
 {
     if ( ALSdk.versionCode >= 11040299 )
@@ -452,9 +475,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 + (MAAdapterError *)toMaxError:(YASErrorInfo *)yahooAdsError
 {
-    YASCoreError verizonErrorCode = yahooAdsError.code;
+    YASCoreError yahooErrorCode = yahooAdsError.code;
     MAAdapterError *adapterError = MAAdapterError.unspecified;
-    switch ( verizonErrorCode )
+    switch ( yahooErrorCode )
     {
         case YASCoreErrorAdNotAvailable:
             adapterError = MAAdapterError.noFill;
@@ -517,34 +540,27 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     }
 }
 
-- (MANativeAdView *)createMaxNativeAdViewWithNativeAd:(MANativeAd *)maxNativeAd templateName:(NSString *)templateName
-{
-    if ( ALSdk.versionCode < 6140000 )
-    {
-        [self log: @"Native ads with media views are only supported on MAX SDK version 6.14.0 and above. Default native template will be used."];
-        return [MANativeAdView nativeAdViewFromAd: maxNativeAd];
-    }
-    
-    if ( ALSdk.versionCode < 6140500 && [templateName containsString: @"vertical"] )
-    {
-        [self log: @"Vertical native banners are only supported on MAX SDK 6.14.5 and above. Default native template will be used."];
-    }
-    
-    return [MANativeAdView nativeAdViewFromAd: maxNativeAd withTemplate: templateName];
-}
-
 - (NSString *)validTemplateUsingTemplateName:(NSString *)templateName
 {
-    if ( [templateName al_isValidString] ) return templateName;
+    if ( [templateName al_isValidString] )
+    {
+        // Since all of the leader templates and the templates containing "media", have the
+        // requisite assets, we can just use the same templateName.
+        if ( [templateName containsString: @"media"] || [templateName containsString: @"leader"] ) return templateName;
+        
+        return [templateName containsString: @"vertical"] ? @"vertical_media_banner_template" : @"media_banner_template";
+    }
     
-    return ALSdk.versionCode < 6140500 ? @"no_body_banner_template" : @"media_banner_template";
+    // We can just return the banner template, because for an mrec
+    // it would by default use the mrec template which is compatible
+    return @"media_banner_template";
 }
 
 @end
 
-@implementation ALVerizonAdsMediationAdapterInterstitialDelegate
+@implementation ALYahooMediationAdapterInterstitialDelegate
 
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate
 {
     self = [super init];
     if ( self )
@@ -576,13 +592,13 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 - (void)interstitialAdLoadDidFail:(YASInterstitialAd *)interstitialAd withError:(YASErrorInfo *)errorInfo
 {
     [self.parentAdapter log: @"Interstitial ad load failed with error: %@", errorInfo.description];
-    [self.delegate didFailToLoadInterstitialAdWithError: [ALVerizonAdsMediationAdapter toMaxError: errorInfo]];
+    [self.delegate didFailToLoadInterstitialAdWithError: [ALYahooMediationAdapter toMaxError: errorInfo]];
 }
 
 - (void)interstitialAdDidFail:(YASInterstitialAd *)interstitialAd withError:(YASErrorInfo *)errorInfo
 {
     [self.parentAdapter log: @"Interstitial ad failed with error: %@", errorInfo.description];
-    [self.delegate didFailToLoadInterstitialAdWithError: [ALVerizonAdsMediationAdapter toMaxError: errorInfo]];
+    [self.delegate didFailToLoadInterstitialAdWithError: [ALYahooMediationAdapter toMaxError: errorInfo]];
 }
 
 - (void)interstitialAdDidShow:(YASInterstitialAd *)interstitialAd
@@ -620,9 +636,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 @end
 
-@implementation ALVerizonAdsMediationAdapterRewardedDelegate
+@implementation ALYahooMediationAdapterRewardedDelegate
 
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate
 {
     self = [super init];
     if ( self )
@@ -654,13 +670,13 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 - (void)interstitialAdLoadDidFail:(YASInterstitialAd *)rewardedAd withError:(YASErrorInfo *)errorInfo
 {
     [self.parentAdapter log: @"Rewarded ad load failed with error: %@", errorInfo.description];
-    [self.delegate didFailToLoadRewardedAdWithError: [ALVerizonAdsMediationAdapter toMaxError: errorInfo]];
+    [self.delegate didFailToLoadRewardedAdWithError: [ALYahooMediationAdapter toMaxError: errorInfo]];
 }
 
 - (void)interstitialAdDidFail:(YASInterstitialAd *)rewardedAd withError:(YASErrorInfo *)errorInfo
 {
     [self.parentAdapter log: @"Rewarded ad failed with error: %@", errorInfo.description];
-    [self.delegate didFailToLoadRewardedAdWithError: [ALVerizonAdsMediationAdapter toMaxError: errorInfo]];
+    [self.delegate didFailToLoadRewardedAdWithError: [ALYahooMediationAdapter toMaxError: errorInfo]];
 }
 
 - (void)interstitialAdDidShow:(YASInterstitialAd *)rewardedAd
@@ -713,9 +729,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 @end
 
-@implementation ALVerizonAdsMediationAdapterInlineAdViewDelegate
+@implementation ALYahooMediationAdapterInlineAdViewDelegate
 
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate
 {
     self = [super init];
     if ( self )
@@ -753,13 +769,13 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 - (void)inlineAdLoadDidFail:(YASInlineAdView *)inlineAd withError:(YASErrorInfo *)errorInfo
 {
     [self.parentAdapter log: @"AdView failed to load with error: %@", errorInfo];
-    [self.delegate didFailToLoadAdViewAdWithError: [ALVerizonAdsMediationAdapter toMaxError: errorInfo]];
+    [self.delegate didFailToLoadAdViewAdWithError: [ALYahooMediationAdapter toMaxError: errorInfo]];
 }
 
 - (void)inlineAdDidFail:(YASInlineAdView *)inlineAd withError:(YASErrorInfo *)errorInfo
 {
     [self.parentAdapter log: @"AdView failed to load with error: %@", errorInfo];
-    [self.delegate didFailToLoadAdViewAdWithError: [ALVerizonAdsMediationAdapter toMaxError: errorInfo]];
+    [self.delegate didFailToLoadAdViewAdWithError: [ALYahooMediationAdapter toMaxError: errorInfo]];
 }
 
 - (void)inlineAdClicked:(YASInlineAdView *)inlineAd
@@ -807,9 +823,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 @end
 
-@implementation ALVerizonAdsMediationAdapterNativeAdViewAdDelegate
+@implementation ALYahooMediationAdapterNativeAdViewAdDelegate
 
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter
                              adFormat:(MAAdFormat *)adFormat
                      serverParameters:(NSDictionary<NSString *, id> *)serverParameters
                             andNotify:(id<MAAdViewAdapterDelegate>)delegate
@@ -830,7 +846,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     dispatchOnMainQueue(^{
         [self.parentAdapter log: @"Native %@ ad loaded: %@", self.adFormat.label, nativeAdViewAd.placementId];
         
-        NSString *title = ((id<YASNativeTextComponent>)[nativeAdViewAd component: @"title"]).text;
+        NSString *title = ((id<YASNativeTextComponent>) [nativeAdViewAd component: @"title"]).text;
         if ( ![title al_isValidString] )
         {
             [self.parentAdapter e: @"Native %@ ad (%@) does not have required assets.", self.adFormat.label, nativeAdViewAd];
@@ -839,12 +855,12 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
             return;
         }
         
-        NSString *body = ((id<YASNativeTextComponent>)[nativeAdViewAd component: @"body"]).text;
-        NSString *advertiser = ((id<YASNativeTextComponent>)[nativeAdViewAd component: @"disclaimer"]).text;
-        NSString *callToAction = ((id<YASNativeTextComponent>)[nativeAdViewAd component: @"callToAction"]).text;
+        NSString *body = ((id<YASNativeTextComponent>) [nativeAdViewAd component: @"body"]).text;
+        NSString *advertiser = ((id<YASNativeTextComponent>) [nativeAdViewAd component: @"disclaimer"]).text;
+        NSString *callToAction = ((id<YASNativeTextComponent>) [nativeAdViewAd component: @"callToAction"]).text;
         
         MANativeAdImage *iconImage;
-        id<YASNativeImageComponent> iconImageComponent = (id<YASNativeImageComponent>)[nativeAdViewAd component: @"iconImage"];
+        id<YASNativeImageComponent> iconImageComponent = (id<YASNativeImageComponent>) [nativeAdViewAd component: @"iconImage"];
         if ( iconImageComponent )
         {
             UIImageView *iconImageView = [[UIImageView alloc] init];
@@ -857,8 +873,8 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         }
         
         UIView *mediaView;
-        id<YASNativeVideoComponent> videoComponent = (id<YASNativeVideoComponent>)[nativeAdViewAd component: @"video"];
-        id<YASNativeImageComponent> mainImageComponent = (id<YASNativeImageComponent>)[nativeAdViewAd component: @"mainImage"];
+        id<YASNativeVideoComponent> videoComponent = (id<YASNativeVideoComponent>) [nativeAdViewAd component: @"video"];
+        id<YASNativeImageComponent> mainImageComponent = (id<YASNativeImageComponent>) [nativeAdViewAd component: @"mainImage"];
         
         // If video is available, use that
         if ( videoComponent )
@@ -875,7 +891,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         
         self.parentAdapter.nativeAdViewAd = nativeAdViewAd;
         
-        MANativeAd *maxNativeAd = [[MAVerizonNativeAd alloc] initWithParentAdapter: self.parentAdapter
+        MANativeAd *maxNativeAd = [[MAYahooNativeAd alloc] initWithParentAdapter: self.parentAdapter
                                                                           adFormat: self.adFormat
                                                                       builderBlock:^(MANativeAdBuilder *builder) {
             builder.title = title;
@@ -888,7 +904,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         
         NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
         NSString *validTemplateName = [self.parentAdapter validTemplateUsingTemplateName: templateName];
-        MANativeAdView *maxNativeAdView = [self.parentAdapter createMaxNativeAdViewWithNativeAd: maxNativeAd templateName: validTemplateName];
+        MANativeAdView *maxNativeAdView = [MANativeAdView nativeAdViewFromAd: maxNativeAd withTemplate: validTemplateName];
         
         [maxNativeAd prepareViewForInteraction: maxNativeAdView];
         
@@ -908,14 +924,14 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 - (void)nativeAdLoadDidFail:(YASNativeAd *)nativeAd withError:(YASErrorInfo *)errorInfo
 {
-    MAAdapterError *adapterError = [ALVerizonAdsMediationAdapter toMaxError: errorInfo];
+    MAAdapterError *adapterError = [ALYahooMediationAdapter toMaxError: errorInfo];
     [self.parentAdapter log: @"Native %@ ad (%@) failed to load with error: %@", self.adFormat.label, nativeAd.placementId, adapterError];
     [self.delegate didFailToLoadAdViewAdWithError: adapterError];
 }
 
 - (void)nativeAdDidFail:(YASNativeAd *)nativeAd withError:(YASErrorInfo *)errorInfo
 {
-    MAAdapterError *adapterError = [ALVerizonAdsMediationAdapter toMaxError: errorInfo];
+    MAAdapterError *adapterError = [ALYahooMediationAdapter toMaxError: errorInfo];
     [self.parentAdapter log: @"Native %@ ad (%@) failed to load with error: %@", self.adFormat.label, nativeAd.placementId, adapterError];
     [self.delegate didFailToLoadAdViewAdWithError: adapterError];
 }
@@ -953,9 +969,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 @end
 
-@implementation ALVerizonAdsMediationAdapterNativeAdDelegate
+@implementation ALYahooMediationAdapterNativeAdDelegate
 
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter
                      serverParameters:(NSDictionary<NSString *, id> *)serverParameters
                             andNotify:(id<MANativeAdAdapterDelegate>)delegate
 {
@@ -974,13 +990,13 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     dispatchOnMainQueue(^{
         [self.parentAdapter log: @"Native ad loaded: %@", nativeAd.placementId];
         
-        NSString *title = ((id<YASNativeTextComponent>)[nativeAd component: @"title"]).text;
-        NSString *body = ((id<YASNativeTextComponent>)[nativeAd component: @"body"]).text;
-        NSString *advertiser = ((id<YASNativeTextComponent>)[nativeAd component: @"disclaimer"]).text;
-        NSString *callToAction = ((id<YASNativeTextComponent>)[nativeAd component: @"callToAction"]).text;
+        NSString *title = ((id<YASNativeTextComponent>) [nativeAd component: @"title"]).text;
+        NSString *body = ((id<YASNativeTextComponent>) [nativeAd component: @"body"]).text;
+        NSString *advertiser = ((id<YASNativeTextComponent>) [nativeAd component: @"disclaimer"]).text;
+        NSString *callToAction = ((id<YASNativeTextComponent>) [nativeAd component: @"callToAction"]).text;
         
         MANativeAdImage *iconImage;
-        id<YASNativeImageComponent> iconImageComponent = (id<YASNativeImageComponent>)[self.parentAdapter.nativeAd component: @"iconImage"];
+        id<YASNativeImageComponent> iconImageComponent = (id<YASNativeImageComponent>) [self.parentAdapter.nativeAd component: @"iconImage"];
         if ( iconImageComponent )
         {
             UIImageView *iconImageView = [[UIImageView alloc] init];
@@ -995,8 +1011,8 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         UIView *mediaView;
         CGFloat mediaContentAspectRatio = 0.0f;
         MANativeAdImage *mainImage = nil;
-        id<YASNativeVideoComponent> videoComponent = (id<YASNativeVideoComponent>)[nativeAd component: @"video"];
-        id<YASNativeImageComponent> mainImageComponent = (id<YASNativeImageComponent>)[nativeAd component: @"mainImage"];
+        id<YASNativeVideoComponent> videoComponent = (id<YASNativeVideoComponent>) [nativeAd component: @"video"];
+        id<YASNativeImageComponent> mainImageComponent = (id<YASNativeImageComponent>) [nativeAd component: @"mainImage"];
         
         // If video is available, use that
         if ( videoComponent )
@@ -1018,6 +1034,10 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
             mainImage = [[MANativeAdImage alloc] initWithImage: image];
         }
         
+        id<YASNativeTextComponent> starRatingComponent = (id<YASNativeTextComponent>)[nativeAd component: @"rating"];
+        // NOTE: `starRatingComponent.text` is an NSString(ex: @"1.0"). Using .doubleValue any invalid value, 0 -> 0.0
+        NSNumber *starRating = @(starRatingComponent.text.doubleValue);
+        
         NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
         BOOL isTemplateAd = [templateName al_isValidString];
         if ( isTemplateAd && ![title al_isValidString] )
@@ -1030,7 +1050,7 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
         
         self.parentAdapter.nativeAd = nativeAd;
         
-        MANativeAd *maxNativeAd = [[MAVerizonNativeAd alloc] initWithParentAdapter: self.parentAdapter
+        MANativeAd *maxNativeAd = [[MAYahooNativeAd alloc] initWithParentAdapter: self.parentAdapter
                                                                           adFormat: MAAdFormat.native
                                                                       builderBlock:^(MANativeAdBuilder *builder) {
             builder.title = title;
@@ -1052,6 +1072,15 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
                 [builder performSelector: @selector(setMediaContentAspectRatio:) withObject: @(mediaContentAspectRatio)];
             }
 #pragma clang diagnostic pop
+            
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+            // Introduced in 11.7.0
+            if ( [builder respondsToSelector: @selector(setStarRating:)] )
+            {
+                [builder performSelector: @selector(setStarRating:) withObject: starRating];
+            }
+#pragma clang diagnostic pop
         }];
         
         YASCreativeInfo *creativeInfo = nativeAd.creativeInfo;
@@ -1063,14 +1092,14 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 - (void)nativeAdLoadDidFail:(YASNativeAd *)nativeAd withError:(YASErrorInfo *)errorInfo
 {
-    MAAdapterError *adapterError = [ALVerizonAdsMediationAdapter toMaxError: errorInfo];
+    MAAdapterError *adapterError = [ALYahooMediationAdapter toMaxError: errorInfo];
     [self.parentAdapter log: @"Native ad (%@) failed to load with error: %@", nativeAd.placementId, adapterError];
     [self.delegate didFailToLoadNativeAdWithError: adapterError];
 }
 
 - (void)nativeAdDidFail:(YASNativeAd *)nativeAd withError:(YASErrorInfo *)errorInfo
 {
-    MAAdapterError *adapterError = [ALVerizonAdsMediationAdapter toMaxError: errorInfo];
+    MAAdapterError *adapterError = [ALYahooMediationAdapter toMaxError: errorInfo];
     [self.parentAdapter log: @"Native ad (%@) failed to load with error: %@", nativeAd.placementId, adapterError];
     [self.delegate didFailToLoadNativeAdWithError: adapterError];
 }
@@ -1108,9 +1137,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
 
 @end
 
-@implementation MAVerizonNativeAd
+@implementation MAYahooNativeAd
 
-- (instancetype)initWithParentAdapter:(ALVerizonAdsMediationAdapter *)parentAdapter adFormat:(MAAdFormat *)adFormat builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock
+- (instancetype)initWithParentAdapter:(ALYahooMediationAdapter *)parentAdapter adFormat:(MAAdFormat *)adFormat builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock
 {
     self = [super initWithFormat: adFormat  builderBlock: builderBlock];
     if ( self )
@@ -1120,20 +1149,39 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     return self;
 }
 
+- (BOOL)isContainerClickable
+{
+    return YES;
+}
+
+- (void)performClick
+{
+    YASNativeAd *ad = self.parentAdapter.nativeAd;
+    if ( !ad )
+    {
+        [self.parentAdapter e: @"Failed to perform click: Native ad is nil."];
+        return;
+    }
+    
+    [self.parentAdapter d: @"Performing click..."];
+    [self.parentAdapter.nativeAdDelegate.delegate didClickNativeAd];
+    [ad invokeDefaultAction];
+}
+
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
-    YASNativeAd *ad = self.format == MAAdFormat.native ? self.parentAdapter.nativeAd : self.parentAdapter.nativeAdViewAd;
+    YASNativeAd *ad = ( self.format == MAAdFormat.native ) ? self.parentAdapter.nativeAd : self.parentAdapter.nativeAdViewAd;
     if ( !ad )
     {
         [self.parentAdapter e: @"Failed to register native ad view for interaction: Native ad is nil."];
         return;
     }
     
-    id<YASNativeTextComponent> titleComponent = (id<YASNativeTextComponent>)[ad component: @"title"];
-    id<YASNativeTextComponent> disclaimerComponent = (id<YASNativeTextComponent>)[ad component: @"disclaimer"];
-    id<YASNativeTextComponent> bodyComponent = (id<YASNativeTextComponent>)[ad component: @"body"];
-    id<YASNativeTextComponent> ctaComponent = (id<YASNativeTextComponent>)[ad component: @"callToAction"];
-    id<YASNativeImageComponent> iconComponent = (id<YASNativeImageComponent>)[ad component: @"iconImage"];
+    id<YASNativeTextComponent> titleComponent = (id<YASNativeTextComponent>) [ad component: @"title"];
+    id<YASNativeTextComponent> disclaimerComponent = (id<YASNativeTextComponent>) [ad component: @"disclaimer"];
+    id<YASNativeTextComponent> bodyComponent = (id<YASNativeTextComponent>) [ad component: @"body"];
+    id<YASNativeTextComponent> ctaComponent = (id<YASNativeTextComponent>) [ad component: @"callToAction"];
+    id<YASNativeImageComponent> iconComponent = (id<YASNativeImageComponent>) [ad component: @"iconImage"];
     
     if ( titleComponent && maxNativeAdView.titleLabel )
     {
@@ -1158,5 +1206,9 @@ static NSString *const kMAAdImpressionEventId = @"adImpression";
     
     [ad registerContainerView: maxNativeAdView];
 }
+
+@end
+
+@implementation ALVerizonAdsMediationAdapter
 
 @end

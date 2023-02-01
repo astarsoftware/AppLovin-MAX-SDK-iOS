@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.17.0.0
+* Certified with Verve SDK 2.17.0.
+
+## 2.16.2.1
+* Use new Swift bridging file and remove `HyBid-Swift.h`.
+
+## 2.16.2.0
+* Certified with Verve SDK 2.16.2.
+
+## 2.16.1.3
+* Remove `consentDialogState` guard.
+
+## 2.16.1.2
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Update to use `+[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 2.16.1.1
+* Update swift bridging file.
+
+## 2.16.1.0
+* Certified with Verve SDK 2.16.1.
+* Add additional details for ad display failures. 
+
 ## 2.16.0.0
 * Certified with Verve SDK 2.16.0.
 

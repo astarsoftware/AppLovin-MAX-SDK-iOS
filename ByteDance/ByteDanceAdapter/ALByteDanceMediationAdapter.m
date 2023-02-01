@@ -9,40 +9,40 @@
 #import "ALByteDanceMediationAdapter.h"
 #import <BUAdSDK/BUAdSDK.h>
 
-#define ADAPTER_VERSION @"4.7.0.4.0"
+#define ADAPTER_VERSION @"4.8.1.0.2"
 
-@interface ALByteDanceInterstitialAdDelegate : NSObject<BUFullscreenVideoAdDelegate>
+@interface ALByteDanceInterstitialAdDelegate : NSObject <BUFullscreenVideoAdDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALByteDanceMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 @end
 
-@interface ALByteDanceAppOpenAdDelegate : NSObject<BUAppOpenAdDelegate>
+@interface ALByteDanceAppOpenAdDelegate : NSObject <BUAppOpenAdDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAppOpenAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALByteDanceMediationAdapter *)parentAdapter andNotify:(id<MAAppOpenAdapterDelegate>)delegate;
 @end
 
-@interface ALByteDanceAppOpenSplashAdDelegate : NSObject<BUSplashAdDelegate>
+@interface ALByteDanceAppOpenSplashAdDelegate : NSObject <BUSplashAdDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAppOpenAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALByteDanceMediationAdapter *)parentAdapter andNotify:(id<MAAppOpenAdapterDelegate>)delegate;
 @end
 
-@interface ALByteDanceRewardedVideoAdDelegate : NSObject<BURewardedVideoAdDelegate>
+@interface ALByteDanceRewardedVideoAdDelegate : NSObject <BURewardedVideoAdDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
 - (instancetype)initWithParentAdapter:(ALByteDanceMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 @end
 
-@interface ALByteDanceAdViewAdDelegate : NSObject<BUNativeExpressBannerViewDelegate>
+@interface ALByteDanceAdViewAdDelegate : NSObject <BUNativeExpressBannerViewDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALByteDanceMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALByteDanceNativeAdViewAdDelegate : NSObject<BUNativeAdsManagerDelegate, BUNativeAdDelegate>
+@interface ALByteDanceNativeAdViewAdDelegate : NSObject <BUNativeAdsManagerDelegate, BUNativeAdDelegate>
 @property (nonatomic,   weak) MAAdFormat *adFormat;
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
 @property (nonatomic,   copy) NSString *slotId;
@@ -51,7 +51,7 @@
 - (instancetype)initWithParentAdapter:(ALByteDanceMediationAdapter *)parentAdapter parameters:(id<MAAdapterResponseParameters>)parameters format:(MAAdFormat *)adFormat andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALByteDanceNativeAdDelegate : NSObject<BUNativeAdsManagerDelegate, BUNativeAdDelegate>
+@interface ALByteDanceNativeAdDelegate : NSObject <BUNativeAdsManagerDelegate, BUNativeAdDelegate>
 @property (nonatomic,   weak) ALByteDanceMediationAdapter *parentAdapter;
 @property (nonatomic,   copy) NSString *slotId;
 @property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
@@ -65,7 +65,7 @@
 - (instancetype)initWithFormat:(MAAdFormat *)format builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock NS_UNAVAILABLE;
 @end
 
-@interface ALByteDanceMediationAdapter()
+@interface ALByteDanceMediationAdapter ()
 
 @property (nonatomic, strong) BUFullscreenVideoAd *interstitialAd;
 @property (nonatomic, strong) ALByteDanceInterstitialAdDelegate *interstitialAdDelegate;
@@ -106,7 +106,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     ALByteDanceInitialized = [[ALAtomicBoolean alloc] init];
 }
 
-- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler
+- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler
 {
     if ( [ALByteDanceInitialized compareAndSet: NO update: YES] )
     {
@@ -356,7 +356,10 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     else
     {
         [self log: @"App open ad failed to show: %@", parameters.thirdPartyAdPlacementIdentifier];
-        [delegate didFailToDisplayAppOpenAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        [delegate didFailToDisplayAppOpenAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                        errorString: @"Ad Display Failed"
+                                                           mediatedNetworkErrorCode: 0
+                                                        mediatedNetworkErrorMessage: @"App open ad not ready"]];
     }
 }
 
@@ -452,7 +455,6 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
             {
                 [self.nativeAdViewAdManager loadAdDataWithCount: 1];
             }
-            
         }
         else
         {
@@ -525,13 +527,10 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
 
 - (void)updateConsentWithParameters:(id<MAAdapterParameters>)parameters
 {
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    if ( hasUserConsent )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-        if ( hasUserConsent )
-        {
-            [BUAdSDKManager setGDPR: hasUserConsent.boolValue ? 1 : 0];
-        }
+        [BUAdSDKManager setGDPR: hasUserConsent.boolValue ? 1 : 0];
     }
     
     NSNumber *isAgeRestrictedUser = [self privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
@@ -612,12 +611,12 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
 
 - (BOOL)isVideoMediaView:(BUFeedADMode)imageMode
 {
-    return ( imageMode == BUFeedVideoAdModeImage ||
-            imageMode == BUFeedVideoAdModePortrait ||
-            imageMode == BUFeedADModeSquareVideo );
+    return ( imageMode == BUFeedVideoAdModeImage
+            || imageMode == BUFeedVideoAdModePortrait
+            || imageMode == BUFeedADModeSquareVideo );
 }
 
--(nullable UIImage *)appIconImage
+- (nullable UIImage *)appIconImage
 {
     NSDictionary *icons = [[NSBundle mainBundle] infoDictionary][@"CFBundleIcons"];
     NSDictionary *primary = icons[@"CFBundlePrimaryIcon"];
@@ -795,7 +794,14 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     if ( error )
     {
         [self.parentAdapter log: @"Interstitial finished with error: %@", error];
-        [self.delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [self.delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                                  errorString: @"Ad Display Failed"
+                                                                       thirdPartySdkErrorCode: error.code
+                                                                    thirdPartySdkErrorMessage: error.localizedDescription]];
+#pragma clang diagnostic pop
         
         return;
     }
@@ -1009,7 +1015,14 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     if ( error )
     {
         [self.parentAdapter log: @"Rewarded ad finished with error: %@", error];
-        [self.delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [self.delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                              errorString: @"Ad Display Failed"
+                                                                   thirdPartySdkErrorCode: error.code
+                                                                thirdPartySdkErrorMessage:error.localizedDescription]];
+#pragma clang diagnostic pop
         
         return;
     }
@@ -1078,7 +1091,14 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
 - (void)nativeExpressBannerAdViewRenderFail:(BUNativeExpressBannerView *)bannerAdView error:(nullable NSError *)error
 {
     [self.parentAdapter log: @"AdView failed to show with error: %@", error];
-    [self.delegate didFailToDisplayAdViewAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [self.delegate didFailToDisplayAdViewAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                        errorString: @"Ad Display Failed"
+                                                             thirdPartySdkErrorCode: error.code
+                                                          thirdPartySdkErrorMessage: error.localizedDescription]];
+#pragma clang diagnostic pop
 }
 
 - (void)nativeExpressBannerAdViewDidClick:(BUNativeExpressBannerView *)bannerAdView
@@ -1168,7 +1188,7 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         
         // Timeout tasks if incomplete within the given time
         NSTimeInterval imageTaskTimeoutSeconds = [[self.serverParameters al_numberForKey: @"image_task_timeout_seconds" defaultValue: @(kDefaultImageTaskTimeoutSeconds)] doubleValue];
-        dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(imageTaskTimeoutSeconds * NSEC_PER_SEC)));
+        dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, (int64_t) (imageTaskTimeoutSeconds * NSEC_PER_SEC)));
         
         // Create MANativeAd after images are loaded from remote URLs
         dispatchOnMainQueue(^{
@@ -1347,40 +1367,42 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
         
         // Timeout tasks if incomplete within the given time
         NSTimeInterval imageTaskTimeoutSeconds = [[self.serverParameters al_numberForKey: @"image_task_timeout_seconds" defaultValue: @(kDefaultImageTaskTimeoutSeconds)] doubleValue];
-        dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(imageTaskTimeoutSeconds * NSEC_PER_SEC)));
+        dispatch_group_wait(group, dispatch_time(DISPATCH_TIME_NOW, (int64_t) (imageTaskTimeoutSeconds * NSEC_PER_SEC)));
         
         // Create MANativeAd after images are loaded from remote URLs
-        [self.parentAdapter log: @"Creating native ad with assets"];
-        
-        MANativeAd *maxNativeAd = [[MAByteDanceNativeAd alloc] initWithParentAdapter: self.parentAdapter builderBlock:^(MANativeAdBuilder *builder) {
-            builder.title = data.AdTitle;
-            builder.body = data.AdDescription;
+        dispatchOnMainQueue(^{
+            [self.parentAdapter log: @"Creating native ad with assets"];
             
+            MANativeAd *maxNativeAd = [[MAByteDanceNativeAd alloc] initWithParentAdapter: self.parentAdapter builderBlock:^(MANativeAdBuilder *builder) {
+                builder.title = data.AdTitle;
+                builder.body = data.AdDescription;
+                
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
-            // Introduced in 10.4.0
-            if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
-            {
-                // NOTE: Might be same as `AdTitle` - ignore if that's the case
-                if ( ![data.AdTitle isEqualToString: data.source] )
+                // Introduced in 10.4.0
+                if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
                 {
-                    [builder performSelector: @selector(setAdvertiser:) withObject: data.source];
+                    // NOTE: Might be same as `AdTitle` - ignore if that's the case
+                    if ( ![data.AdTitle isEqualToString: data.source] )
+                    {
+                        [builder performSelector: @selector(setAdvertiser:) withObject: data.source];
+                    }
                 }
-            }
 #pragma clang diagnostic pop
+                
+                builder.callToAction = data.buttonText;
+                builder.icon = iconImage;
+                if ( ALSdk.versionCode >= 11040299 )
+                {
+                    [builder performSelector: @selector(setMainImage:) withObject: mainImage];
+                }
+                builder.mediaView = mediaView;
+                builder.optionsView = optionsView;
+            }];
             
-            builder.callToAction = data.buttonText;
-            builder.icon = iconImage;
-            if ( ALSdk.versionCode >= 11040299 )
-            {
-                [builder performSelector: @selector(setMainImage:) withObject: mainImage];
-            }
-            builder.mediaView = mediaView;
-            builder.optionsView = optionsView;
-        }];
-        
-        [self.parentAdapter log: @"Native ad fully loaded: %@", self.slotId];
-        [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
+            [self.parentAdapter log: @"Native ad fully loaded: %@", self.slotId];
+            [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
+        });
     });
 }
 
@@ -1425,13 +1447,6 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
 
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
-    BUNativeAd *nativeAd = self.parentAdapter.nativeAd;
-    if ( !nativeAd )
-    {
-        [self.parentAdapter e: @"Failed to register native ad views for interaction: native ad is nil."];
-        return;
-    }
-    
     NSMutableArray *clickableViews = [NSMutableArray array];
     if ( [self.title al_isValidString] && maxNativeAdView.titleLabel )
     {
@@ -1468,7 +1483,23 @@ static MAAdapterInitializationStatus ALByteDanceInitializationStatus = NSInteger
     }
 #pragma clang diagnostic pop
     
-    [self.parentAdapter.nativeAd registerContainer: maxNativeAdView withClickableViews: clickableViews];
+    [self prepareForInteractionClickableViews: clickableViews withContainer: maxNativeAdView];
+}
+
+- (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container
+{
+    BUNativeAd *nativeAd = self.parentAdapter.nativeAd;
+    if ( !nativeAd )
+    {
+        [self.parentAdapter e: @"Failed to register native ad views for interaction: native ad is nil."];
+        return NO;
+    }
+    
+    [self.parentAdapter d: @"Preparing views for interaction: %@ with container: %@", clickableViews, container];
+    
+    [self.parentAdapter.nativeAd registerContainer: container withClickableViews: clickableViews];
+    
+    return YES;
 }
 
 @end

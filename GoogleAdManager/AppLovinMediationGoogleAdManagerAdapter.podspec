@@ -1,11 +1,8 @@
 Pod::Spec.new do |s|
 
-s.authors =
-{
-    'AppLovin Corporation' => 'devsupport@applovin.com'
-}
+s.authors = 'AppLovin Corporation'
 s.name = 'AppLovinMediationGoogleAdManagerAdapter'
-s.version = '9.11.0.4'
+s.version = '9.14.0.2'
 s.platform = :ios, '10.0'
 s.summary = 'Google Ad Manager adapter used for mediation with the AppLovin MAX SDK'
 s.homepage = "https://github.com/CocoaPods/Specs/search?o=desc&q=#{s.name}&s=indexed"
@@ -29,7 +26,7 @@ s.source =
 
 s.vendored_frameworks = "#{s.name}-#{s.version}/#{s.name}.xcframework"
 
-s.dependency 'Google-Mobile-Ads-SDK', '= 9.11.0.1'
+s.dependency 'Google-Mobile-Ads-SDK', '= 9.14.0'
 s.dependency 'AppLovinSDK'
 
 s.pod_target_xcconfig =

@@ -10,33 +10,33 @@
 #import <UnityAds/UnityAds.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"4.4.1.0"
+#define ADAPTER_VERSION @"4.5.0.2"
 
-@interface ALUnityAdsInitializationDelegate : NSObject<UnityAdsInitializationDelegate>
+@interface ALUnityAdsInitializationDelegate : NSObject <UnityAdsInitializationDelegate>
 @property (nonatomic, weak) ALUnityAdsMediationAdapter *parentAdapter;
-@property (nonatomic, copy, nullable) void(^completionHandler)(MAAdapterInitializationStatus, NSString * _Nullable);
-- (instancetype)initWithParentAdapter:(ALUnityAdsMediationAdapter *)parentAdapter andCompletionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler;
+@property (nonatomic, copy, nullable) void(^completionHandler)(MAAdapterInitializationStatus, NSString *_Nullable);
+- (instancetype)initWithParentAdapter:(ALUnityAdsMediationAdapter *)parentAdapter andCompletionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler;
 @end
 
-@interface ALUnityAdsInterstitialDelegate : NSObject<UnityAdsLoadDelegate, UnityAdsShowDelegate>
+@interface ALUnityAdsInterstitialDelegate : NSObject <UnityAdsLoadDelegate, UnityAdsShowDelegate>
 @property (nonatomic,   weak) ALUnityAdsMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALUnityAdsMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 @end
 
-@interface ALUnityAdsRewardedDelegate : NSObject<UnityAdsLoadDelegate, UnityAdsShowDelegate>
+@interface ALUnityAdsRewardedDelegate : NSObject <UnityAdsLoadDelegate, UnityAdsShowDelegate>
 @property (nonatomic,   weak) ALUnityAdsMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALUnityAdsMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 @end
 
-@interface ALUnityAdsAdViewDelegate : NSObject<UADSBannerViewDelegate>
+@interface ALUnityAdsAdViewDelegate : NSObject <UADSBannerViewDelegate>
 @property (nonatomic,   weak) ALUnityAdsMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALUnityAdsMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALUnityAdsMediationAdapter()
+@interface ALUnityAdsMediationAdapter ()
 @property (nonatomic, copy) NSString *biddingAdIdentifier;
 @property (nonatomic, strong) UADSBannerView *bannerAdView;
 @property (nonatomic, strong) ALUnityAdsInterstitialDelegate *interstitialDelegate;
@@ -56,9 +56,9 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 
 #pragma mark - MAAdapter Methods
 
-- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler
+- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler
 {
-    [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
+    [self updatePrivacyConsent: parameters];
     
     if ( [ALUnityAdsInitialized compareAndSet: NO update: YES] )
     {
@@ -116,7 +116,7 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 {
     [self log: @"Collecting signal..."];
     
-    [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
+    [self updatePrivacyConsent: parameters];
     
     [UnityAds getToken:^(NSString *signal) {
         [self log: @"Signal collected"];
@@ -131,15 +131,12 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
     NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading %@interstitial ad for placement \"%@\"...", ( [parameters.bidResponse al_isValidString] ? @"bidding " : @"" ), placementIdentifier];
     
-    [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
+    [self updatePrivacyConsent: parameters];
     
     self.interstitialDelegate = [[ALUnityAdsInterstitialDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     
-    // Bidding ads need a random ID associated with each load and show
-    if ( [parameters.bidResponse al_isValidString] )
-    {
-        self.biddingAdIdentifier = [NSUUID UUID].UUIDString;
-    }
+    // Every ad needs a random ID associated with each load and show
+    self.biddingAdIdentifier = [NSUUID UUID].UUIDString;
     
     [UnityAds load: placementIdentifier
            options: [self createAdLoadOptionsForParameters: parameters]
@@ -180,15 +177,12 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
     NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading %@rewarded ad for placement \"%@\"...", ( [parameters.bidResponse al_isValidString] ? @"bidding " : @"" ), placementIdentifier];
     
-    [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
+    [self updatePrivacyConsent: parameters];
     
     self.rewardedDelegate = [[ALUnityAdsRewardedDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     
-    // Bidding ads need a random ID associated with each load and show
-    if ( [parameters.bidResponse al_isValidString] )
-    {
-        self.biddingAdIdentifier = [NSUUID UUID].UUIDString;
-    }
+    // Every ad needs a random ID associated with each load and show
+    self.biddingAdIdentifier = [NSUUID UUID].UUIDString;
     
     [UnityAds load: placementIdentifier
            options: [self createAdLoadOptionsForParameters: parameters]
@@ -234,7 +228,7 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
     NSString *placementIdentifier = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading banner ad for placement \"%@\"...", placementIdentifier];
     
-    [self updatePrivacyConsent: parameters consentDialogState: self.sdk.configuration.consentDialogState];
+    [self updatePrivacyConsent: parameters];
     
     self.adViewDelegate = [[ALUnityAdsAdViewDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.bannerAdView = [[UADSBannerView alloc] initWithPlacementId: placementIdentifier size: [self bannerSizeFromAdFormat: adFormat]];
@@ -249,10 +243,14 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
     UADSLoadOptions *options = [[UADSLoadOptions alloc] init];
     
     NSString *bidResponse = parameters.bidResponse;
-    if ( [bidResponse al_isValidString] && [self.biddingAdIdentifier al_isValidString] )
+    if ( [bidResponse al_isValidString] )
+    {
+        options.adMarkup = bidResponse;
+    }
+    
+    if ( [self.biddingAdIdentifier al_isValidString] )
     {
         options.objectId = self.biddingAdIdentifier;
-        options.adMarkup = bidResponse;
     }
     
     return options;
@@ -385,17 +383,14 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 
 #pragma mark - GDPR
 
-- (void)updatePrivacyConsent:(id<MAAdapterParameters>)parameters consentDialogState:(ALConsentDialogState)consentDialogState
+- (void)updatePrivacyConsent:(id<MAAdapterParameters>)parameters
 {
     UADSMetaData *privacyConsentMetaData = [[UADSMetaData alloc] init];
-    if ( consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    if ( hasUserConsent )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-        if ( hasUserConsent )
-        {
-            [privacyConsentMetaData set: @"gdpr.consent" value: @(hasUserConsent.boolValue)];
-            [privacyConsentMetaData commit];
-        }
+        [privacyConsentMetaData set: @"gdpr.consent" value: @(hasUserConsent.boolValue)];
+        [privacyConsentMetaData commit];
     }
     
     // CCPA compliance - https://unityads.unity3d.com/help/legal/gdpr
@@ -648,7 +643,7 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
 
 @implementation ALUnityAdsInitializationDelegate
 
-- (instancetype)initWithParentAdapter:(ALUnityAdsMediationAdapter *)parentAdapter andCompletionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler
+- (instancetype)initWithParentAdapter:(ALUnityAdsMediationAdapter *)parentAdapter andCompletionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler
 {
     self = [super init];
     if ( self )

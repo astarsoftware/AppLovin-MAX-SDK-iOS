@@ -10,12 +10,12 @@
 #import <DTBiOSSDK/DTBiOSSDK.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"4.5.6.0"
+#define ADAPTER_VERSION @"4.5.6.4"
 
 /**
  * Container object for holding mediation hints dict generated from Amazon's SDK and the timestamp it was geenrated at.
  */
-@interface ALTAMAmazonMediationHints : NSObject<NSCopying>
+@interface ALTAMAmazonMediationHints : NSObject <NSCopying>
 
 /**
  * The bid info / mediation hints dict generated from Amazon's SDK.
@@ -32,26 +32,29 @@
 
 @end
 
-@interface ALAmazonAdMarketplaceMediationAdapterAdViewDelegate : NSObject<DTBAdBannerDispatcherDelegate>
+@interface ALAmazonAdMarketplaceMediationAdapterAdViewDelegate : NSObject <DTBAdBannerDispatcherDelegate>
 @property (nonatomic,   weak) ALAmazonAdMarketplaceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
-- (instancetype)initWithParentAdapter:(ALAmazonAdMarketplaceMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
+@property (nonatomic,   weak) MAAdFormat *adFormat;
+- (instancetype)initWithParentAdapter:(ALAmazonAdMarketplaceMediationAdapter *)parentAdapter
+                             adFormat:(MAAdFormat *)adFormat
+                            andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALAmazonAdMarketplaceMediationAdapterInterstitialAdDelegate : NSObject<DTBAdInterstitialDispatcherDelegate>
+@interface ALAmazonAdMarketplaceMediationAdapterInterstitialAdDelegate : NSObject <DTBAdInterstitialDispatcherDelegate>
 @property (nonatomic,   weak) ALAmazonAdMarketplaceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALAmazonAdMarketplaceMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 @end
 
-@interface ALAmazonAdMarketplaceMediationAdapterRewardedAdDelegate : NSObject<DTBAdInterstitialDispatcherDelegate>
+@interface ALAmazonAdMarketplaceMediationAdapterRewardedAdDelegate : NSObject <DTBAdInterstitialDispatcherDelegate>
 @property (nonatomic,   weak) ALAmazonAdMarketplaceMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
 - (instancetype)initWithParentAdapter:(ALAmazonAdMarketplaceMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 @end
 
-@interface ALAmazonSignalCollectionDelegate : NSObject<DTBAdCallback>
+@interface ALAmazonSignalCollectionDelegate : NSObject <DTBAdCallback>
 @property (nonatomic, strong) ALAmazonAdMarketplaceMediationAdapter *parentAdapter; // Needs `strong`
 @property (nonatomic, strong) id<MAAdapterParameters> parameters;
 @property (nonatomic,   weak) MAAdFormat *adFormat;
@@ -62,7 +65,7 @@
                             andNotify:(id<MASignalCollectionDelegate>)delegate;
 @end
 
-@interface ALAmazonAdMarketplaceMediationAdapter()
+@interface ALAmazonAdMarketplaceMediationAdapter ()
 
 @property (nonatomic, strong) ALAmazonSignalCollectionDelegate *signalCollectionDelegate;
 @property (nonatomic, strong) ALTAMAmazonMediationHints *loadedBannerHints;
@@ -87,9 +90,17 @@
 // Ad loader object used for collecting signal in non-maiden requests
 static NSMutableDictionary<MAAdFormat *, DTBAdLoader *> *ALAmazonAdLoaders;
 
-// Contains mapping of encoded bid id -> mediation hints / bid info
+// Contains mapping of encoded (bid id)_(ad format) -> mediation hints / bid info
 static NSMutableDictionary<NSString *, ALTAMAmazonMediationHints *> *ALMediationHintsCache;
 static NSObject *ALMediationHintsCacheLock;
+
+// Contains mapping of ad format -> crid
+static NSMutableDictionary<MAAdFormat *, NSString *> *ALAmazonCreativeIdentifiers;
+static NSObject *ALAmazonCreativeIdentifiersLock;
+
+// Contains mapping of ad format -> amazon hashed bidder identifier / amznp
+static NSMutableDictionary<MAAdFormat *, NSString *> *ALAmazonHashedBidderIdentifiers;
+static NSObject *ALAmazonHashedBidderIdentifiersLock;
 
 static NSMutableSet<NSNumber *> *ALUsedAmazonAdLoaderHashes;
 static NSString *ALAPSSDKVersion;
@@ -102,6 +113,12 @@ static NSString *ALAPSSDKVersion;
     
     ALMediationHintsCache = [NSMutableDictionary dictionary];
     ALMediationHintsCacheLock = [[NSObject alloc] init];
+    
+    ALAmazonCreativeIdentifiers = [NSMutableDictionary dictionary];
+    ALAmazonCreativeIdentifiersLock = [[NSObject alloc] init];
+    
+    ALAmazonHashedBidderIdentifiers = [NSMutableDictionary dictionary];
+    ALAmazonHashedBidderIdentifiersLock = [[NSObject alloc] init];
     
     ALUsedAmazonAdLoaderHashes = [NSMutableSet set];
 }
@@ -211,8 +228,11 @@ static NSString *ALAPSSDKVersion;
             
             if ( [adResponseObj isKindOfClass: [DTBAdResponse class]] )
             {
+                DTBAdResponse *adResponse = (DTBAdResponse *)adResponseObj;
+                
                 [self processAdResponseWithParameters: parameters
-                                           adResponse: (DTBAdResponse *) adResponseObj
+                                           adResponse: adResponse
+                                             adFormat: adFormat
                                             andNotify: delegate];
             }
             else // DTBAdErrorInfo
@@ -253,7 +273,7 @@ static NSString *ALAPSSDKVersion;
     [adLoader loadAd: self.signalCollectionDelegate];
 }
 
-- (void)processAdResponseWithParameters:(id<MAAdapterParameters>)parameters adResponse:(DTBAdResponse *)adResponse andNotify:(id<MASignalCollectionDelegate>)delegate
+- (void)processAdResponseWithParameters:(id<MAAdapterParameters>)parameters adResponse:(DTBAdResponse *)adResponse adFormat:(MAAdFormat *)adFormat andNotify:(id<MASignalCollectionDelegate>)delegate
 {
     [self d: @"Processing ad response..."];
     
@@ -263,11 +283,12 @@ static NSString *ALAPSSDKVersion;
         if ( [encodedBidId al_isValidString] )
         {
             ALTAMAmazonMediationHints *mediationHints = [[ALTAMAmazonMediationHints alloc] initWithValue: [adResponse mediationHints]];
+            NSString *mediationHintsCacheId = [self mediationHintsCacheId: encodedBidId adFormat: adFormat];
             
             @synchronized ( ALMediationHintsCacheLock )
             {
                 // Store mediation hints for the actual ad request
-                ALMediationHintsCache[encodedBidId] = mediationHints;
+                ALMediationHintsCache[mediationHintsCacheId] = mediationHints;
             }
             
             // In the case that Amazon loses the auction - clean up the mediation hints
@@ -283,14 +304,17 @@ static NSString *ALAPSSDKVersion;
                     @synchronized ( ALMediationHintsCacheLock )
                     {
                         // Check if this is the same mediation hints / bid info as when the cleanup was scheduled
-                        ALTAMAmazonMediationHints *currentMediationHints = ALMediationHintsCache[encodedBidId];
+                        ALTAMAmazonMediationHints *currentMediationHints = ALMediationHintsCache[mediationHintsCacheId];
                         if ( [currentMediationHints.identifier isEqual: mediationHintsId] )
                         {
-                            [ALMediationHintsCache removeObjectForKey: encodedBidId];
+                            [ALMediationHintsCache removeObjectForKey: mediationHintsCacheId];
                         }
                     }
                 });
             }
+            
+            [self setCreativeIdentifier: adResponse.crid forAdFormat: adFormat];
+            [self setHashedBidderIdentifier: adResponse.customTargeting[@"amznp"] forAdFormat: adFormat];
             
             [self d: @"Successfully loaded encoded bid id: %@", encodedBidId];
             
@@ -335,14 +359,18 @@ static NSString *ALAPSSDKVersion;
     }
     
     CGRect frame = (CGRect) { CGPointZero, adFormat.size };
-    self.adViewAdapterDelegate = [[ALAmazonAdMarketplaceMediationAdapterAdViewDelegate alloc] initWithParentAdapter: self andNotify: delegate];
+    self.adViewAdapterDelegate = [[ALAmazonAdMarketplaceMediationAdapterAdViewDelegate alloc] initWithParentAdapter: self
+                                                                                                           adFormat: adFormat
+                                                                                                          andNotify: delegate];
     DTBAdBannerDispatcher *dispatcher = [[DTBAdBannerDispatcher alloc] initWithAdFrame: frame delegate: self.adViewAdapterDelegate];
     
     ALTAMAmazonMediationHints *mediationHints;
+    NSString *mediationHintsCacheId = [self mediationHintsCacheId: encodedBidId adFormat: adFormat];
+    
     @synchronized ( ALMediationHintsCacheLock )
     {
-        mediationHints = ALMediationHintsCache[encodedBidId];
-        [ALMediationHintsCache removeObjectForKey: encodedBidId];
+        mediationHints = ALMediationHintsCache[mediationHintsCacheId];
+        [ALMediationHintsCache removeObjectForKey: mediationHintsCacheId];
     }
     
     // Paranoia
@@ -375,7 +403,9 @@ static NSString *ALAPSSDKVersion;
     self.interstitialAdapterDelegate = [[ALAmazonAdMarketplaceMediationAdapterInterstitialAdDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.interstitialDispatcher = [[DTBAdInterstitialDispatcher alloc] initWithDelegate: self.interstitialAdapterDelegate];
     
-    BOOL success = [self loadFullscreenAd: encodedBidId withInterstitialDispatcher: self.interstitialDispatcher];
+    NSString *mediationHintsCacheId = [self mediationHintsCacheId: encodedBidId adFormat: MAAdFormat.interstitial];
+    
+    BOOL success = [self loadFullscreenAd: mediationHintsCacheId withInterstitialDispatcher: self.interstitialDispatcher];
     if ( !success )
     {
         [delegate didFailToLoadInterstitialAdWithError: MAAdapterError.invalidLoadState];
@@ -390,7 +420,14 @@ static NSString *ALAPSSDKVersion;
     if ( !success )
     {
         [self e: @"Interstitial ad not ready"];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -410,7 +447,9 @@ static NSString *ALAPSSDKVersion;
     self.rewardedAdapterDelegate = [[ALAmazonAdMarketplaceMediationAdapterRewardedAdDelegate alloc] initWithParentAdapter: self andNotify: delegate];
     self.rewardedDispatcher = [[DTBAdInterstitialDispatcher alloc] initWithDelegate: self.rewardedAdapterDelegate];
     
-    BOOL success = [self loadFullscreenAd: encodedBidId withInterstitialDispatcher: self.rewardedDispatcher];
+    NSString *mediationHintsCacheId = [self mediationHintsCacheId: encodedBidId adFormat: MAAdFormat.rewarded];
+    
+    BOOL success = [self loadFullscreenAd: mediationHintsCacheId withInterstitialDispatcher: self.rewardedDispatcher];
     if ( !success )
     {
         [delegate didFailToLoadRewardedAdWithError: MAAdapterError.invalidLoadState];
@@ -428,19 +467,26 @@ static NSString *ALAPSSDKVersion;
     if ( !success )
     {
         [self e: @"Rewarded ad not ready"];
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                         errorString: @"Ad Display Failed"
+                                                              thirdPartySdkErrorCode: 0
+                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
 #pragma mark - Utility Methods
 
-- (BOOL)loadFullscreenAd:(NSString *)encodedBidId withInterstitialDispatcher:(DTBAdInterstitialDispatcher *)interstitialDispatcher
+- (BOOL)loadFullscreenAd:(NSString *)mediationHintsCacheId withInterstitialDispatcher:(DTBAdInterstitialDispatcher *)interstitialDispatcher
 {
     ALTAMAmazonMediationHints *mediationHints;
     @synchronized ( ALMediationHintsCacheLock )
     {
-        mediationHints = ALMediationHintsCache[encodedBidId];
-        [ALMediationHintsCache removeObjectForKey: encodedBidId];
+        mediationHints = ALMediationHintsCache[mediationHintsCacheId];
+        [ALMediationHintsCache removeObjectForKey: mediationHintsCacheId];
     }
     
     // Paranoia
@@ -505,6 +551,52 @@ static NSString *ALAPSSDKVersion;
                   thirdPartySdkErrorCode: amazonErrorCode
                thirdPartySdkErrorMessage: @""];
 #pragma clang diagnostic pop
+}
+
+- (void)setCreativeIdentifier:(NSString *)creativeId forAdFormat:(MAAdFormat *)adFormat
+{
+    @synchronized ( ALAmazonCreativeIdentifiersLock )
+    {
+        ALAmazonCreativeIdentifiers[adFormat] = creativeId;
+    }
+}
+
+- (void)setHashedBidderIdentifier:(NSString *)hashedBidderId forAdFormat:(MAAdFormat *)adFormat
+{
+    @synchronized ( ALAmazonHashedBidderIdentifiersLock )
+    {
+        ALAmazonHashedBidderIdentifiers[adFormat] = hashedBidderId;
+    }
+}
+
+- (nullable NSDictionary *)extraInfoForAdFormat:(MAAdFormat *)adFormat
+{
+    NSMutableDictionary *extraInfo = [NSMutableDictionary dictionaryWithCapacity: 2];
+    
+    @synchronized ( ALAmazonCreativeIdentifiersLock )
+    {
+        NSString *creativeId = ALAmazonCreativeIdentifiers[adFormat];
+        if ( [creativeId al_isValidString] )
+        {
+            extraInfo[@"creative_id" ] = creativeId;
+        }
+    }
+    
+    @synchronized ( ALAmazonHashedBidderIdentifiersLock )
+    {
+        NSString *hashedBidderId = ALAmazonHashedBidderIdentifiers[adFormat];
+        if ( [hashedBidderId al_isValidString] )
+        {
+            extraInfo[@"ad_values"] = @{@"amazon_hashed_bidder_id" : hashedBidderId};
+        }
+    }
+    
+    return extraInfo;
+}
+
+- (NSString *)mediationHintsCacheId:(NSString *)encodedBidId adFormat:(MAAdFormat *)adFormat
+{
+    return [NSString stringWithFormat: @"%@_%@", encodedBidId, adFormat.label];
 }
 
 @end
@@ -590,6 +682,7 @@ static NSString *ALAPSSDKVersion;
     
     [self.parentAdapter processAdResponseWithParameters: self.parameters
                                              adResponse: adResponse
+                                               adFormat: self.adFormat
                                               andNotify: self.delegate];
 }
 
@@ -609,12 +702,15 @@ static NSString *ALAPSSDKVersion;
 
 @implementation ALAmazonAdMarketplaceMediationAdapterAdViewDelegate
 
-- (instancetype)initWithParentAdapter:(ALAmazonAdMarketplaceMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate
+- (instancetype)initWithParentAdapter:(ALAmazonAdMarketplaceMediationAdapter *)parentAdapter
+                             adFormat:(MAAdFormat *)adformat
+                            andNotify:(id<MAAdViewAdapterDelegate>)delegate
 {
     self = [super init];
     if ( self )
     {
         self.parentAdapter = parentAdapter;
+        self.adFormat = adformat;
         self.delegate = delegate;
     }
     return self;
@@ -633,7 +729,8 @@ static NSString *ALAPSSDKVersion;
     
     [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"banner" data:networkInfo];
     
-    [self.delegate didLoadAdForAdView: adView];
+    NSDictionary *extraInfo = [self.parentAdapter extraInfoForAdFormat: self.adFormat];
+    [self.delegate didLoadAdForAdView: adView withExtraInfo: extraInfo];
 }
 
 - (void)adFailedToLoad:(nullable UIView *)banner errorCode:(NSInteger)errorCode
@@ -688,7 +785,8 @@ static NSString *ALAPSSDKVersion;
     }
     [adTracker adDidLoadForMediator:@"max" fromNetwork:@"amazon" ofType:@"fullscreen" data:networkInfo];
     
-    [self.delegate didLoadInterstitialAd];
+    NSDictionary *extraInfo = [self.parentAdapter extraInfoForAdFormat: MAAdFormat.interstitial];
+    [self.delegate didLoadInterstitialAdWithExtraInfo: extraInfo];
 }
 
 - (void)interstitial:(nullable DTBAdInterstitialDispatcher *)interstitial didFailToLoadAdWithErrorCode:(DTBAdErrorCode)errorCode
@@ -731,7 +829,7 @@ static NSString *ALAPSSDKVersion;
     [self.parentAdapter d: @"Interstitial will leave application"];
 }
 
-- (void)videoPlaybackCompleted:(DTBAdInterstitialDispatcher *) interstitial
+- (void)videoPlaybackCompleted:(DTBAdInterstitialDispatcher *)interstitial
 {
     [self.parentAdapter d: @"Interstitial ad video playback completed"];
 }
@@ -765,7 +863,10 @@ static NSString *ALAPSSDKVersion;
 - (void)interstitialDidLoad:(nullable DTBAdInterstitialDispatcher *)interstitial
 {
     [self.parentAdapter d: @"Rewarded ad loaded"];
-    [self.delegate didLoadRewardedAd];
+    
+    NSDictionary *extraInfo = [self.parentAdapter extraInfoForAdFormat: MAAdFormat.rewarded];
+    [self.delegate didLoadRewardedAdWithExtraInfo: extraInfo];
+    
 }
 
 - (void)interstitial:(nullable DTBAdInterstitialDispatcher *)interstitial didFailToLoadAdWithErrorCode:(DTBAdErrorCode)errorCode
@@ -809,7 +910,7 @@ static NSString *ALAPSSDKVersion;
     [self.parentAdapter d: @"Rewarded ad will leave application"];
 }
 
-- (void)videoPlaybackCompleted:(DTBAdInterstitialDispatcher *) interstitial
+- (void)videoPlaybackCompleted:(DTBAdInterstitialDispatcher *)interstitial
 {
     [self.parentAdapter d: @"Rewarded ad video playback completed"];
     [self.delegate didCompleteRewardedAdVideo];

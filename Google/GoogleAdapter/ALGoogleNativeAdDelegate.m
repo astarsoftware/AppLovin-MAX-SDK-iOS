@@ -9,28 +9,39 @@
 #import "ALGoogleNativeAdDelegate.h"
 #import "ALGoogleNativeAd.h"
 
-@interface ALGoogleMediationAdapter()
+@interface ALGoogleMediationAdapter ()
 @property (nonatomic, strong) GADNativeAd *nativeAd;
 @end
 
-@interface ALGoogleNativeAdDelegate()
+@interface ALGoogleNativeAdDelegate ()
 @property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
 @property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
 @property (nonatomic, strong) id<MANativeAdAdapterDelegate> delegate;
+@property (nonatomic, assign) NSInteger gadNativeAdViewTag;
 @end
 
 @implementation ALGoogleNativeAdDelegate
 
 - (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
-                     serverParameters:(NSDictionary<NSString *,id> *)serverParameters
+                           parameters:(id<MAAdapterResponseParameters>)parameters
                             andNotify:(id<MANativeAdAdapterDelegate>)delegate
 {
     self = [super init];
     if ( self )
     {
-        self.serverParameters = serverParameters;
         self.parentAdapter = parentAdapter;
+        self.serverParameters = parameters.serverParameters;
         self.delegate = delegate;
+        
+        id gadNativeAdViewTagObj = parameters.localExtraParameters[@"google_native_ad_view_tag"];
+        if ( [gadNativeAdViewTagObj isKindOfClass: [NSNumber class]] )
+        {
+            self.gadNativeAdViewTag = ((NSNumber *) gadNativeAdViewTagObj).integerValue;
+        }
+        else
+        {
+            self.gadNativeAdViewTag = -1;
+        }
     }
     return self;
 }
@@ -82,7 +93,9 @@
         nativeAd.rootViewController = [ALUtils topViewControllerFromKeyWindow];
     });
     
-    MANativeAd *maxNativeAd = [[ALGoogleNativeAd alloc] initWithParentAdapter: self.parentAdapter builderBlock:^(MANativeAdBuilder *builder) {
+    MANativeAd *maxNativeAd = [[ALGoogleNativeAd alloc] initWithParentAdapter: self.parentAdapter
+                                                           gadNativeAdViewTag: self.gadNativeAdViewTag
+                                                                 builderBlock:^(MANativeAdBuilder *builder) {
         
         builder.title = nativeAd.headline;
         builder.body = nativeAd.body;
@@ -109,6 +122,15 @@
         if ( [builder respondsToSelector: @selector(setMediaContentAspectRatio:)] )
         {
             [builder performSelector: @selector(setMediaContentAspectRatio:) withObject: @(mediaContentAspectRatio)];
+        }
+#pragma clang diagnostic pop
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+        // Introduced in 11.7.0
+        if ( [builder respondsToSelector: @selector(setStarRating:)] )
+        {
+            [builder performSelector: @selector(setStarRating:) withObject: nativeAd.starRating];
         }
 #pragma clang diagnostic pop
         

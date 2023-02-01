@@ -10,7 +10,7 @@
 #import <DataseatSDK/Dataseat.h>
 #import <DataseatSDK/DSErrorCode.h>
 
-#define ADAPTER_VERSION @"1.0.9.2"
+#define ADAPTER_VERSION @"1.0.9.4"
 
 @interface ALDataseatMediationAdapterRouter : ALMediationAdapterRouter<DSSDKDelegate>
 @end
@@ -106,7 +106,14 @@
     else
     {
         [self log: @"Unable to show interstitial - ad not ready"];
-        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: [MAAdapterError errorWithCode: -4205
+                                                                                                                      errorString: @"Ad Display Failed"
+                                                                                                           thirdPartySdkErrorCode: 0
+                                                                                                        thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -126,7 +133,7 @@
              forPlacementIdentifier: self.routerPlacementIdentifer];
     
     [[Dataseat shared] preloadInterstitial: YES tag: self.routerPlacementIdentifer bidfloor: bidFloor completion:^(NSError *_Nullable error) {
-
+        
         if ( error )
         {
             MAAdapterError *adapterError = [ALDataseatMediationAdapter toMaxError: error];
@@ -167,7 +174,14 @@
     else
     {
         [self log: @"Unable to show rewarded ad with tag: %@", self.routerPlacementIdentifer];
-        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [self.router didFailToDisplayAdForPlacementIdentifier: self.routerPlacementIdentifer error: [MAAdapterError errorWithCode: -4205
+                                                                                                                      errorString: @"Ad Display Failed"
+                                                                                                           thirdPartySdkErrorCode: 0
+                                                                                                        thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -192,6 +206,9 @@
         case ErrorNetworkConnectionFailed:
             adapterError = MAAdapterError.noConnection;
             break;
+        case ErrorNotInitializedYet:
+            adapterError = MAAdapterError.notInitialized;
+            break;
         case ErrorNetworkNoResponse:
             adapterError = MAAdapterError.serverError;
             break;
@@ -205,10 +222,13 @@
     }
     
     // If the Dataseat SDK is not fully initialized, it returns an NSError object that will crash the app if we call `description` or `localizedDescription` on it. This will hopefully be fixed in a future SDK release.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     return [MAAdapterError errorWithCode: adapterError.code
                              errorString: adapterError.message
                   thirdPartySdkErrorCode: dataseatErrorCode
                thirdPartySdkErrorMessage: @""];
+#pragma clang diagnostic pop
 }
 
 #pragma mark - Dynamic Properties

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.9.4
+* Update to use `[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 1.0.9.3
+* Update error code mapping for SDK error reports.
+* Distribute adapter as an XCFramework.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Silence API deprecation warnings.
+* Add additional details for ad display failures. 
+
 ## 1.0.9.2
 * Update ad display failed error code.
 

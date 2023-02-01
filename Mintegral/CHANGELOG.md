@@ -1,5 +1,34 @@
 # Changelog
 
+## 7.2.9.0.1
+* Add COPPA support.
+
+## 7.2.9.0.0
+* Certified with Mintegral SDK 7.2.9.
+
+## 7.2.8.0.1
+* Update to use `[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 7.2.8.0.0
+* Certified with Mintegral SDK 7.2.8.
+
+## 7.2.7.0.0
+* Certified with Mintegral SDK 7.2.7.
+
+## 7.2.6.0.1
+* Support for native ads in external plugins (e.g. React Native).
+
+## 7.2.6.0.0
+* Certified with Mintegral SDK 7.2.6.
+
+## 7.2.5.0.0
+* Certified with Mintegral SDK 7.2.5.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+
+## 7.2.4.0.1
+* Add support for native ad view ads.
+* Add additional details for ad display failures. 
+
 ## 7.2.4.0.0
 * Certified with Mintegral SDK 7.2.4.
 

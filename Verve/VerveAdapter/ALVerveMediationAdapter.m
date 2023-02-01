@@ -8,30 +8,30 @@
 
 #import "ALVerveMediationAdapter.h"
 #import <HyBid.h>
-#import "HyBid-Swift.h"
+#import <HyBid-Generated-Interace-Swift.h>
 
-#define ADAPTER_VERSION @"2.16.0.0"
+#define ADAPTER_VERSION @"2.17.0.0"
 
-@interface ALVerveMediationAdapterInterstitialAdDelegate : NSObject<HyBidInterstitialAdDelegate>
+@interface ALVerveMediationAdapterInterstitialAdDelegate : NSObject <HyBidInterstitialAdDelegate>
 @property (nonatomic, weak) ALVerveMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALVerveMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 @end
 
-@interface ALVerveMediationAdapterRewardedAdsDelegate : NSObject<HyBidRewardedAdDelegate>
+@interface ALVerveMediationAdapterRewardedAdsDelegate : NSObject <HyBidRewardedAdDelegate>
 @property (nonatomic, weak) ALVerveMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
 - (instancetype)initWithParentAdapter:(ALVerveMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 @end
 
-@interface ALVerveMediationAdapterAdViewDelegate : NSObject<HyBidAdViewDelegate>
+@interface ALVerveMediationAdapterAdViewDelegate : NSObject <HyBidAdViewDelegate>
 @property (nonatomic, weak) ALVerveMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALVerveMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALVerveMediationAdapter()
+@interface ALVerveMediationAdapter ()
 
 // Interstitial
 @property (nonatomic, strong) HyBidInterstitialAd *interstitialAd;
@@ -59,7 +59,7 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
 
 #pragma mark - MAAdapter Methods
 
-- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler
+- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler
 {
     if ( [ALVerveInitialized compareAndSet: NO update: YES] )
     {
@@ -179,7 +179,14 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
     else
     {
         [self log: @"Interstitial ad not ready"];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -230,7 +237,14 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
     else
     {
         [self log: @"Rewarded ad not ready"];
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                         errorString: @"Ad Display Failed"
+                                                              thirdPartySdkErrorCode: 0
+                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -282,15 +296,11 @@ static MAAdapterInitializationStatus ALVerveInitializationStatus = NSIntegerMin;
     // As a side effect, pubs that use the MAX consent flow will not be able to update consent values mid-session.
     // Full context in this PR: https://github.com/AppLovin/AppLovin-MAX-SDK-iOS/pull/57
     
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = parameters.hasUserConsent;
+    NSString *verveGDPRConsentString = [[HyBidUserDataManager sharedInstance] getIABGDPRConsentString];
+    if ( hasUserConsent && (!verveGDPRConsentString || [verveGDPRConsentString isEqualToString: @""]) )
     {
-        NSNumber *hasUserConsent = parameters.hasUserConsent;
-        NSString *verveGDPRConsentString = [[HyBidUserDataManager sharedInstance] getIABGDPRConsentString];
-        if ( hasUserConsent && (!verveGDPRConsentString || [verveGDPRConsentString isEqualToString: @""]) )
-        {
-            [[HyBidUserDataManager sharedInstance] setIABGDPRConsentString: hasUserConsent.boolValue ? @"1" : @"0"];
-        }
-        else { /* Don't do anything if huc value not set */ }
+        [[HyBidUserDataManager sharedInstance] setIABGDPRConsentString: hasUserConsent.boolValue ? @"1" : @"0"];
     }
     
     NSNumber *isAgeRestrictedUser = parameters.ageRestrictedUser;

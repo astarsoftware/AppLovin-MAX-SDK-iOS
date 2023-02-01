@@ -9,17 +9,25 @@
 #import <IronSource/IronSource.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"7.2.5.1.0"
+#define ADAPTER_VERSION @"7.2.7.0.1"
 
-@interface ALIronSourceMediationAdapterRouter : ALMediationAdapterRouter<ISDemandOnlyInterstitialDelegate, ISDemandOnlyRewardedVideoDelegate, ISLogDelegate>
+@interface ALIronSourceMediationAdapterRouter : ALMediationAdapterRouter <ISDemandOnlyInterstitialDelegate, ISDemandOnlyRewardedVideoDelegate, ISLogDelegate>
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
 + (NSString *)interstitialRouterIdentifierForInstanceID:(NSString *)instanceID;
 + (NSString *)rewardedVideoRouterIdentifierForInstanceID:(NSString *)instanceID;
 @end
 
-@interface ALIronSourceMediationAdapter()
+@interface ALIronSourceMediationAdapterAdViewDelegate : NSObject <ISDemandOnlyBannerDelegate>
+@property (nonatomic,   weak) ALIronSourceMediationAdapter *parentAdapter;
+@property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
+- (instancetype)initWithParentAdapter:(ALIronSourceMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
+@end
+
+@interface ALIronSourceMediationAdapter ()
 @property (nonatomic, strong, readonly) ALIronSourceMediationAdapterRouter *router;
 @property (nonatomic, copy) NSString *routerPlacementIdentifier;
+
+@property (nonatomic, strong) ALIronSourceMediationAdapterAdViewDelegate *adViewAdapterDelegate;
 @end
 
 @implementation ALIronSourceMediationAdapter
@@ -27,7 +35,7 @@
 
 #pragma mark - MAAdapter Methods
 
-- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler
+- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler
 {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -84,6 +92,8 @@
 
 - (void)destroy
 {
+    self.adViewAdapterDelegate = nil;
+    
     [self.router removeAdapter: self forPlacementIdentifier: self.routerPlacementIdentifier];
 }
 
@@ -93,7 +103,7 @@
 {
     NSString *instanceID = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading ironSource interstitial for instance ID: %@", instanceID];
- 
+    
     [self updateIronSourceDelegates];
     [self setPrivacySettingsWithParameters: parameters];
     
@@ -118,7 +128,7 @@
 {
     NSString *instanceID = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Showing ironSource interstitial for instance ID: %@", instanceID];
- 
+    
     [self updateIronSourceDelegates];
     [self.router addShowingAdapter: self];
     
@@ -139,8 +149,15 @@
     else
     {
         [self log: @"Unable to show ironSource interstitial - no ad loaded for instance ID: %@", instanceID];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         [self.router didFailToDisplayAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter interstitialRouterIdentifierForInstanceID: instanceID]
-                                                        error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+                                                        error: [MAAdapterError errorWithCode: -4205
+                                                                                 errorString: @"Ad Display Failed"
+                                                                      thirdPartySdkErrorCode: 0
+                                                                   thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -150,7 +167,7 @@
 {
     NSString *instanceID = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Loading ironSource rewarded for instance ID: %@", instanceID];
- 
+    
     [self updateIronSourceDelegates];
     [self setPrivacySettingsWithParameters: parameters];
     
@@ -173,7 +190,7 @@
 {
     NSString *instanceID = parameters.thirdPartyAdPlacementIdentifier;
     [self log: @"Showing ironSource rewarded for instance ID: %@", instanceID];
- 
+    
     [self updateIronSourceDelegates];
     [self.router addShowingAdapter: self];
     
@@ -197,9 +214,36 @@
     else
     {
         [self log: @"Unable to show ironSource rewarded - no ad loaded for instance ID: %@", instanceID];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         [self.router didFailToDisplayAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceID]
-                                                        error: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+                                                        error: [MAAdapterError errorWithCode: -4205
+                                                                                 errorString: @"Ad Display Failed"
+                                                                      thirdPartySdkErrorCode: 0
+                                                                   thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
     }
+}
+
+#pragma mark - MAAdViewAdapter Methods
+
+- (void)loadAdViewAdForParameters:(id<MAAdapterResponseParameters>)parameters adFormat:(MAAdFormat *)adFormat andNotify:(id<MAAdViewAdapterDelegate>)delegate
+{
+    NSString *instanceID = parameters.thirdPartyAdPlacementIdentifier;
+    [self log: @"Loading %@ ad for instance ID: %@", adFormat.label, instanceID];
+    
+    self.adViewAdapterDelegate = [[ALIronSourceMediationAdapterAdViewDelegate alloc] initWithParentAdapter: self andNotify: delegate];
+    [IronSource setISDemandOnlyBannerDelegate: self.adViewAdapterDelegate forInstanceId: instanceID];
+    
+    [self setPrivacySettingsWithParameters: parameters];
+    
+    __block UIViewController *presentingViewController;
+    dispatchSyncOnMainQueue(^{
+        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
+    });
+    
+    [IronSource loadISDemandOnlyBannerWithInstanceId: instanceID viewController: presentingViewController size: [self toISBannerSize: adFormat]];
 }
 
 #pragma mark - Dynamic Properties
@@ -219,13 +263,10 @@
 
 - (void)setPrivacySettingsWithParameters:(id<MAAdapterParameters>)parameters
 {
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    if ( hasUserConsent )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-        if ( hasUserConsent )
-        {
-            [IronSource setConsent: hasUserConsent.boolValue];
-        }
+        [IronSource setConsent: hasUserConsent.boolValue];
     }
 }
 
@@ -278,7 +319,131 @@
         [adFormatsToInitialize addObject: IS_REWARDED_VIDEO];
     }
     
+    if ( [adFormats containsObject: @"banner"] )
+    {
+        [adFormatsToInitialize addObject: IS_BANNER];
+    }
+    
     return adFormatsToInitialize;
+}
+
+- (ISBannerSize *)toISBannerSize:(MAAdFormat *)adFormat
+{
+    if ( adFormat == MAAdFormat.banner )
+    {
+        return ISBannerSize_BANNER;
+    }
+    else if ( adFormat == MAAdFormat.leader )
+    {
+        return ISBannerSize_LARGE; // Note: LARGE is 320x90 - leaders weren't supported at the time of implementation.
+    }
+    else if ( adFormat == MAAdFormat.mrec )
+    {
+        return ISBannerSize_RECTANGLE;
+    }
+    else
+    {
+        [NSException raise: NSInvalidArgumentException format: @"Unsupported ad format: %@", adFormat];
+        return ISBannerSize_BANNER;
+    }
+}
+
++ (MAAdapterError *)toMaxError:(NSError *)ironSourceError
+{
+    NSInteger ironSourceErrorCode = ironSourceError.code;
+    MAAdapterError *adapterError = MAAdapterError.unspecified;
+    switch ( ironSourceErrorCode )
+    {
+        case 501:
+        case 505:
+        case 506:
+            adapterError = MAAdapterError.invalidConfiguration;
+            break;
+        case 508: // Init failure
+            adapterError = MAAdapterError.notInitialized;
+            break;
+        case 509: // No ads to show (Show Fail)
+            adapterError = MAAdapterError.noFill;
+            break;
+        case 510: // Server Response Failed (Load Fail)
+            adapterError = MAAdapterError.serverError;
+            break;
+        case 520: // No Internet Connection (Show Fail)
+            adapterError = MAAdapterError.noConnection;
+            break;
+        case 524: // Placement %@ reached it's capping limit (Show Fail)
+        case 526: // Ad Unit reached it's daily cap per session (Show Fail)
+            adapterError = MAAdapterError.adFrequencyCappedError;
+            break;
+        case 1055: // Load aborted due to timeout (Load Fail)
+            adapterError = MAAdapterError.timeout;
+            break;
+        case 1023: // Show RV called when no available ads to show (Show Fail)
+            adapterError = MAAdapterError.adNotReady;
+            break;
+        case 1036: // Interstitial already showing (Show Fail)
+        case 1037: // Interstitial already loaded (Load Fail)
+        case 1022: // RV already showing (Show Fail)
+        case 1056: // RV already loaded (Load Fail)
+            adapterError = MAAdapterError.invalidLoadState;
+            break;
+    }
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    return [MAAdapterError errorWithCode: adapterError.errorCode
+                             errorString: adapterError.errorMessage
+                  thirdPartySdkErrorCode: ironSourceErrorCode
+               thirdPartySdkErrorMessage: ironSourceError.localizedDescription];
+#pragma clang diagnostic pop
+}
+
+@end
+
+#pragma mark - IronSource AdView Delegate
+
+@implementation ALIronSourceMediationAdapterAdViewDelegate
+
+- (instancetype)initWithParentAdapter:(ALIronSourceMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate
+{
+    self = [super init];
+    if ( self )
+    {
+        self.parentAdapter = parentAdapter;
+        self.delegate = delegate;
+    }
+    return self;
+}
+
+- (void)bannerDidLoad:(ISDemandOnlyBannerView *)bannerView instanceId:(NSString *)instanceId
+{
+    [self.parentAdapter log: @"AdView ad loaded for instance ID: %@", instanceId];
+    [self.delegate didLoadAdForAdView: bannerView];
+}
+
+- (void)bannerDidFailToLoadWithError:(NSError *)error instanceId:(NSString *)instanceId
+{
+    [self.parentAdapter log: @"AdView failed to load for instance ID: %@ with error: %@", instanceId, error];
+    
+    MAAdapterError *adapterError = [ALIronSourceMediationAdapter toMaxError: error];
+    [self.delegate didFailToLoadAdViewAdWithError: adapterError];
+}
+
+- (void)bannerDidShow:(NSString *)instanceId
+{
+    [self.parentAdapter log: @"AdView shown for instance ID: %@", instanceId];
+    [self.delegate didDisplayAdViewAd];
+}
+
+- (void)didClickBanner:(NSString *)instanceId
+{
+    [self.parentAdapter log: @"AdView ad clicked for instance ID: %@", instanceId];
+    [self.delegate didClickAdViewAd];
+}
+
+- (void)bannerWillLeaveApplication:(NSString *)instanceId
+{
+    [self.parentAdapter log: @"AdView ad left application for instance ID: %@", instanceId];
 }
 
 @end
@@ -308,7 +473,7 @@
 {
     [self log: @"Interstitial failed to load for instance ID: %@ with error: %@", instanceId, error];
     [self didFailToLoadAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter interstitialRouterIdentifierForInstanceID: instanceId]
-                                          error: [ALIronSourceMediationAdapterRouter toMaxError: error]];
+                                          error: [ALIronSourceMediationAdapter toMaxError: error]];
 }
 
 - (void)interstitialDidOpen:(NSString *)instanceId
@@ -355,7 +520,7 @@
 {
     [self log: @"Rewarded ad failed to load for instance ID: %@", instanceId];
     [self didFailToLoadAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceId]
-                                          error: [[self class] toMaxError: error]];
+                                          error: [ALIronSourceMediationAdapter toMaxError: error]];
 }
 
 - (void)rewardedVideoDidOpen:(NSString *)instanceId
@@ -435,51 +600,6 @@
 + (NSString *)rewardedVideoRouterIdentifierForInstanceID:(NSString *)instanceID
 {
     return [NSString stringWithFormat: @"%@-%@", instanceID, IS_REWARDED_VIDEO];
-}
-
-#pragma mark - Shared Methods
-
-+ (MAAdapterError *)toMaxError:(NSError *)ironSourceError
-{
-    NSInteger ironSourceErrorCode = ironSourceError.code;
-    MAAdapterError *adapterError = MAAdapterError.unspecified;
-    switch ( ironSourceErrorCode )
-    {
-        case 501:
-        case 505:
-        case 506:
-            adapterError = MAAdapterError.invalidConfiguration;
-            break;
-        case 508:
-            adapterError = MAAdapterError.notInitialized;
-            break;
-        case 509:
-            adapterError = MAAdapterError.noFill;
-            break;
-        case 520:
-            adapterError = MAAdapterError.noConnection;
-            break;
-        case 524:
-        case 526:
-            adapterError = MAAdapterError.adFrequencyCappedError;
-            break;
-        case 1022:
-        case 1036:
-        case 1037:
-            adapterError = MAAdapterError.invalidLoadState;
-            break;
-        case 1023:
-            adapterError = MAAdapterError.adNotReady;
-            break;
-    }
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    return [MAAdapterError errorWithCode: adapterError.errorCode
-                             errorString: adapterError.errorMessage
-                  thirdPartySdkErrorCode: ironSourceErrorCode
-               thirdPartySdkErrorMessage: ironSourceError.localizedDescription];
-#pragma clang diagnostic pop
 }
 
 #pragma mark - ironSource Log Delegate

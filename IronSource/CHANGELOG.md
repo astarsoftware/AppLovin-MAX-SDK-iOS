@@ -1,5 +1,28 @@
 # Changelog
 
+## 7.2.7.0.1
+* Update to use `setISDemandOnlyBannerDelegate:forInstanceId:` API to support setting a new delegate for each banner/MREC instance.
+
+## 7.2.7.0.0
+* Certified with IronSource SDK 7.2.7.0.
+
+## 7.2.6.0.2
+* Remove `consentDialogState` guard.
+
+## 7.2.6.0.1
+* Update to use `+[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 7.2.6.0.0
+* Certified with IronSource SDK 7.2.6.0.
+
+## 7.2.5.1.2
+* Update error code mapping for SDK error reports.
+
+## 7.2.5.1.1
+* Add support for banners and MRECs.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 7.2.5.1.0
 * Certified with IronSource SDK 7.2.5.1.
 

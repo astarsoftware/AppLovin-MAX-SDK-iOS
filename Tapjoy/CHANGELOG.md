@@ -1,5 +1,16 @@
 # Changelog
 
+## 12.11.1.2
+* Remove `consentDialogState` guard.
+
+## 12.11.1.1
+* Update to use `+[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 12.11.1.0
+* Certified with Tapjoy SDK 12.11.1.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 12.11.0.0
 * Certified with Tapjoy SDK 12.11.0.
 

@@ -1,5 +1,23 @@
 # Changelog
 
+## 9.14.0.2
+* Add support for star ratings in manual native ads.
+
+## 9.14.0.1
+* Update to use `[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 9.14.0.0
+* Certified with Google SDK 9.14.0.
+
+## 9.13.0.0
+* Certified with Google SDK 9.13.0.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures.
+* Remove SCAR APIs from adapter header file since classes are now included in the Google SDK.
+
+## 9.11.0.6
+* Fix non-native ad view related buttons becoming unclickable under custom native ad view. Please visit our updated [integration steps](https://dash.applovin.com/documentation/mediation/ios/ad-formats/native-manual#bind-ui-components) for further details.
+
 ## 9.11.0.5
 * Fix silent exception thrown during signal collection for app open ads.
 

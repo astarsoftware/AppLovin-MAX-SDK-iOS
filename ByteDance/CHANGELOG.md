@@ -1,5 +1,26 @@
 # Changelog
 
+## 4.8.1.0.2
+* Remove `consentDialogState` guard.
+
+## 4.8.1.0.1
+* Update to use `+[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 4.8.1.0.0
+* Certified with ByteDance Global SDK 4.8.1.0.
+* Certified with ByteDance China SDK 4.9.0.7.
+
+## 4.7.0.8.2
+* Support for native ads in external plugins (e.g. React Native).
+
+## 4.7.0.8.1
+* Fix main image missing error by creating native ad on the main thread.
+
+## 4.7.0.8.0
+* Certified with ByteDance Global SDK 4.7.0.8.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 4.7.0.4.0
 * Certified with ByteDance Global SDK 4.7.0.4.
 * Certified with ByteDance China SDK 4.7.1.1.

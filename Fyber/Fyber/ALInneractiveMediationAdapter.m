@@ -10,31 +10,31 @@
 #import <IASDKCore/IASDKCore.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"8.1.6.0"
+#define ADAPTER_VERSION @"8.1.9.0"
 
-@interface ALInneractiveMediationAdapterGlobalDelegate : NSObject<IAGlobalAdDelegate>
+@interface ALInneractiveMediationAdapterGlobalDelegate : NSObject <IAGlobalAdDelegate>
 @end
 
-@interface ALInneractiveMediationAdapterInterstitialDelegate : NSObject<IAUnitDelegate, IAVideoContentDelegate, IAMRAIDContentDelegate>
+@interface ALInneractiveMediationAdapterInterstitialDelegate : NSObject <IAUnitDelegate, IAVideoContentDelegate, IAMRAIDContentDelegate>
 @property (nonatomic,   weak) ALInneractiveMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALInneractiveMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 @end
 
-@interface ALInneractiveMediationAdapterRewardedDelegate : NSObject<IAUnitDelegate, IAVideoContentDelegate, IAMRAIDContentDelegate>
+@interface ALInneractiveMediationAdapterRewardedDelegate : NSObject <IAUnitDelegate, IAVideoContentDelegate, IAMRAIDContentDelegate>
 @property (nonatomic,   weak) ALInneractiveMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
 - (instancetype)initWithParentAdapter:(ALInneractiveMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 @end
 
-@interface ALInneractiveMediationAdapterAdViewDelegate : NSObject<IAUnitDelegate, IAMRAIDContentDelegate>
+@interface ALInneractiveMediationAdapterAdViewDelegate : NSObject <IAUnitDelegate, IAMRAIDContentDelegate>
 @property (nonatomic,   weak) ALInneractiveMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALInneractiveMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALInneractiveMediationAdapter()
+@interface ALInneractiveMediationAdapter ()
 
 // Interstitial
 @property (nonatomic, strong) IAAdSpot *interstitialAdSpot;
@@ -65,7 +65,6 @@ static MAAdapterInitializationStatus ALInneractiveInitializationStatus = NSInteg
 
 static ALInneractiveMediationAdapterGlobalDelegate *ALInneractiveGlobalDelegate;
 static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInneractiveCurrentlyShowingAdapters;
-
 
 + (void)initialize
 {
@@ -262,7 +261,14 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     else
     {
         [self log: @"Interstitial ad not ready"];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -345,7 +351,14 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     else
     {
         [self log: @"Rewarded ad not ready"];
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                         errorString: @"Ad Display Failed"
+                                                              thirdPartySdkErrorCode: 0
+                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -415,13 +428,10 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
 {
     [IASDKCore sharedInstance].userID = self.sdk.userIdentifier;
     
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: requestParameters];
+    if ( hasUserConsent )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: requestParameters];
-        if ( hasUserConsent )
-        {
-            [[IASDKCore sharedInstance] setGDPRConsent: hasUserConsent.boolValue];
-        }
+        [[IASDKCore sharedInstance] setGDPRConsent: hasUserConsent.boolValue];
     }
     else
     {

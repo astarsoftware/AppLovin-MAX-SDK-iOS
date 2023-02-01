@@ -1,5 +1,19 @@
 # Changelog
 
+## 22.0.1.0
+* Certified with Smaato SDK 22.0.1.
+
+## 21.7.9.1
+* Update to use `[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 21.7.9.0
+* Certified with Smaato SDK 21.7.9.
+
+## 21.7.8.1
+* Support for native ads in external plugins (e.g. React Native).
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 21.7.8.0
 * Certified with Smaato SDK 21.7.8.
 

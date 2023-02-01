@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.2.0.7
+* Add support for star ratings in manual native ads.
+
+## 2.2.0.6
+* Certified with Yahoo Mobile SDK 1.3.0.
+
+## 2.2.0.5
+* Add adapter class name `ALYahooMediationAdapter`.
+
+## 2.2.0.4
+* Update to use `[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 2.2.0.3
+* Add support for container clickability (supported in SDK v11.5.6+).
+
+## 2.2.0.2
+* Fix native ad view ad impression issue due to missing assets in templates on older AppLovin SDKs. Yahoo native ad view ads now require AppLovin SDK version 11.5.5+.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 2.2.0.1
 * Add support for native ad view ads.
 * Call `-[YASNativeAd clear]` and `-[YASNativeAd destroy]` when destroying adapter instance.

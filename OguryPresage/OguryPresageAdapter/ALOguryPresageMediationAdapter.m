@@ -11,16 +11,16 @@
 #import <OguryAds/OguryAds.h>
 #import <OguryChoiceManager/OguryChoiceManager.h>
 
-#define ADAPTER_VERSION @"2.6.2.1"
+#define ADAPTER_VERSION @"4.0.0.0"
 
-@interface ALOguryPresageMediationAdapterInterstitialDelegate : NSObject<OguryInterstitialAdDelegate>
+@interface ALOguryPresageMediationAdapterInterstitialDelegate : NSObject <OguryInterstitialAdDelegate>
 @property (nonatomic,   weak) ALOguryPresageMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 @property (nonatomic,   copy) NSString *adUnitIdentifier;
 - (instancetype)initWithParentAdapter:(ALOguryPresageMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate adUnitIdentifier:(NSString *)adUnitIdentifier;
 @end
 
-@interface ALOguryPresageMediationAdapterRewardedAdDelegate : NSObject<OguryOptinVideoAdDelegate>
+@interface ALOguryPresageMediationAdapterRewardedAdDelegate : NSObject <OguryOptinVideoAdDelegate>
 @property (nonatomic,   weak) ALOguryPresageMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic,   copy) NSString *adUnitIdentifier;
@@ -28,7 +28,7 @@
 - (instancetype)initWithParentAdapter:(ALOguryPresageMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate adUnitIdentifier:(NSString *)adUnitIdentifier;
 @end
 
-@interface ALOguryPresageMediationAdapter()
+@interface ALOguryPresageMediationAdapter ()
 
 // Interstitial
 @property (nonatomic, strong) OguryInterstitialAd *interstitialAd;
@@ -56,7 +56,7 @@ static MAAdapterInitializationStatus ALOguryPresageInitializationStatus = NSInte
 
 #pragma mark - MAAdapter Methods
 
-- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString * _Nullable))completionHandler
+- (void)initializeWithParameters:(id<MAAdapterInitializationParameters>)parameters completionHandler:(void (^)(MAAdapterInitializationStatus, NSString *_Nullable))completionHandler
 {
     if ( [ALOguryPresageInitialized compareAndSet: NO update: YES] )
     {
@@ -75,7 +75,7 @@ static MAAdapterInitializationStatus ALOguryPresageInitializationStatus = NSInte
         
         ALOguryPresageInitializationStatus = MAAdapterInitializationStatusInitializedUnknown;
     }
-
+    
     completionHandler(ALOguryPresageInitializationStatus, nil);
 }
 
@@ -168,7 +168,14 @@ static MAAdapterInitializationStatus ALOguryPresageInitializationStatus = NSInte
     else
     {
         [self log: @"Interstitial ad not ready"];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -224,7 +231,14 @@ static MAAdapterInitializationStatus ALOguryPresageInitializationStatus = NSInte
     else
     {
         [self log: @"Rewarded ad not ready"];
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                         errorString: @"Ad Display Failed"
+                                                              thirdPartySdkErrorCode: 0
+                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -232,14 +246,11 @@ static MAAdapterInitializationStatus ALOguryPresageInitializationStatus = NSInte
 
 - (void)updateUserConsent:(id<MAAdapterParameters>)parameters
 {
-    if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    if ( hasUserConsent )
     {
-        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-        if ( hasUserConsent )
-        {
-            NSString *assetKey = [parameters.serverParameters al_stringForKey: @"asset_key"];
-            [OguryChoiceManagerExternal setTransparencyAndConsentStatus: hasUserConsent.boolValue origin: @"CUSTOM" assetKey: assetKey];
-        }
+        NSString *assetKey = [parameters.serverParameters al_stringForKey: @"asset_key"];
+        [OguryChoiceManagerExternal setTransparencyAndConsentStatus: hasUserConsent.boolValue origin: @"CUSTOM" assetKey: assetKey];
     }
 }
 

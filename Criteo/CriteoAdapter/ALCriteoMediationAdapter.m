@@ -9,7 +9,7 @@
 #import "ALCriteoMediationAdapter.h"
 #import <CriteoPublisherSdk/CriteoPublisherSdk.h>
 
-#define ADAPTER_VERSION @"4.5.0.5"
+#define ADAPTER_VERSION @"4.5.0.7"
 #define PUB_ID_KEY @"pub_id"
 
 @interface ALCriteoInterstitialDelegate : NSObject<CRInterstitialDelegate>
@@ -186,7 +186,14 @@ static MAAdapterInitializationStatus ALCriteoInitializationStatus = NSIntegerMin
     else
     {
         [self log: @"Interstitial ad failed to show: %@", placementIdentifier];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -555,20 +562,29 @@ static MAAdapterInitializationStatus ALCriteoInitializationStatus = NSIntegerMin
 
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
+    [self prepareForInteractionClickableViews: nil withContainer: maxNativeAdView];
+}
+
+- (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container
+{
     CRNativeAd *nativeAd = self.parentAdapter.nativeAd;
     if ( !nativeAd )
     {
         [self.parentAdapter e: @"Failed to register native ad view: native ad is nil."];
-        return;
+        return NO;
     }
+    
+    [self.parentAdapter d: @"Preparing views for interaction: %@ with container: %@", clickableViews, container];
     
     self.parentAdapter.nativeAdView = [[CRNativeAdView alloc] init];
     self.parentAdapter.nativeAdView.nativeAd = self.parentAdapter.nativeAd;
     
-    [maxNativeAdView addSubview: self.parentAdapter.nativeAdView];
+    [container addSubview: self.parentAdapter.nativeAdView];
     
     // Pin view to activate impression and click tracking
     [self.parentAdapter.nativeAdView al_pinToSuperview];
+    
+    return YES;
 }
 
 @end

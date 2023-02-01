@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.5.6.4
+* Add support for passing Amazon hashed bidder id (`amznp`) in `-[MAAdDelegate didLoadAd:]` callback via `-[MAAd adValueForKey:]`. AppLovin MAX SDK v11.7.0+ is required.
+
+## 4.5.6.3
+* Fix using incorrect mediation hints when same price point is used for different ad formats.
+
+## 4.5.6.2
+* Update to use `[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 4.5.6.1
+* Add support for passing creative id to AppLovin SDK.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 4.5.6.0
 * Certified with APS SDK 4.5.6. 
 * Add try/catch to signal collection to avoid crashes.

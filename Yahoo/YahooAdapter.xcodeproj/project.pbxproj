@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1D5748D821C79E13004C8981 /* ALVerizonAdsMediationAdapter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A561CD5219BB58300E3749A /* ALVerizonAdsMediationAdapter.m */; };
-		2DAF6C9F6890C02BEF425EE0 /* Pods_VerizonAdsAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F52A0728C94E486B748F864 /* Pods_VerizonAdsAdapter.framework */; };
+		1D5748D821C79E13004C8981 /* ALYahooMediationAdapter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A561CD5219BB58300E3749A /* ALYahooMediationAdapter.m */; };
+		46F983F6C961BDB124125710 /* Pods_YahooAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CB1FF5C93F7B023FE738FD75 /* Pods_YahooAdapter.framework */; };
 		6A561CEA219BB5D400E3749A /* AppLovinSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D31B64D219BA4E600875D92 /* AppLovinSDK.framework */; };
 /* End PBXBuildFile section */
 
@@ -41,14 +41,16 @@
 		1D9AE8ED21423C7E00080475 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		1D9AE8EE21423C7E00080475 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		1D9AE8FC21423C9200080475 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		6A561CD5219BB58300E3749A /* ALVerizonAdsMediationAdapter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALVerizonAdsMediationAdapter.m; sourceTree = "<group>"; };
-		6A561CD6219BB58300E3749A /* ALVerizonAdsMediationAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALVerizonAdsMediationAdapter.h; sourceTree = "<group>"; };
-		6A561CEF219BB5D400E3749A /* libVerizonAdsAdapter.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libVerizonAdsAdapter.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A561CD5219BB58300E3749A /* ALYahooMediationAdapter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALYahooMediationAdapter.m; sourceTree = "<group>"; };
+		6A561CD6219BB58300E3749A /* ALYahooMediationAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALYahooMediationAdapter.h; sourceTree = "<group>"; };
+		6A561CEF219BB5D400E3749A /* libYahooAdapter.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libYahooAdapter.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A5A632E21C0872C00B755D7 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = SOURCE_ROOT; };
 		6A5A632F21C0872D00B755D7 /* AppLovinMediationVerizonAdsAdapter.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppLovinMediationVerizonAdsAdapter.podspec; sourceTree = SOURCE_ROOT; };
 		857940D3352DC05E44E4CB88 /* Pods-VerizonAdsAdapter.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VerizonAdsAdapter.debug.xcconfig"; path = "Target Support Files/Pods-VerizonAdsAdapter/Pods-VerizonAdsAdapter.debug.xcconfig"; sourceTree = "<group>"; };
-		9F52A0728C94E486B748F864 /* Pods_VerizonAdsAdapter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_VerizonAdsAdapter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB728BEF776C7734E33A1B74 /* Pods-VerizonAdsAdapter.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VerizonAdsAdapter.release.xcconfig"; path = "Target Support Files/Pods-VerizonAdsAdapter/Pods-VerizonAdsAdapter.release.xcconfig"; sourceTree = "<group>"; };
+		CB1FF5C93F7B023FE738FD75 /* Pods_YahooAdapter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_YahooAdapter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2984F6DFC44AE766E24876B /* Pods-YahooAdapter.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YahooAdapter.release.xcconfig"; path = "Target Support Files/Pods-YahooAdapter/Pods-YahooAdapter.release.xcconfig"; sourceTree = "<group>"; };
+		EFEA76F963355D84601C30CC /* Pods-YahooAdapter.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YahooAdapter.debug.xcconfig"; path = "Target Support Files/Pods-YahooAdapter/Pods-YahooAdapter.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +59,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A561CEA219BB5D400E3749A /* AppLovinSDK.framework in Frameworks */,
-				2DAF6C9F6890C02BEF425EE0 /* Pods_VerizonAdsAdapter.framework in Frameworks */,
+				46F983F6C961BDB124125710 /* Pods_YahooAdapter.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,7 +84,7 @@
 				1D9AE8EA21423C7E00080475 /* SystemConfiguration.framework */,
 				1D9AE8E821423C7E00080475 /* UIKit.framework */,
 				1D9AE8E721423C7E00080475 /* WebKit.framework */,
-				9F52A0728C94E486B748F864 /* Pods_VerizonAdsAdapter.framework */,
+				CB1FF5C93F7B023FE738FD75 /* Pods_YahooAdapter.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -90,7 +92,7 @@
 		1D97FB7C1FBCF38B00D6C309 = {
 			isa = PBXGroup;
 			children = (
-				6A561CD4219BB58300E3749A /* VerizonAdsAdapter */,
+				6A561CD4219BB58300E3749A /* YahooAdapter */,
 				6A12947F21C086760052F283 /* Supporting Files */,
 				1D97FB861FBCF38B00D6C309 /* Products */,
 				1D2303A61FBCF4C7001939D7 /* Frameworks */,
@@ -101,7 +103,7 @@
 		1D97FB861FBCF38B00D6C309 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6A561CEF219BB5D400E3749A /* libVerizonAdsAdapter.a */,
+				6A561CEF219BB5D400E3749A /* libYahooAdapter.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,13 +117,13 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		6A561CD4219BB58300E3749A /* VerizonAdsAdapter */ = {
+		6A561CD4219BB58300E3749A /* YahooAdapter */ = {
 			isa = PBXGroup;
 			children = (
-				6A561CD6219BB58300E3749A /* ALVerizonAdsMediationAdapter.h */,
-				6A561CD5219BB58300E3749A /* ALVerizonAdsMediationAdapter.m */,
+				6A561CD6219BB58300E3749A /* ALYahooMediationAdapter.h */,
+				6A561CD5219BB58300E3749A /* ALYahooMediationAdapter.m */,
 			);
-			path = VerizonAdsAdapter;
+			path = YahooAdapter;
 			sourceTree = "<group>";
 		};
 		FEC1D2F3D573711B4AFC822D /* Pods */ = {
@@ -129,6 +131,8 @@
 			children = (
 				857940D3352DC05E44E4CB88 /* Pods-VerizonAdsAdapter.debug.xcconfig */,
 				AB728BEF776C7734E33A1B74 /* Pods-VerizonAdsAdapter.release.xcconfig */,
+				EFEA76F963355D84601C30CC /* Pods-YahooAdapter.debug.xcconfig */,
+				E2984F6DFC44AE766E24876B /* Pods-YahooAdapter.release.xcconfig */,
 			);
 			name = Pods;
 			path = "../../iOS-Workspace/Pods";
@@ -137,9 +141,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6A561CE6219BB5D400E3749A /* VerizonAdsAdapter */ = {
+		6A561CE6219BB5D400E3749A /* YahooAdapter */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6A561CEC219BB5D400E3749A /* Build configuration list for PBXNativeTarget "VerizonAdsAdapter" */;
+			buildConfigurationList = 6A561CEC219BB5D400E3749A /* Build configuration list for PBXNativeTarget "YahooAdapter" */;
 			buildPhases = (
 				167B969CD977BF1FB79575C7 /* [CP] Check Pods Manifest.lock */,
 				6A561CE7219BB5D400E3749A /* Sources */,
@@ -150,9 +154,9 @@
 			);
 			dependencies = (
 			);
-			name = VerizonAdsAdapter;
+			name = YahooAdapter;
 			productName = "Unity Plugin";
-			productReference = 6A561CEF219BB5D400E3749A /* libVerizonAdsAdapter.a */;
+			productReference = 6A561CEF219BB5D400E3749A /* libYahooAdapter.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -169,7 +173,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "VerizonAdsAdapter" */;
+			buildConfigurationList = 1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "YahooAdapter" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -182,7 +186,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6A561CE6219BB5D400E3749A /* VerizonAdsAdapter */,
+				6A561CE6219BB5D400E3749A /* YahooAdapter */,
 			);
 		};
 /* End PBXProject section */
@@ -203,7 +207,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-VerizonAdsAdapter-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-YahooAdapter-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -217,7 +221,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1D5748D821C79E13004C8981 /* ALVerizonAdsMediationAdapter.m in Sources */,
+				1D5748D821C79E13004C8981 /* ALYahooMediationAdapter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,6 +263,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -320,6 +325,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -343,12 +349,13 @@
 		};
 		6A561CED219BB5D400E3749A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 857940D3352DC05E44E4CB88 /* Pods-VerizonAdsAdapter.debug.xcconfig */;
+			baseConfigurationReference = EFEA76F963355D84601C30CC /* Pods-YahooAdapter.debug.xcconfig */;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = X8JXXK4FF5;
+				ENABLE_BITCODE = NO;
 				EXCLUDED_ARCHS = "i386 $(inherited)";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -365,12 +372,13 @@
 		};
 		6A561CEE219BB5D400E3749A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AB728BEF776C7734E33A1B74 /* Pods-VerizonAdsAdapter.release.xcconfig */;
+			baseConfigurationReference = E2984F6DFC44AE766E24876B /* Pods-YahooAdapter.release.xcconfig */;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = X8JXXK4FF5;
+				ENABLE_BITCODE = NO;
 				EXCLUDED_ARCHS = "i386 $(inherited)";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -388,7 +396,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "VerizonAdsAdapter" */ = {
+		1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "YahooAdapter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1D97FB8C1FBCF38B00D6C309 /* Debug */,
@@ -397,7 +405,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6A561CEC219BB5D400E3749A /* Build configuration list for PBXNativeTarget "VerizonAdsAdapter" */ = {
+		6A561CEC219BB5D400E3749A /* Build configuration list for PBXNativeTarget "YahooAdapter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6A561CED219BB5D400E3749A /* Debug */,

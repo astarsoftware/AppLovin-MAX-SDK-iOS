@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.0.0.0
+* Certified with OguryPresage SDK 4.0.0.
+
+## 2.6.3.2
+* Remove `consentDialogState` guard.
+
+## 2.6.3.1
+* Update to use `+[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 2.6.3.0
+* Certified with OguryPresage SDK 2.2.0.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 2.6.2.1
 * Update privacy settings before collecting signal. 
 

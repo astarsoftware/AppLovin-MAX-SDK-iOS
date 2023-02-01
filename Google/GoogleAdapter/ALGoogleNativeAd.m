@@ -8,23 +8,27 @@
 
 #import "ALGoogleNativeAd.h"
 
-@interface ALGoogleMediationAdapter()
+@interface ALGoogleMediationAdapter ()
 @property (nonatomic, strong) GADNativeAd *nativeAd;
 @property (nonatomic, strong) GADNativeAdView *nativeAdView;
 @end
 
-@interface ALGoogleNativeAd()
-@property (nonatomic, weak) ALGoogleMediationAdapter *parentAdapter;
+@interface ALGoogleNativeAd ()
+@property (nonatomic,   weak) ALGoogleMediationAdapter *parentAdapter;
+@property (nonatomic, assign) NSInteger gadNativeAdViewTag;
 @end
 
 @implementation ALGoogleNativeAd
 
-- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock
+- (instancetype)initWithParentAdapter:(ALGoogleMediationAdapter *)parentAdapter
+                   gadNativeAdViewTag:(NSInteger)gadNativeAdViewTag
+                         builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock
 {
     self = [super initWithFormat: MAAdFormat.native builderBlock: builderBlock];
     if ( self )
     {
         self.parentAdapter = parentAdapter;
+        self.gadNativeAdViewTag = gadNativeAdViewTag;
     }
     return self;
 }
@@ -38,7 +42,23 @@
         return;
     }
     
-    GADNativeAdView *gadNativeAdView = [[GADNativeAdView alloc] init];
+    // Check if the publisher included Google's `GADNativeAdView`. If we can use an integrated view, Google
+    // won't need to overlay the view on top of the pub view, causing unrelated buttons to be unclickable
+    GADNativeAdView *gadNativeAdView = [maxNativeAdView viewWithTag: self.gadNativeAdViewTag];
+    if ( ![gadNativeAdView isKindOfClass: [GADNativeAdView class]] )
+    {
+        gadNativeAdView = [[GADNativeAdView alloc] init];
+        
+        // Save the manually created view to be removed later
+        self.parentAdapter.nativeAdView = gadNativeAdView;
+        
+        // NOTE: iOS needs order to be maxNativeAdView -> gadNativeAdView in order for assets to be sized correctly
+        [maxNativeAdView addSubview: gadNativeAdView];
+        
+        // Pin view in order to make it clickable - this makes views not registered with the native ad view unclickable
+        [gadNativeAdView al_pinToSuperview];
+    }
+    
     gadNativeAdView.iconView = maxNativeAdView.iconImageView;
     gadNativeAdView.headlineView = maxNativeAdView.titleLabel;
     gadNativeAdView.bodyView = maxNativeAdView.bodyLabel;
@@ -65,14 +85,6 @@
 #pragma clang diagnostic pop
     
     gadNativeAdView.nativeAd = self.parentAdapter.nativeAd;
-    
-    // NOTE: iOS needs order to be maxNativeAdView -> gadNativeAdView in order for assets to be sized correctly
-    [maxNativeAdView addSubview: gadNativeAdView];
-    
-    // Pin view in order to make it clickable
-    [gadNativeAdView al_pinToSuperview];
-    
-    self.parentAdapter.nativeAdView = gadNativeAdView;
 }
 
 @end

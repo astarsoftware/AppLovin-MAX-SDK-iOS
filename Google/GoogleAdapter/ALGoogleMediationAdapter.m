@@ -18,9 +18,9 @@
 
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"9.11.0.5"
+#define ADAPTER_VERSION @"9.14.0.2"
 
-@interface ALGoogleMediationAdapter()
+@interface ALGoogleMediationAdapter ()
 
 @property (nonatomic, strong) GADInterstitialAd *interstitialAd;
 @property (nonatomic, strong) GADAppOpenAd *appOpenAd;
@@ -106,7 +106,7 @@ static NSString *ALGoogleSDKVersion;
 
 - (void)destroy
 {
-    [self log: @"Destroy called for adapter %@", self ];
+    [self log: @"Destroy called for adapter %@", self];
     
     self.interstitialAd.fullScreenContentDelegate = nil;
     self.interstitialAd = nil;
@@ -140,7 +140,9 @@ static NSString *ALGoogleSDKVersion;
     // Remove the view from MANativeAdView in case the publisher decies to re-use the native ad view.
     [self.nativeAdView removeFromSuperview];
     self.nativeAdView = nil;
+    
     self.nativeAdViewDelegate = nil;
+    self.nativeAdDelegate = nil;
 }
 
 #pragma mark - MASignalProvider Methods
@@ -255,7 +257,14 @@ static NSString *ALGoogleSDKVersion;
     else
     {
         [self log: @"Interstitial ad failed to show: %@", placementIdentifier];
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                             errorString: @"Ad Display Failed"
+                                                                  thirdPartySdkErrorCode: 0
+                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -387,7 +396,10 @@ static NSString *ALGoogleSDKVersion;
     else
     {
         [self log: @"App open ad failed to show: %@", placementIdentifier];
-        [delegate didFailToDisplayAppOpenAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        [delegate didFailToDisplayAppOpenAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                        errorString: @"Ad Display Failed"
+                                                           mediatedNetworkErrorCode: 0
+                                                        mediatedNetworkErrorMessage: @"App open ad not ready"]];
     }
 }
 
@@ -465,7 +477,14 @@ static NSString *ALGoogleSDKVersion;
     else
     {
         [self log: @"Rewarded interstitial ad failed to show: %@", placementIdentifier];
-        [delegate didFailToDisplayRewardedInterstitialAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                                     errorString: @"Ad Display Failed"
+                                                                          thirdPartySdkErrorCode: 0
+                                                                       thirdPartySdkErrorMessage: @"Rewarded Interstitial ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -543,7 +562,14 @@ static NSString *ALGoogleSDKVersion;
     else
     {
         [self log: @"Rewarded ad failed to show: %@", placementIdentifier];
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205 errorString: @"Ad Display Failed"]];
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
+                                                                         errorString: @"Ad Display Failed"
+                                                              thirdPartySdkErrorCode: 0
+                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+#pragma clang diagnostic pop
     }
 }
 
@@ -592,7 +618,7 @@ static NSString *ALGoogleSDKVersion;
         BOOL isAdaptiveBanner = [parameters.serverParameters al_boolForKey: @"adaptive_banner" defaultValue: NO];
         GADAdSize adSize = [self adSizeFromAdFormat: adFormat isAdaptiveBanner: isAdaptiveBanner];
         self.adView = [[GADBannerView alloc] initWithAdSize: adSize];
-        self.adView.frame = (CGRect){.size = adSize.size};
+        self.adView.frame = (CGRect) {.size = adSize.size};
         self.adView.adUnitID = placementIdentifier;
         self.adView.rootViewController = [ALUtils topViewControllerFromKeyWindow];
         self.adViewDelegate = [[ALGoogleAdViewDelegate alloc] initWithParentAdapter: self
@@ -627,7 +653,7 @@ static NSString *ALGoogleSDKVersion;
     nativeAdImageAdLoaderOptions.shouldRequestMultipleImages = [templateName containsString: @"medium"];
     
     self.nativeAdDelegate = [[ALGoogleNativeAdDelegate alloc] initWithParentAdapter: self
-                                                                   serverParameters: parameters.serverParameters
+                                                                         parameters: parameters
                                                                           andNotify: delegate];
     
     // Fetching the top view controller needs to be on the main queue
@@ -957,10 +983,10 @@ static NSString *ALGoogleSDKVersion;
     {
         GADAdChoicesPosition rawValue = ((NSNumber *) placementObj).integerValue;
         
-        return rawValue == GADAdChoicesPositionTopRightCorner ||
-        rawValue == GADAdChoicesPositionTopLeftCorner ||
-        rawValue == GADAdChoicesPositionBottomRightCorner ||
-        rawValue == GADAdChoicesPositionBottomLeftCorner;
+        return rawValue == GADAdChoicesPositionTopRightCorner
+        || rawValue == GADAdChoicesPositionTopLeftCorner
+        || rawValue == GADAdChoicesPositionBottomRightCorner
+        || rawValue == GADAdChoicesPositionBottomLeftCorner;
     }
     
     return NO;

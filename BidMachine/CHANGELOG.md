@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.0.5.0
+* Certified with BidMachine SDK 2.0.0.5.
+* Update to use new APIs.
+* Remove `consentDialogState` guard.
+
+## 1.9.5.1.0
+* Certified with BidMachine SDK 1.9.5.1.
+
+## 1.9.5.0.3
+* Update to use `+[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.
+
+## 1.9.5.0.2
+* Support for native ads in external plugins (e.g. React Native).
+
+## 1.9.5.0.1
+* Update error code mapping for SDK error reports.
+* Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Add additional details for ad display failures. 
+
 ## 1.9.5.0.0
 * Certified with BidMachine SDK 1.9.5.0.
 * Add CCPA support.

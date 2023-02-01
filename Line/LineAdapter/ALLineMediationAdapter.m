@@ -8,29 +8,29 @@
 #import "ALLineMediationAdapter.h"
 #import <FiveAd/FiveAd.h>
 
-#define ADAPTER_VERSION @"2.4.20220630.0"
+#define ADAPTER_VERSION @"2.4.20220630.2"
 
-@interface ALLineMediationAdapterInterstitialAdDelegate : NSObject<FADLoadDelegate, FADAdViewEventListener>
+@interface ALLineMediationAdapterInterstitialAdDelegate : NSObject <FADLoadDelegate, FADAdViewEventListener>
 @property (nonatomic,   weak) ALLineMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAInterstitialAdapterDelegate> delegate;
 - (instancetype)initWithParentAdapter:(ALLineMediationAdapter *)parentAdapter andNotify:(id<MAInterstitialAdapterDelegate>)delegate;
 @end
 
-@interface ALLineMediationAdapterRewardedAdDelegate : NSObject<FADLoadDelegate, FADAdViewEventListener>
+@interface ALLineMediationAdapterRewardedAdDelegate : NSObject <FADLoadDelegate, FADAdViewEventListener>
 @property (nonatomic,   weak) ALLineMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MARewardedAdapterDelegate> delegate;
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
 - (instancetype)initWithParentAdapter:(ALLineMediationAdapter *)parentAdapter andNotify:(id<MARewardedAdapterDelegate>)delegate;
 @end
 
-@interface ALLineMediationAdapterAdViewDelegate : NSObject<FADLoadDelegate, FADAdViewEventListener>
+@interface ALLineMediationAdapterAdViewDelegate : NSObject <FADLoadDelegate, FADAdViewEventListener>
 @property (nonatomic,   weak) ALLineMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
 @property (nonatomic, strong) MAAdFormat *adFormat;
 - (instancetype)initWithParentAdapter:(ALLineMediationAdapter *)parentAdapter adFormat:(MAAdFormat *)adFormat andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALLineMediationAdapterNativeAdViewDelegate : NSObject<FADLoadDelegate, FADAdViewEventListener>
+@interface ALLineMediationAdapterNativeAdViewDelegate : NSObject <FADLoadDelegate, FADAdViewEventListener>
 @property (nonatomic,   weak) ALLineMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
 @property (nonatomic, strong) MAAdFormat *adFormat;
@@ -38,7 +38,7 @@
 - (instancetype)initWithParentAdapter:(ALLineMediationAdapter *)parentAdapter adFormat:(MAAdFormat *)adFormat serverParameters:(NSDictionary<NSString *, id> *)serverParameters andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 @end
 
-@interface ALLineMediationAdapterNativeAdDelegate : NSObject<FADLoadDelegate, FADAdViewEventListener>
+@interface ALLineMediationAdapterNativeAdDelegate : NSObject <FADLoadDelegate, FADAdViewEventListener>
 @property (nonatomic,   weak) ALLineMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MANativeAdAdapterDelegate> delegate;
 @property (nonatomic, strong) NSDictionary<NSString *, id> *serverParameters;
@@ -51,7 +51,7 @@
 - (instancetype)initWithFormat:(MAAdFormat *)format builderBlock:(NS_NOESCAPE MANativeAdBuilderBlock)builderBlock NS_UNAVAILABLE;
 @end
 
-@interface ALLineMediationAdapter()
+@interface ALLineMediationAdapter ()
 
 // Interstitial
 @property (nonatomic, strong) ALLineMediationAdapterInterstitialAdDelegate *interstitialDelegate;
@@ -115,13 +115,10 @@ static ALAtomicBoolean *ALLineInitialized;
         //
         // GDPR options
         //
-        if ( self.sdk.configuration.consentDialogState == ALConsentDialogStateApplies )
+        NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+        if ( hasUserConsent )
         {
-            NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
-            if ( hasUserConsent )
-            {
-                config.needGdprNonPersonalizedAdsTreatment = hasUserConsent.boolValue ? kFADNeedGdprNonPersonalizedAdsTreatmentFalse : kFADNeedGdprNonPersonalizedAdsTreatmentTrue;
-            }
+            config.needGdprNonPersonalizedAdsTreatment = hasUserConsent.boolValue ? kFADNeedGdprNonPersonalizedAdsTreatmentFalse : kFADNeedGdprNonPersonalizedAdsTreatmentTrue;
         }
         
         //
@@ -1006,13 +1003,6 @@ static ALAtomicBoolean *ALLineInitialized;
 
 - (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
 {
-    FADNative *nativeAd = self.parentAdapter.nativeAd;
-    if ( !nativeAd )
-    {
-        [self.parentAdapter e: @"Failed to register native ad views: native ad is nil."];
-        return;
-    }
-    
     NSMutableArray *clickableViews = [NSMutableArray array];
     if ( [self.title al_isValidString] && maxNativeAdView.titleLabel )
     {
@@ -1049,10 +1039,33 @@ static ALAtomicBoolean *ALLineInitialized;
     }
 #pragma clang diagnostic pop
     
-    dispatchOnMainQueue(^{
-        
-        [nativeAd registerViewForInteraction: maxNativeAdView withInformationIconView: maxNativeAdView.iconImageView withClickableViews: clickableViews];
-    });
+    [self prepareForInteractionClickableViews: clickableViews withContainer: maxNativeAdView];
+}
+
+- (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container
+{
+    FADNative *nativeAd = self.parentAdapter.nativeAd;
+    if ( !nativeAd )
+    {
+        [self.parentAdapter e: @"Failed to register native ad views: native ad is nil."];
+        return NO;
+    }
+    
+    UIImageView *iconImageView = nil;
+    for ( UIView *clickableView in clickableViews )
+    {
+        if( [clickableView isKindOfClass: [UIImageView class]] )
+        {
+            iconImageView = (UIImageView *)clickableView;
+            break;
+        }
+    }
+    
+    [self.parentAdapter d: @"Preparing views for interaction: %@ with container: %@", clickableViews, container];
+    
+    [nativeAd registerViewForInteraction: container withInformationIconView: iconImageView withClickableViews: clickableViews];
+
+    return YES;
 }
 
 @end
