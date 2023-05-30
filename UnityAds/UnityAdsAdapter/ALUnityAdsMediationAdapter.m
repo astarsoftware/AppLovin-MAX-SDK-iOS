@@ -10,7 +10,7 @@
 #import <UnityAds/UnityAds.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"4.5.0.2"
+#define ADAPTER_VERSION @"4.7.1.0"
 
 @interface ALUnityAdsInitializationDelegate : NSObject <UnityAdsInitializationDelegate>
 @property (nonatomic, weak) ALUnityAdsMediationAdapter *parentAdapter;

@@ -1,5 +1,28 @@
 # Changelog
 
+## 4.1.2.1
+* Fixed banner ads using modal view controller to be clickable by adding `presentingViewControllerForOguryAdsBannerAd` callback.
+
+## 4.1.2.0
+* Certified with OguryPresage SDK 4.1.2.
+* Remove the `privacySettingForSelector:fromParameters:` function and call privacy methods directly.
+* Remove unnecessary MAX SDK version check.
+
+## 4.1.1.3
+* Enable banner and MREC ads for Mediation Debugger.
+
+## 4.1.1.2
+* Add bidding support for rewarded, banner, and MREC ads.
+
+## 4.1.1.1
+* Add support for IAB's TCFv2 GDPR consent string. Note that you must be on the AppLovin MAX SDK v11.4.2+ and use a TCFv2-compliant framework which stores the consent string in User Defaults via the `IABTCF_TCString` key to use this feature. 
+
+## 4.1.1.0
+* Certified with OguryPresage SDK 4.1.1.
+
+## 4.1.0.0
+* Certified with OguryPresage SDK 4.1.0.
+
 ## 4.0.0.0
 * Certified with OguryPresage SDK 4.0.0.
 

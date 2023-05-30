@@ -1,5 +1,11 @@
 # Changelog
 
+## 13.0.1.0
+* Certified with Tapjoy SDK 13.0.1.
+
+## 13.0.0.0
+* Certified with Tapjoy SDK 13.0.0.
+
 ## 12.11.1.2
 * Remove `consentDialogState` guard.
 

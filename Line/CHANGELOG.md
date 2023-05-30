@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.6.20230215.0
+* Certified with Line SDK 2.6.20230215.
+
+## 2.5.20221226.0
+* Certified with Line SDK 2.5.20221226.
+
 ## 2.4.20220630.2
 * Remove `consentDialogState` guard.
 

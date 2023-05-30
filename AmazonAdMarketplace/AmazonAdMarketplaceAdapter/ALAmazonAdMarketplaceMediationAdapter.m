@@ -10,7 +10,7 @@
 #import <DTBiOSSDK/DTBiOSSDK.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"4.5.6.4"
+#define ADAPTER_VERSION @"4.7.1.0"
 
 /**
  * Container object for holding mediation hints dict generated from Amazon's SDK and the timestamp it was geenrated at.
@@ -596,7 +596,10 @@ static NSString *ALAPSSDKVersion;
 
 - (NSString *)mediationHintsCacheId:(NSString *)encodedBidId adFormat:(MAAdFormat *)adFormat
 {
-    return [NSString stringWithFormat: @"%@_%@", encodedBidId, adFormat.label];
+    // Treat banners and leaders as the same ad format
+    NSString *adFormatLabel = ( adFormat == MAAdFormat.leader ) ? MAAdFormat.banner.label : adFormat.label;
+    
+    return [NSString stringWithFormat: @"%@_%@", encodedBidId, adFormatLabel];
 }
 
 @end

@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.17.5.0
+* Certified with MyTarget SDK 5.17.5.
+* Remove the `privacySettingForSelector:fromParameters:` function and call privacy methods directly.
+* Now requires MAX SDK version 6.14.0 or higher. 
+
+## 5.17.4.1
+* Updated `ALMyTargetMediationAdapterNativeDelegate` to conform to `MTRGNativeAdMediaDelegate`.
+
+## 5.17.4.0
+* Certified with MyTarget SDK 5.17.4.
+* Must be built with Xcode 14.0
+* Updated the minimum required iOS version to 10.0 in Pod Spec to match myTargetSDK. 
+* Removed support for armv7 devices.
+
 ## 5.16.0.2
 * Remove `consentDialogState` guard.
 

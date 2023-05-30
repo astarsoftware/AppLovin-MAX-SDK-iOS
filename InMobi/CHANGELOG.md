@@ -1,5 +1,19 @@
 # Changelog
 
+## 10.1.4.1
+* Add a temporary workaround for the issue where `bannerAdImpressed:` is called before `bannerDidFinishLoading:.`
+
+## 10.1.4.0
+* Certified with InMobi SDK 10.1.4.
+* Remove the `privacySettingForSelector:fromParameters:` function and call privacy methods directly.
+* Now requires MAX SDK version 6.14.0 or higher. 
+
+## 10.1.3.0
+* Certified with InMobi SDK 10.1.3.
+
+## 10.1.2.7
+* Add support for test mode for simulators.
+
 ## 10.1.2.6
 * Remove `consentDialogState` guard.
 

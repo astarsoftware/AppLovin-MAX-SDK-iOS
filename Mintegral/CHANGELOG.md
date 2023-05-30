@@ -1,5 +1,34 @@
 # Changelog
 
+## 7.3.6.0.0
+* Certified with Mintegral SDK 7.3.6.
+
+## 7.3.5.0.0
+* Certified with Mintegral SDK 7.3.5.
+* Remove the `privacySettingForSelector:fromParameters:` function and call privacy methods directly.
+* Now requires MAX SDK version 6.14.0 or higher. 
+
+## 7.3.4.0.2
+* Update to use `MTGNewInterstitialBidAdManager` and `MTGNewInterstitialAdManager` in lieu of deprecated APIs `MTGBidInterstitialVideoAdManager` and `MTGInterstitialVideoAdManager`, respectively.
+
+## 7.3.4.0.1
+* Pass in extra data for signal collection.
+
+## 7.3.4.0.0
+* Certified with Mintegral SDK 7.3.4.
+
+## 7.3.3.0.0
+* Certified with Mintegral SDK 7.3.3.
+
+## 7.3.1.0.1
+* Pass in extra data for signal collection.
+
+## 7.3.1.0.0
+* Certified with Mintegral SDK 7.3.1.
+
+## 7.3.0.0.0
+* Certified with Mintegral SDK 7.3.0.
+
 ## 7.2.9.0.1
 * Add COPPA support.
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 6.12.3.0
+* Certified with Vungle SDK 6.12.3.
+
+## 6.12.2.2
+* Downgrade to Vungle SDK 6.12.1 from 6.12.2.
+
+## 6.12.2.1
+* Add Support for native banner and MREC ads.
+
+## 6.12.2.0
+* Certified with Vungle SDK 6.12.2.
+
 ## 6.12.1.2
 * Remove `consentDialogState` guard.
 

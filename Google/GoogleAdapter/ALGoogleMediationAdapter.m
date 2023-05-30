@@ -16,9 +16,10 @@
 #import "ALGoogleNativeAdViewDelegate.h"
 #import "ALGoogleNativeAdDelegate.h"
 
+
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"9.14.0.2"
+#define ADAPTER_VERSION @"10.5.0.0"
 
 @interface ALGoogleMediationAdapter ()
 
@@ -66,8 +67,8 @@ static NSString *ALGoogleSDKVersion;
     {
         ALGoogleInitializatationStatus = MAAdapterInitializationStatusInitializing;
         
-        // Ads may be preloaded by the Mobile Ads SDK or mediation partner SDKs upon calling startWithCompletionHandler:. So set consent before calling it.
-        [self updateAgeRestrictedUser: parameters];
+        // Ads may be preloaded by the Mobile Ads SDK or mediation partner SDKs upon calling startWithCompletionHandler:. So set request configuration with parameters (like consent)
+        [self setRequestConfigurationWithParameters: parameters];
         
         // Prevent AdMob SDK from auto-initing its adapters in AB testing environments.
         // NOTE: If MAX makes an ad request to AdMob, and the AdMob account has AL enabled (e.g. AppLovin Bidding) _and_ detects the AdMob<->AppLovin adapter, AdMob will still attempt to initialize AppLovin
@@ -615,8 +616,20 @@ static NSString *ALGoogleSDKVersion;
     else
     {
         // Check if adaptive banner sizes should be used
-        BOOL isAdaptiveBanner = [parameters.serverParameters al_boolForKey: @"adaptive_banner" defaultValue: NO];
-        GADAdSize adSize = [self adSizeFromAdFormat: adFormat isAdaptiveBanner: isAdaptiveBanner];
+        BOOL isAdaptiveBanner;
+        if ( isBiddingAd )
+        {
+            // Temporarily manually disable adaptive banner traffic for Google bidding until they resolve sizing issue
+            isAdaptiveBanner = NO;
+        }
+        else
+        {
+            isAdaptiveBanner = [parameters.serverParameters al_boolForKey: @"adaptive_banner" defaultValue: NO];
+        }
+        
+        GADAdSize adSize = [self adSizeFromAdFormat: adFormat
+                                   isAdaptiveBanner: isAdaptiveBanner
+                                         parameters: parameters];
         self.adView = [[GADBannerView alloc] initWithAdSize: adSize];
         self.adView.frame = (CGRect) {.size = adSize.size};
         self.adView.adUnitID = placementIdentifier;
@@ -720,7 +733,9 @@ static NSString *ALGoogleSDKVersion;
 #pragma clang diagnostic pop
 }
 
-- (GADAdSize)adSizeFromAdFormat:(MAAdFormat *)adFormat isAdaptiveBanner:(BOOL)isAdaptiveBanner
+- (GADAdSize)adSizeFromAdFormat:(MAAdFormat *)adFormat
+               isAdaptiveBanner:(BOOL)isAdaptiveBanner
+                     parameters:(id<MAAdapterParameters>)parameters
 {
     if ( adFormat == MAAdFormat.banner || adFormat == MAAdFormat.leader )
     {
@@ -729,18 +744,7 @@ static NSString *ALGoogleSDKVersion;
             __block GADAdSize adSize;
             
             dispatchSyncOnMainQueue(^{
-                UIViewController *viewController = [ALUtils topViewControllerFromKeyWindow];
-                UIWindow *window = viewController.view.window;
-                CGRect frame = window.frame;
-                
-                // Use safe area insets when available.
-                if ( @available(iOS 11.0, *) )
-                {
-                    frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
-                }
-                
-                CGFloat viewWidth = CGRectGetWidth(frame);
-                adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth);
+                adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth([self adaptiveBannerWidthFromParameters: parameters]);
             });
             
             return adSize;
@@ -760,6 +764,30 @@ static NSString *ALGoogleSDKVersion;
         
         return GADAdSizeBanner;
     }
+}
+
+- (CGFloat)adaptiveBannerWidthFromParameters:(id<MAAdapterParameters>)parameters
+{
+    if ( ALSdk.versionCode >= 11000000 )
+    {
+        NSNumber *customWidth = [parameters.localExtraParameters al_numberForKey: @"adaptive_banner_width"];
+        if ( customWidth )
+        {
+            return customWidth.floatValue;
+        }
+    }
+    
+    UIViewController *viewController = [ALUtils topViewControllerFromKeyWindow];
+    UIWindow *window = viewController.view.window;
+    CGRect frame = window.frame;
+    
+    // Use safe area insets when available.
+    if ( @available(iOS 11.0, *) )
+    {
+        frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
+    }
+    
+    return CGRectGetWidth(frame);
 }
 
 - (GADAdFormat)adFormatFromParameters:(id<MASignalCollectionParameters>)parameters
@@ -794,14 +822,10 @@ static NSString *ALGoogleSDKVersion;
 
 - (void)setRequestConfigurationWithParameters:(id<MAAdapterParameters>)parameters
 {
-    [self updateAgeRestrictedUser: parameters];
-    
-    NSDictionary<NSString *, id> *serverParameters = parameters.serverParameters;
-    NSString *testDevicesString = [serverParameters al_stringForKey: @"test_device_ids"];
-    if ( [testDevicesString al_isValidString] )
+    NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
+    if ( isAgeRestrictedUser )
     {
-        NSArray<NSString *> *testDevices = [testDevicesString componentsSeparatedByString: @","];
-        [[GADMobileAds sharedInstance].requestConfiguration setTestDeviceIdentifiers: testDevices];
+        [[GADMobileAds sharedInstance].requestConfiguration tagForChildDirectedTreatment: isAgeRestrictedUser.boolValue];
     }
 }
 
@@ -825,12 +849,19 @@ static NSString *ALGoogleSDKVersion;
         // Requested by Google for signal collection
         extraParameters[@"query_info_type"] = isDv360Bidding ? @"requester_type_3" : @"requester_type_2";
         
-        if ( ALSdk.versionCode >= 11000000 && [adFormat isAdViewAd] && [parameters.localExtraParameters al_boolForKey: @"adaptive_banner"] )
-        {
-            GADAdSize adaptiveAdSize = [self adSizeFromAdFormat: adFormat isAdaptiveBanner: YES];
-            extraParameters[@"adaptive_banner_w"] = @(adaptiveAdSize.size.width);
-            extraParameters[@"adaptive_banner_h"] = @(adaptiveAdSize.size.height);
-        }
+        // Temporarily manually disable adaptive banner traffic for Google bidding until they resolve sizing issue
+        //        if ( ALSdk.versionCode >= 11000000 && [adFormat isAdViewAd] )
+        //        {
+        //            BOOL isAdaptiveBanner = [parameters.localExtraParameters al_boolForKey: @"adaptive_banner"];
+        //            if ( isAdaptiveBanner )
+        //            {
+        //                GADAdSize adaptiveAdSize = [self adSizeFromAdFormat: adFormat
+        //                                                   isAdaptiveBanner: isAdaptiveBanner
+        //                                                         parameters: parameters];
+        //                extraParameters[@"adaptive_banner_w"] = @(adaptiveAdSize.size.width);
+        //                extraParameters[@"adaptive_banner_h"] = @(adaptiveAdSize.size.height);
+        //            }
+        //        }
         
         if ( [parameters respondsToSelector: @selector(bidResponse)] )
         {
@@ -856,20 +887,17 @@ static NSString *ALGoogleSDKVersion;
         extraParameters[@"placement_req_id"] = eventIdentifier;
     }
     
-    NSNumber *hasUserConsent = [self privacySettingForSelector: @selector(hasUserConsent) fromParameters: parameters];
+    NSNumber *hasUserConsent = [parameters hasUserConsent];
     if ( hasUserConsent && !hasUserConsent.boolValue )
     {
         extraParameters[@"npa"] = @"1"; // Non-personalized ads
     }
     
-    if ( ALSdk.versionCode >= 61100 ) // Pre-beta versioning (6.14.0)
+    NSNumber *isDoNotSell = [parameters isDoNotSell];
+    if ( isDoNotSell && isDoNotSell.boolValue )
     {
-        NSNumber *isDoNotSell = [self privacySettingForSelector: @selector(isDoNotSell) fromParameters: parameters];
-        if ( isDoNotSell && isDoNotSell.boolValue )
-        {
-            // Restrict data processing - https://developers.google.com/admob/ios/ccpa
-            [[NSUserDefaults standardUserDefaults] setBool: YES forKey: @"gad_rdp"];
-        }
+        // Restrict data processing - https://developers.google.com/admob/ios/ccpa
+        [[NSUserDefaults standardUserDefaults] setBool: YES forKey: @"gad_rdp"];
     }
     
     if ( ALSdk.versionCode >= 11000000 )
@@ -900,42 +928,6 @@ static NSString *ALGoogleSDKVersion;
     [request registerAdNetworkExtras: extras];
     
     return request;
-}
-
-- (void)updateAgeRestrictedUser:(id<MAAdapterParameters>)parameters
-{
-    NSNumber *isAgeRestrictedUser = [self privacySettingForSelector: @selector(isAgeRestrictedUser) fromParameters: parameters];
-    if ( isAgeRestrictedUser )
-    {
-        [[GADMobileAds sharedInstance].requestConfiguration tagForChildDirectedTreatment: isAgeRestrictedUser.boolValue];
-    }
-}
-
-- (nullable NSNumber *)privacySettingForSelector:(SEL)selector fromParameters:(id<MAAdapterParameters>)parameters
-{
-    // Use reflection because compiled adapters have trouble fetching `BOOL` from old SDKs and `NSNumber` from new SDKs (above 6.14.0)
-    NSMethodSignature *signature = [[parameters class] instanceMethodSignatureForSelector: selector];
-    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature: signature];
-    [invocation setSelector: selector];
-    [invocation setTarget: parameters];
-    [invocation invoke];
-    
-    // Privacy parameters return nullable `NSNumber` on newer SDKs
-    if ( ALSdk.versionCode >= 6140000 )
-    {
-        NSNumber *__unsafe_unretained value;
-        [invocation getReturnValue: &value];
-        
-        return value;
-    }
-    // Privacy parameters return BOOL on older SDKs
-    else
-    {
-        BOOL rawValue;
-        [invocation getReturnValue: &rawValue];
-        
-        return @(rawValue);
-    }
 }
 
 /**

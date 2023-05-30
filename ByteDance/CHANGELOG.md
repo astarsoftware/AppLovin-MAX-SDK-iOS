@@ -1,5 +1,31 @@
 # Changelog
 
+## 5.2.0.7.0
+* Certified with ByteDance SDK 5.2.0.7.
+
+## 5.2.0.6.0
+* Certified with ByteDance SDK 5.2.0.6.
+
+## 5.1.1.0.0
+* Certified with ByteDance SDK 5.1.1.0.
+
+## 5.1.0.9.0
+* Certified with ByteDance Global SDK 5.1.0.9.
+
+## 5.1.0.8.0
+* Certified with ByteDance Global SDK 5.1.0.8.
+
+## 5.1.0.7.0
+* Certified with ByteDance Global SDK 5.1.0.7.
+
+## 4.9.1.0.0
+* Updated all existing APIs to use the PAGAdSDK.
+* Added App Open Support and App Open Bidding.
+* This is the first version of the Pangle adapter that separates out monetization within and outside of Chinese Mainland. Starting from this update, developers should set up CSJ network and add the CSJ adapter to monetize traffic specifically from Chinese Mainland. For global traffic excluding Chinese Mainland, developers can continue to use Pangle for monetization. Developers can continue to use their existing setup globally with no impact.
+
+## 4.8.1.0.3
+* Fix native ad view ad not triggering show and click event callbacks.
+
 ## 4.8.1.0.2
 * Remove `consentDialogState` guard.
 

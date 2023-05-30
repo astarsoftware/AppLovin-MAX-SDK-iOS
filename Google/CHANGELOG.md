@@ -1,5 +1,38 @@
 # Changelog
 
+## 10.5.0.0
+* Certified with Google SDK 10.5.0.
+
+## 10.4.0.0
+* Certified with Google SDK 10.4.0.
+* Remove the `privacySettingForSelector:fromParameters:` function and call privacy methods directly.
+* Now requires MAX SDK version 6.14.0 or higher. 
+* Clean up `prepareViewForInteraction:` implementation.
+
+## 10.3.0.2
+* Add support for native ads in external plugins (e.g. React Native).
+
+## 10.3.0.1
+* Remove client-side setting of test device identifiers.
+
+## 10.3.0.0
+* Certified with Google SDK 10.3.0.
+
+## 10.2.0.2
+* Add support for custom adaptive banner widths.
+
+## 10.2.0.1
+* Temporarily disable adaptive banner traffic for Google bidding until they resolve sizing issue.
+
+## 10.2.0.0
+* Certified with Google SDK 10.2.0.
+
+## 10.1.0.1
+* Adding back support for iOS 10.
+
+## 10.1.0.0
+* Certified with Google SDK 10.1.0.
+
 ## 9.14.0.2
 * Add support for star ratings in manual native ads.
 

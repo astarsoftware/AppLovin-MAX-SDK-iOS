@@ -1,5 +1,23 @@
 # Changelog
 
+## 8.2.2.0
+* Certified with Fyber SDK 8.2.2. 
+
+## 8.2.1.1
+* Added COPPA support. 
+* Remove the `privacySettingForSelector:fromParameters:` function and call privacy methods directly.
+* Now requires MAX SDK version 6.14.0 or higher. 
+
+## 8.2.1.0
+* Certified with Fyber SDK 8.2.1.
+
+## 8.2.0.1
+* Fixed missing `didPayRevenueForAd:` callbacks and creative ids for some banners/MRECs.
+
+## 8.2.0.0
+* Certified with Fyber SDK 8.2.0.
+* Updated the minimum required iOS version to 11.0 in Pod Spec to match Fyber Marketplace SDK. 
+
 ## 8.1.9.0
 * Certified with Fyber SDK 8.1.9.
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.7.1.0
+* Certified with APS SDK 4.7.1.
+
+## 4.7.0.1
+* Fix APS banner ads not loading on tablets in edge-case situations.
+
+## 4.7.0.0
+* Certified with APS SDK 4.7.0.
+
+## 4.6.0.0
+* Certified with APS SDK 4.6.0.
+
 ## 4.5.6.4
 * Add support for passing Amazon hashed bidder id (`amznp`) in `-[MAAdDelegate didLoadAd:]` callback via `-[MAAd adValueForKey:]`. AppLovin MAX SDK v11.7.0+ is required.
 
@@ -79,3 +91,4 @@
 
 ## 4.2.1.0
 * Initial commit.
+* Minimum AppLovin MAX SDK version 11.0.0.
