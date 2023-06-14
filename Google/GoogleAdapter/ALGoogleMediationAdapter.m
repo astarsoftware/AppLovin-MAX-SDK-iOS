@@ -19,7 +19,7 @@
 
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"10.5.0.0"
+#define ADAPTER_VERSION @"10.6.0.0"
 
 @interface ALGoogleMediationAdapter ()
 
@@ -616,16 +616,7 @@ static NSString *ALGoogleSDKVersion;
     else
     {
         // Check if adaptive banner sizes should be used
-        BOOL isAdaptiveBanner;
-        if ( isBiddingAd )
-        {
-            // Temporarily manually disable adaptive banner traffic for Google bidding until they resolve sizing issue
-            isAdaptiveBanner = NO;
-        }
-        else
-        {
-            isAdaptiveBanner = [parameters.serverParameters al_boolForKey: @"adaptive_banner" defaultValue: NO];
-        }
+        BOOL isAdaptiveBanner = [parameters.serverParameters al_boolForKey: @"adaptive_banner" defaultValue: NO];
         
         GADAdSize adSize = [self adSizeFromAdFormat: adFormat
                                    isAdaptiveBanner: isAdaptiveBanner
@@ -849,19 +840,18 @@ static NSString *ALGoogleSDKVersion;
         // Requested by Google for signal collection
         extraParameters[@"query_info_type"] = isDv360Bidding ? @"requester_type_3" : @"requester_type_2";
         
-        // Temporarily manually disable adaptive banner traffic for Google bidding until they resolve sizing issue
-        //        if ( ALSdk.versionCode >= 11000000 && [adFormat isAdViewAd] )
-        //        {
-        //            BOOL isAdaptiveBanner = [parameters.localExtraParameters al_boolForKey: @"adaptive_banner"];
-        //            if ( isAdaptiveBanner )
-        //            {
-        //                GADAdSize adaptiveAdSize = [self adSizeFromAdFormat: adFormat
-        //                                                   isAdaptiveBanner: isAdaptiveBanner
-        //                                                         parameters: parameters];
-        //                extraParameters[@"adaptive_banner_w"] = @(adaptiveAdSize.size.width);
-        //                extraParameters[@"adaptive_banner_h"] = @(adaptiveAdSize.size.height);
-        //            }
-        //        }
+        if ( ALSdk.versionCode >= 11000000 && [adFormat isAdViewAd] )
+        {
+            BOOL isAdaptiveBanner = [parameters.localExtraParameters al_boolForKey: @"adaptive_banner"];
+            if ( isAdaptiveBanner )
+            {
+                GADAdSize adaptiveAdSize = [self adSizeFromAdFormat: adFormat
+                                                   isAdaptiveBanner: isAdaptiveBanner
+                                                         parameters: parameters];
+                extraParameters[@"adaptive_banner_w"] = @(adaptiveAdSize.size.width);
+                extraParameters[@"adaptive_banner_h"] = @(adaptiveAdSize.size.height);
+            }
+        }
         
         if ( [parameters respondsToSelector: @selector(bidResponse)] )
         {
