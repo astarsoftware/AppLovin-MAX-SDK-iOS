@@ -11,6 +11,8 @@
 #import <VungleSDK/VungleSDKCreativeTracking.h>
 #import <VungleSDK/VungleSDK.h>
 
+#import "ASAdTracker.h"
+
 #define ADAPTER_VERSION @"6.12.3.0"
 
 // TODO: Remove when SDK with App Open APIs is released
@@ -1118,6 +1120,17 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     {
         self.creativeIdentifiers[placementID] = creativeID;
     }
+	
+	// astar
+	if(creativeID != nil && placementID != nil) {
+		NSDictionary *data = @{
+			@"creativeID": creativeID,
+			@"placementID" : placementID
+		};
+		
+		ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+		[adTracker adDidLoadForMediator:@"max" fromNetwork:@"vungle" ofType:@"unknown" data:data];
+	}
 }
 
 @end
