@@ -1,5 +1,14 @@
 # Changelog
 
+## 8.2.0.0
+* Certified with Nend SDK 8.2.0.
+
+## 8.1.0.0
+* Certified with Nend SDK 8.1.0.
+* Updated minimum Xcode requirement to 14.1.
+* Updated the minimum required iOS version to 11.0 in Pod Spec to match Nend SDK.
+* Fixed potential memory leaks by clearing delegates in `destroy:` method.   
+
 ## 8.0.1.0
 * Certified with Nend SDK 8.0.1.
 

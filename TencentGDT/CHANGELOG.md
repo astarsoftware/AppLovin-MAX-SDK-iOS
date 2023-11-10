@@ -1,5 +1,24 @@
 # Changelog
 
+## 4.14.45.0
+* Certified with TencentGDT SDK 4.14.45.
+
+## 4.14.42.0
+* Certified with TencentGDT SDK 4.14.42.
+
+## 4.14.40.0
+* Certified with TencentGDT SDK 4.14.40.
+* Updated minimum Xcode requirement to 14.1.
+
+## 4.14.32.0
+* Certified with TencentGDT SDK 4.14.32.
+* Updated minimum Xcode requirement to 14.0.
+* Remove arm64 simulator slice to match TencentGDT SDK.
+
+## 4.14.31.0
+* Certified with TencentGDT SDK 4.14.31.
+* Fixed potential memory leaks by clearing delegates in `destroy:` method.   
+
 ## 4.14.30.0
 * Certified with TencentGDT SDK 4.14.30.
 

@@ -10,7 +10,7 @@
 #import <BidMachine/BidMachine.h>
 #import <BidMachineApiCore/BidMachineApiCore.h>
 
-#define ADAPTER_VERSION @"2.1.0.0.1"
+#define ADAPTER_VERSION @"2.4.0.0.0"
 
 @interface ALBidMachineInterstitialDelegate : NSObject <BidMachineAdDelegate>
 @property (nonatomic,   weak) ALBidMachineMediationAdapter *parentAdapter;
@@ -126,18 +126,22 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     
     self.interstitialAd.delegate = nil;
     self.interstitialAd = nil;
+    self.interstitialAdapterDelegate.delegate = nil;
     self.interstitialAdapterDelegate = nil;
     
     self.rewardedAd.delegate = nil;
     self.rewardedAd = nil;
+    self.rewardedAdapterDelegate.delegate = nil;
     self.rewardedAdapterDelegate = nil;
     
     self.adView.delegate = nil;
     self.adView = nil;
+    self.adViewAdapterDelegate.delegate = nil;
     self.adViewAdapterDelegate = nil;
     
     self.nativeAd.delegate = nil;
     self.nativeAd = nil;
+    self.nativeAdAdapterDelegate.delegate = nil;
     self.nativeAdAdapterDelegate = nil;
 }
 
@@ -532,7 +536,7 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     }];
     
     NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser )
+    if ( isAgeRestrictedUser != nil )
     {
         [regulationBuilder withCOPPA: isAgeRestrictedUser.boolValue];
     }
@@ -546,13 +550,13 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     }
     
     NSNumber *hasUserConsent = [parameters hasUserConsent];
-    if ( hasUserConsent )
+    if ( hasUserConsent != nil )
     {
         [regulationBuilder withGDPRConsent: hasUserConsent.boolValue];
     }
     
     NSNumber *isDoNotSell = [parameters isDoNotSell];
-    if ( isDoNotSell )
+    if ( isDoNotSell != nil )
     {
         [regulationBuilder withUSPrivacyString: isDoNotSell.boolValue ? @"1YY-" : @"1YN-"];
     }

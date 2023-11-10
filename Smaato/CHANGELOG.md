@@ -1,5 +1,22 @@
 # Changelog
 
+## 22.4.0.0
+* Certified with Smaato SDK 22.4.0.
+
+## 22.3.0.0
+* Certified with Smaato SDK 22.3.0.
+
+## 22.2.1.0
+* Certified with Smaato SDK 22.2.1.
+
+## 22.2.0.0
+* Certified with Smaato SDK 22.2.0.
+* Updated minimum Xcode requirement to 14.1.
+
+## 22.1.3.0
+* Certified with Smaato SDK 22.1.3.
+* Fixed potential memory leaks by clearing delegates in `destroy:` method.   
+
 ## 22.1.2.0
 * Certified with Smaato SDK 22.1.2.
 

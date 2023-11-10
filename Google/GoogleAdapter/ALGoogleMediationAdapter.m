@@ -16,10 +16,9 @@
 #import "ALGoogleNativeAdViewDelegate.h"
 #import "ALGoogleNativeAdDelegate.h"
 
-
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"10.6.0.0"
+#define ADAPTER_VERSION @"10.13.0.0"
 
 @interface ALGoogleMediationAdapter ()
 
@@ -47,8 +46,6 @@
 @implementation ALGoogleMediationAdapter
 static ALAtomicBoolean              *ALGoogleInitialized;
 static MAAdapterInitializationStatus ALGoogleInitializatationStatus = NSIntegerMin;
-
-static NSString *ALGoogleSDKVersion;
 
 + (void)initialize
 {
@@ -93,11 +90,7 @@ static NSString *ALGoogleSDKVersion;
 
 - (NSString *)SDKVersion
 {
-    if ( ALGoogleSDKVersion ) return ALGoogleSDKVersion;
-    
-    ALGoogleSDKVersion = [GADMobileAds sharedInstance].sdkVersion;
-    
-    return ALGoogleSDKVersion;
+    return GADGetStringFromVersionNumber([GADMobileAds sharedInstance].versionNumber);
 }
 
 - (NSString *)adapterVersion
@@ -119,7 +112,7 @@ static NSString *ALGoogleSDKVersion;
     
     self.appOpenInterstitialAd.fullScreenContentDelegate = nil;
     self.appOpenInterstitialAd = nil;
-    self.appOpenInterstitialAdDelegate   = nil;
+    self.appOpenInterstitialAdDelegate = nil;
     
     self.rewardedInterstitialAd.fullScreenContentDelegate = nil;
     self.rewardedInterstitialAd = nil;
@@ -133,6 +126,7 @@ static NSString *ALGoogleSDKVersion;
     self.adView = nil;
     self.adViewDelegate = nil;
     
+    self.nativeAdLoader.delegate = nil;
     self.nativeAdLoader = nil;
     
     [self.nativeAd unregisterAdView];
@@ -762,7 +756,7 @@ static NSString *ALGoogleSDKVersion;
     if ( ALSdk.versionCode >= 11000000 )
     {
         NSNumber *customWidth = [parameters.localExtraParameters al_numberForKey: @"adaptive_banner_width"];
-        if ( customWidth )
+        if ( customWidth != nil )
         {
             return customWidth.floatValue;
         }
@@ -770,13 +764,7 @@ static NSString *ALGoogleSDKVersion;
     
     UIViewController *viewController = [ALUtils topViewControllerFromKeyWindow];
     UIWindow *window = viewController.view.window;
-    CGRect frame = window.frame;
-    
-    // Use safe area insets when available.
-    if ( @available(iOS 11.0, *) )
-    {
-        frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
-    }
+    CGRect frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
     
     return CGRectGetWidth(frame);
 }
@@ -805,6 +793,11 @@ static NSString *ALGoogleSDKVersion;
     {
         return GADAdFormatRewardedInterstitial;
     }
+    // NOTE: App open ads were added in AppLovin v11.5.0 and must be checked after all the other ad formats to avoid throwing an exception
+    else if ( adFormat == MAAdFormat.appOpen )
+    {
+        return GADAdFormatAppOpen;
+    }
     else
     {
         return GADAdFormatUnknown;
@@ -813,11 +806,7 @@ static NSString *ALGoogleSDKVersion;
 
 - (void)setRequestConfigurationWithParameters:(id<MAAdapterParameters>)parameters
 {
-    NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser )
-    {
-        [[GADMobileAds sharedInstance].requestConfiguration tagForChildDirectedTreatment: isAgeRestrictedUser.boolValue];
-    }
+    [GADMobileAds sharedInstance].requestConfiguration.tagForChildDirectedTreatment = [parameters isAgeRestrictedUser];
 }
 
 - (GADRequest *)createAdRequestForBiddingAd:(BOOL)isBiddingAd
@@ -888,6 +877,10 @@ static NSString *ALGoogleSDKVersion;
     {
         // Restrict data processing - https://developers.google.com/admob/ios/ccpa
         [[NSUserDefaults standardUserDefaults] setBool: YES forKey: @"gad_rdp"];
+    }
+    else
+    {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey: @"gad_rdp"];
     }
     
     if ( ALSdk.versionCode >= 11000000 )

@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.6.5.0
+* Certified with MobileFuse SDK 1.6.5.
+
+## 1.6.4.0
+* Certified with MobileFuse SDK 1.6.4.
+
+## 1.6.3.0
+* Certified with MobileFuse SDK 1.6.3.
+
+## 1.6.2.0
+* Certified with MobileFuse SDK 1.6.2.
+
+## 1.6.1.0
+* Certified with MobileFuse SDK 1.6.1.
+
+## 1.6.0.0
+* Certified with MobileFuse SDK 1.6.0.
+* Initialize MobileFuse SDK using new API with initialization callbacks.
+* Updated deprecated method `getTokenWithRequest:` to new `getTokenWithRequest:withCallback:`.
+* Collect MobileFuse SDK version on the main thread to fix runtime warning.
+* Updated minimum Xcode requirement to 14.1.
+* Fixed potential memory leaks by clearing delegates in `destroy:` method.   
+
 ## 1.5.2.0
 * Certified with MobileFuse SDK 1.5.2.
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## 6.1.0.1
+* Addressed an issue where fullscreen ad callbacks were not being invoked.
+
+## 6.1.0.0
+* Certified with Yandex SDK 6.1.0.
+
+## 6.0.0.0
+* Certified with Yandex SDK 6.0.0.
+* Updated the minimum required iOS version to 13.0 to match Yandex SDK.
+
+## 5.9.1.0
+* Certified with Yandex SDK 5.9.1.
+
+## 5.9.0.0
+* Certified with Yandex SDK 5.9.0.
+
+## 5.8.0.0
+* Certified with Yandex SDK 5.8.0.
+* Fixed potential memory leaks by clearing delegates in `destroy:` method.
+* Updated minimum Xcode requirement to 14.1.
+
 ## 5.7.0.0
 * Certified with Yandex SDK 5.7.0.
 
@@ -23,6 +44,7 @@
 ## 5.3.1.0
 * Certified with Yandex SDK 5.3.1.
 * Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
+* Updated minimum Xcode requirement to 14.0.
 * Add additional details for ad display failures. 
 
 ## 5.2.1.0

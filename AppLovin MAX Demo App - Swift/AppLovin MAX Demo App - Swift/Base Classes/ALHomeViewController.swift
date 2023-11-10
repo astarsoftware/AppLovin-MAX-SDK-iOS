@@ -6,31 +6,35 @@
 //  Copyright © 2019 AppLovin. All rights reserved.
 //
 
-import UIKit
 import AppLovinSDK
 import MessageUI
 import SafariServices
+import UIKit
 
 class ALHomeViewController: UITableViewController
 {
-    let kSupportLink = "https://support.applovin.com/support/home"
-    
-    let kRowIndexToHideForPhones = 3;
+    static let kSupportLink = "https://support.applovin.com/hc/en-us"
+    static let kRowIndexToHideForPhones = 3
     
     @IBOutlet var muteToggle: UIBarButtonItem!
     @IBOutlet weak var mediationDebuggerCell: UITableViewCell!
     
+    override var preferredStatusBarStyle: UIStatusBarStyle
+    {
+        .lightContent
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        self.navigationController?.setToolbarHidden(self.hidesBottomBarWhenPushed, animated: true)
+        navigationController?.setToolbarHidden(hidesBottomBarWhenPushed, animated: true)
         addFooterLabel()
         muteToggle.image = muteIconForCurrentSdkMuteSetting()
     }
     
     override func viewWillDisappear(_ animated: Bool)
     {
-        self.navigationController?.setToolbarHidden(true, animated: false)
+        navigationController?.setToolbarHidden(true, animated: false)
         super.viewWillDisappear(animated)
     }
     
@@ -45,7 +49,7 @@ class ALHomeViewController: UITableViewController
             ALSdk.shared()!.showMediationDebugger()
         }
         
-        if indexPath.section == 2
+        if indexPath.section == 1
         {
             if indexPath.row == 0
             {
@@ -56,17 +60,17 @@ class ALHomeViewController: UITableViewController
     
     override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath)
     {
-        if UIDevice.current.userInterfaceIdiom == .phone && indexPath.section == 0 && indexPath.row  == kRowIndexToHideForPhones
+        if UIDevice.current.userInterfaceIdiom == .phone && indexPath.section == 0 && indexPath.row == Self.kRowIndexToHideForPhones
         {
-            cell.isHidden = true;
+            cell.isHidden = true
         }
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat
     {
-        if UIDevice.current.userInterfaceIdiom == .phone && indexPath.section == 0 && indexPath.row  == kRowIndexToHideForPhones
+        if UIDevice.current.userInterfaceIdiom == .phone && indexPath.section == 0 && indexPath.row == Self.kRowIndexToHideForPhones
         {
-            return 0;
+            return 0
         }
         
         return super.tableView(tableView, heightForRowAt: indexPath)
@@ -85,7 +89,7 @@ class ALHomeViewController: UITableViewController
         let style = NSMutableParagraphStyle()
         style.alignment = .center
         style.minimumLineHeight = 20
-        footer.attributedText = NSAttributedString(string: text, attributes: [NSAttributedString.Key.paragraphStyle : style])
+        footer.attributedText = NSAttributedString(string: text, attributes: [NSAttributedString.Key.paragraphStyle: style])
         
         var frame = footer.frame
         frame.size.height = footer.sizeThatFits(CGSize(width: footer.frame.width, height: CGFloat.greatestFiniteMagnitude)).height + 60
@@ -107,21 +111,19 @@ class ALHomeViewController: UITableViewController
     
     func muteIconForCurrentSdkMuteSetting() -> UIImage!
     {
-        return ALSdk.shared()!.settings.isMuted ? UIImage(named: "mute") : UIImage(named: "unmute")
+        ALSdk.shared()!.settings.isMuted ? UIImage(named: "mute") : UIImage(named: "unmute")
     }
     
     // MARK: Table View Actions
     
     func openSupportSite()
     {
-        guard let supportURL = URL(string: kSupportLink) else { return }
+        guard let supportURL = URL(string: Self.kSupportLink) else { return }
         
         if #available(iOS 9.0, *)
         {
             let safariController = SFSafariViewController(url: supportURL, entersReaderIfAvailable: true)
-            present(safariController, animated: true, completion: {
-                UIApplication.shared.statusBarStyle = .default
-            })
+            present(safariController, animated: true)
         }
         else
         {
@@ -130,4 +132,3 @@ class ALHomeViewController: UITableViewController
     }
     
 }
-

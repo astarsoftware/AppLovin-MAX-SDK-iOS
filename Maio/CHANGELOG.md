@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.1.1.0
+* Certified with Maio SDK 2.1.1.
+* Update to use instance based APIs.
+* Update the minimum required iOS version to 12.0 in Pod Spec to match Maio SDK.
+
+## 1.6.3.3
+* Fixed `maioDidCloseAd:` callback not fired caused by clearing delegates in `destroy:` method. 
+* Updated minimum Xcode requirement to 14.1.
+
+## 1.6.3.2
+* Updated minimum Xcode requirement to 14.0.
+* Fixed potential memory leaks by clearing delegates in `destroy:` method.   
+
 ## 1.6.3.1
 * Disable bitcode, as Apple deprecated it in Xcode 14 (https://developer.apple.com/documentation/xcode-release-notes/xcode-14-release-notes).
 * Update to use `[MAAdapterError errorWithCode:errorString:thirdPartySdkErrorCode:thirdPartySdkErrorMessage:]` to avoid crashes with AppLovin SDK 11.4.1 and earlier.

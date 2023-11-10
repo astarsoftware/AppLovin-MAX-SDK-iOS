@@ -1,5 +1,34 @@
 # Changelog
 
+## 10.13.0.0
+* Certified with GoogleAdManager SDK 10.13.0.
+
+## 10.12.0.0
+* Certified with GoogleAdManager SDK 10.12.0.
+
+## 10.11.0.0
+* Certified with GoogleAdManager SDK 10.11.0.
+
+## 10.10.0.0
+* Certified with GoogleAdManager SDK 10.10.0.
+
+## 10.9.0.0
+* Certified with GoogleAdManager SDK 10.9.0.
+* Updated minimum Xcode requirement to 14.1.
+* Fix deprecation warnings regarding `sdkVersion` and `tagForChildDirectedTreatment`.
+* Updated the minimum required iOS version to 11.0 to match GoogleAdManager SDK. 
+
+## 10.8.0.0
+* Certified with GoogleAdManager SDK 10.8.0.
+
+## 10.7.0.0
+* Certified with GoogleAdManager SDK 10.7.0.
+* Updated minimum Xcode requirement to 14.0.
+
+## 10.6.0.1
+* Update CCPA state if granted mid-session.
+* Fixed potential memory leaks by clearing delegates in `destroy:` method.   
+
 ## 10.6.0.0
 * Certified with GoogleAdManager SDK 10.6.0.
 

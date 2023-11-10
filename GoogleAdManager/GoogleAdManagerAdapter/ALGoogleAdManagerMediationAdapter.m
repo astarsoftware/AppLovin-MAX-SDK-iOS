@@ -9,7 +9,7 @@
 #import "ALGoogleAdManagerMediationAdapter.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 
-#define ADAPTER_VERSION @"10.6.0.0"
+#define ADAPTER_VERSION @"10.13.0.0"
 
 #define TITLE_LABEL_TAG          1
 #define MEDIA_VIEW_CONTAINER_TAG 2
@@ -131,7 +131,6 @@
 @end
 
 @implementation ALGoogleAdManagerMediationAdapter
-static NSString *ALGoogleSDKVersion;
 
 #pragma mark - MAAdapter Methods
 
@@ -143,13 +142,7 @@ static NSString *ALGoogleSDKVersion;
 
 - (NSString *)SDKVersion
 {
-    if ( ALGoogleSDKVersion ) return ALGoogleSDKVersion;
-    
-    dispatchSyncOnMainQueue(^{
-        ALGoogleSDKVersion = [GADMobileAds sharedInstance].sdkVersion;
-    });
-    
-    return ALGoogleSDKVersion;
+    return GADGetStringFromVersionNumber([GADMobileAds sharedInstance].versionNumber);
 }
 
 - (NSString *)adapterVersion
@@ -163,24 +156,30 @@ static NSString *ALGoogleSDKVersion;
     
     self.interstitialAd.fullScreenContentDelegate = nil;
     self.interstitialAd = nil;
+    self.interstitialAdapterDelegate.delegate = nil;
     self.interstitialAdapterDelegate = nil;
     
     self.appOpenAd.fullScreenContentDelegate = nil;
     self.appOpenAd = nil;
+    self.appOpenAdapterDelegate.delegate = nil;
     self.appOpenAdapterDelegate = nil;
     
     self.rewardedInterstitialAd.fullScreenContentDelegate = nil;
     self.rewardedInterstitialAd = nil;
+    self.rewardedInterstitialAdapterDelegate.delegate = nil;
     self.rewardedInterstitialAdapterDelegate = nil;
     
     self.rewardedAd.fullScreenContentDelegate = nil;
     self.rewardedAd = nil;
+    self.rewardedAdapterDelegate.delegate = nil;
     self.rewardedAdapterDelegate = nil;
     
     self.adView.delegate = nil;
     self.adView = nil;
+    self.adViewAdapterDelegate.delegate = nil;
     self.adViewAdapterDelegate = nil;
     
+    self.nativeAdLoader.delegate = nil;
     self.nativeAdLoader = nil;
     
     [self.nativeAd unregisterAdView];
@@ -190,6 +189,8 @@ static NSString *ALGoogleSDKVersion;
     [self.nativeAdView removeFromSuperview];
     self.nativeAdView = nil;
     
+    self.nativeAdViewAdapterDelegate.delegate = nil;
+    self.nativeAdAdapterDelegate.delegate = nil;
     self.nativeAdViewAdapterDelegate = nil;
     self.nativeAdAdapterDelegate = nil;
 }
@@ -716,7 +717,7 @@ static NSString *ALGoogleSDKVersion;
     if ( ALSdk.versionCode >= 11000000 )
     {
         NSNumber *customWidth = [parameters.localExtraParameters al_numberForKey: @"adaptive_banner_width"];
-        if ( customWidth )
+        if ( customWidth != nil )
         {
             return customWidth.floatValue;
         }
@@ -724,24 +725,14 @@ static NSString *ALGoogleSDKVersion;
     
     UIViewController *viewController = [ALUtils topViewControllerFromKeyWindow];
     UIWindow *window = viewController.view.window;
-    CGRect frame = window.frame;
-    
-    // Use safe area insets when available.
-    if ( @available(iOS 11.0, *) )
-    {
-        frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
-    }
+    CGRect frame = UIEdgeInsetsInsetRect(window.frame, window.safeAreaInsets);
     
     return CGRectGetWidth(frame);
 }
 
 - (void)setRequestConfigurationWithParameters:(id<MAAdapterParameters>)parameters
 {
-    NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser )
-    {
-        [[GADMobileAds sharedInstance].requestConfiguration tagForChildDirectedTreatment: isAgeRestrictedUser.boolValue];
-    }
+    [GADMobileAds sharedInstance].requestConfiguration.tagForChildDirectedTreatment = [parameters isAgeRestrictedUser];
 }
 
 - (GAMRequest *)createAdRequestWithParameters:(id<MAAdapterParameters>)parameters
@@ -775,6 +766,10 @@ static NSString *ALGoogleSDKVersion;
     {
         // Restrict data processing - https://developers.google.com/admob/ios/ccpa
         [[NSUserDefaults standardUserDefaults] setBool: YES forKey: @"gad_rdp"];
+    }
+    else
+    {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey: @"gad_rdp"];
     }
     
     if ( ALSdk.versionCode >= 11000000 )

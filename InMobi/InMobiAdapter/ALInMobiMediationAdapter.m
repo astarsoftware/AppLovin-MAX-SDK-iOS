@@ -9,7 +9,7 @@
 #import "ALInMobiMediationAdapter.h"
 #import <InMobiSDK/InMobiSDK.h>
 
-#define ADAPTER_VERSION @"10.1.4.1"
+#define ADAPTER_VERSION @"10.6.0.0"
 
 /**
  * Dedicated delegate object for InMobi AdView ads.
@@ -18,8 +18,6 @@
 
 @property (nonatomic,   weak) ALInMobiMediationAdapter *parentAdapter;
 @property (nonatomic, strong) id<MAAdViewAdapterDelegate> delegate;
-@property (nonatomic, assign) BOOL bannerDidFinishLoadingCalled;
-@property (nonatomic, assign) BOOL bannerAdImpressedCalled;
 
 - (instancetype)initWithParentAdapter:(ALInMobiMediationAdapter *)parentAdapter andNotify:(id<MAAdViewAdapterDelegate>)delegate;
 - (instancetype)init NS_UNAVAILABLE;
@@ -172,7 +170,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
             }
         }];
         
-        IMSDKLogLevel logLevel = [parameters isTesting] ? kIMSDKLogLevelDebug : kIMSDKLogLevelError;
+        IMSDKLogLevel logLevel = [parameters isTesting] ? IMSDKLogLevelDebug : IMSDKLogLevelError;
         [IMSdk setLogLevel: logLevel];
     }
     else
@@ -186,18 +184,28 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
 {
     [self.adView cancel];
     self.adView.delegate = nil;
+    self.adViewDelegate.delegate = nil;
     self.adViewDelegate = nil;
     
+    [self.interstitialAd cancel];
+    self.interstitialAd.delegate = nil;
     self.interstitialAd = nil;
+    self.interstitialAdDelegate.delegate = nil;
     self.interstitialAdDelegate = nil;
     
+    [self.rewardedAd cancel];
+    self.rewardedAd.delegate = nil;
     self.rewardedAd = nil;
+    self.rewardedAdDelegate.delegate = nil;
     self.rewardedAdDelegate = nil;
     
+    self.nativeAd.delegate = nil;
     self.nativeAd = nil;
+    self.nativeAdDelegate.delegate = nil;
     self.nativeAdDelegate = nil;
     
     self.maxNativeAdViewAd = nil;
+    self.nativeAdViewDelegate.delegate = nil;
     self.nativeAdViewDelegate = nil;
 }
 
@@ -213,7 +221,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
         return;
     }
     
-    [IMSdk setPartnerGDPRConsent: [self consentDictionaryForParameters: parameters]];
+    [self updatePrivacySettingsWithParameters: parameters];
     
     NSString *signal = [IMSdk getTokenWithExtras: [self extrasForParameters: parameters] andKeywords: nil];
     [delegate didCollectSignal: signal];
@@ -227,8 +235,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     BOOL isNative = [parameters.serverParameters al_boolForKey: @"is_native"];
     [self log: @"Loading%@%@ AdView ad for placement: %lld...", isNative ? @" native " : @" ", adFormat.label, placementId];
     
-    // Update GDPR states
-    [IMSdk setPartnerGDPRConsent: [self consentDictionaryForParameters: parameters]];
+    [self updatePrivacySettingsWithParameters: parameters];
     
     NSString *bidResponse = parameters.bidResponse;
     BOOL isBiddingAd = [parameters.bidResponse al_isValidString];
@@ -355,8 +362,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     self.nativeAd = [[IMNative alloc] initWithPlacementId: placementId delegate: self.nativeAdDelegate];
     self.nativeAd.extras = [self extrasForParameters: parameters];
     
-    // Update GDPR states
-    [IMSdk setPartnerGDPRConsent: [self consentDictionaryForParameters: parameters]];
+    [self updatePrivacySettingsWithParameters: parameters];
     
     NSString *bidResponse = parameters.bidResponse;
     if ( [bidResponse al_isValidString] )
@@ -378,8 +384,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     IMInterstitial *interstitial = [[IMInterstitial alloc] initWithPlacementId: placementId delegate: delegate];
     interstitial.extras = [self extrasForParameters: parameters];
     
-    // Update GDPR states
-    [IMSdk setPartnerGDPRConsent: [self consentDictionaryForParameters: parameters]];
+    [self updatePrivacySettingsWithParameters: parameters]; 
     
     NSString *bidResponse = parameters.bidResponse;
     if ( [bidResponse al_isValidString] )
@@ -398,17 +403,17 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
 {
     if ( [interstitial isReady] )
     {
-        IMInterstitialAnimationType animationType = kIMInterstitialAnimationTypeNone;
+        IMInterstitialAnimationType animationType = IMInterstitialAnimationTypeAsNone;
         if ( [parameters.serverParameters al_containsValueForKey: @"animation_type"] )
         {
             NSString *value = [parameters.serverParameters al_stringForKey: @"animation_type"];
             if ( [@"cover_vertical" al_isEqualToStringIgnoringCase: value] )
             {
-                animationType = kIMInterstitialAnimationTypeCoverVertical;
+                animationType = IMInterstitialAnimationTypeCoverVertical;
             }
             else if ( [@"flip_horizontal" al_isEqualToStringIgnoringCase: value] )
             {
-                animationType = kIMInterstitialAnimationTypeFlipHorizontal;
+                animationType = IMInterstitialAnimationTypeFlipHorizontal;
             }
         }
         
@@ -422,7 +427,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
             presentingViewController = [ALUtils topViewControllerFromKeyWindow];
         }
         
-        [interstitial showFromViewController: presentingViewController withAnimation: animationType];
+        [interstitial showFrom: presentingViewController with: animationType];
         
         return YES;
     }
@@ -440,7 +445,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     NSNumber *hasUserConsent = [parameters hasUserConsent];
     if ( hasUserConsent )
     {
-        consentDict[IM_PARTNER_GDPR_CONSENT_AVAILABLE] = hasUserConsent.boolValue ? @"true" : @"false";
+        consentDict[IMCommonConstants.IM_PARTNER_GDPR_CONSENT_AVAILABLE] = hasUserConsent.boolValue ? @"true" : @"false";
     }
     
     return consentDict;
@@ -457,13 +462,18 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
         [extras setObject: isAgeRestrictedUser forKey: @"coppa"];
     }
     
+    return extras;
+}
+
+- (void)updatePrivacySettingsWithParameters:(id<MAAdapterParameters>)parameters
+{
+    [IMSdk setPartnerGDPRConsent: [self consentDictionaryForParameters: parameters]];
+    
     NSNumber *isDoNotSell = [parameters isDoNotSell];
     if ( isDoNotSell )
     {
-        [extras setObject: isDoNotSell forKey: @"do_not_sell"];
+        [IMPrivacyCompliance setDoNotSell: isDoNotSell.boolValue];
     }
-    
-    return extras;
 }
 
 + (MAAdapterError *)toMaxError:(IMRequestStatus *)inMobiError
@@ -472,29 +482,39 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     MAAdapterError *adapterError = MAAdapterError.unspecified;
     switch ( inMobiErrorCode )
     {
-        case kIMStatusCodeNetworkUnReachable:
+        case IMStatusCodeNetworkUnReachable:
             adapterError = MAAdapterError.noConnection;
             break;
-        case kIMStatusCodeNoFill:
+        case IMStatusCodeNoFill:
             adapterError = MAAdapterError.noFill;
             break;
-        case kIMStatusCodeRequestInvalid:
+        case IMStatusCodeSdkNotInitialised:
+            adapterError = MAAdapterError.notInitialized;
+            break;
+        case IMStatusCodeRequestInvalid:
+        case IMStatusCodeInvalidBannerframe:
             adapterError = MAAdapterError.badRequest;
             break;
-        case kIMStatusCodeRequestPending:
-        case kIMStatusCodeMultipleLoadsOnSameInstance:
-        case kIMStatusCodeAdActive:
-        case kIMStatusCodeEarlyRefreshRequest:
+        case IMStatusCodeIncorrectPlacementID:
+            adapterError = MAAdapterError.invalidConfiguration;
+            break;
+        case IMStatusCodeRequestPending:
+        case IMStatusCodeMultipleLoadsOnSameInstance:
+        case IMStatusCodeAdActive:
+        case IMStatusCodeEarlyRefreshRequest:
             adapterError = MAAdapterError.invalidLoadState;
             break;
-        case kIMStatusCodeRequestTimedOut:
+        case IMStatusCodeRequestTimedOut:
             adapterError = MAAdapterError.timeout;
             break;
-        case kIMStatusCodeInternalError:
-        case kIMStatusCodeDroppingNetworkRequest:
+        case IMStatusCodeInternalError:
+        case IMStatusCodeDroppingNetworkRequest:
+        case IMStatusCodeInvalidAudioFrame:
+        case IMStatusCodeAudioDisabled:
+        case IMStatusCodeAudioDeviceVolumeLow:
             adapterError = MAAdapterError.internalError;
             break;
-        case kIMStatusCodeServerError:
+        case IMStatusCodeServerError:
             adapterError = MAAdapterError.serverError;
             break;
     }
@@ -588,13 +608,6 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     {
         [self.delegate didLoadAdForAdView: banner];
     }
-    
-    // Temporary workaround for an issue where bannerAdImpressed is called before bannerDidFinishLoading.
-    if ( [self bannerAdImpressedCalled] )
-    {
-        [self.delegate didDisplayAdViewAd];
-    }
-    self.bannerDidFinishLoadingCalled = YES;
 }
 
 - (void)banner:(IMBanner *)banner didFailToLoadWithError:(IMRequestStatus *)error
@@ -607,11 +620,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
 - (void)bannerAdImpressed:(IMBanner *)banner
 {
     [self.parentAdapter log: @"AdView impression tracked"];
-    if ( [self bannerDidFinishLoadingCalled] )
-    {
-        [self.delegate didDisplayAdViewAd];
-    }
-    self.bannerAdImpressedCalled = YES;
+    [self.delegate didDisplayAdViewAd];
 }
 
 - (void)banner:(IMBanner *)banner didInteractWithParams:(NSDictionary *)params

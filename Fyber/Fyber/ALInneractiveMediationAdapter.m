@@ -10,7 +10,7 @@
 #import <IASDKCore/IASDKCore.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"8.2.2.0"
+#define ADAPTER_VERSION @"8.2.4.0"
 
 @interface ALInneractiveMediationAdapterGlobalDelegate : NSObject <IAGlobalAdDelegate>
 @end
@@ -87,12 +87,15 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
         [self log: @"Initializing Inneractive SDK with app id: %@...", appID];
         
         [IASDKCore sharedInstance].userID = self.sdk.userIdentifier;
+        [IASDKCore sharedInstance].mediationType = [[IAMediationMax alloc] init];
         
         // Passing extra info such as creative id supported in 6.15.0+
         if ( ALSdk.versionCode >= 6150000 )
         {
             [IASDKCore sharedInstance].globalAdDelegate = ALInneractiveGlobalDelegate;
         }
+        
+        [[IASDKCore sharedInstance] setMediationType: [[IAMediationMax alloc] init]];
         
         [[IASDKCore sharedInstance] initWithAppID: appID completionBlock:^(BOOL success, NSError *_Nullable error) {
             
@@ -135,18 +138,28 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
 {
     [self log: @"Destroy called for adapter %@", self];
     
+    [self.interstitialUnitController removeAd];
     self.interstitialAdSpot = nil;
+    self.interstitialUnitController.unitDelegate = nil;
     self.interstitialUnitController = nil;
+    self.interstitialDelegate.delegate = nil;
     self.interstitialDelegate = nil;
     
+    [self.rewardedUnitController removeAd];
     self.rewardedAdSpot = nil;
+    self.rewardedUnitController.unitDelegate = nil;
     self.rewardedUnitController = nil;
+    self.rewardedDelegate.delegate = nil;
     self.rewardedDelegate = nil;
     
     self.adViewAdSpot = nil;
+    self.adViewUnitController.unitDelegate = nil;
     self.adViewUnitController = nil;
+    self.adViewDelegate.delegate = nil;
     self.adViewDelegate = nil;
     
+    self.videoContentController.videoContentDelegate = nil;
+    self.MRAIDContentController.MRAIDContentDelegate = nil;
     self.videoContentController = nil;
     self.MRAIDContentController = nil;
 }
@@ -200,7 +213,6 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     
     self.interstitialAdSpot = [IAAdSpot build:^(id<IAAdSpotBuilder> builder) {
         builder.adRequest = request;
-        builder.mediationType = [[IAMediationMax alloc] init];
         [builder addSupportedUnitController: self.interstitialUnitController];
     }];
     
@@ -286,7 +298,6 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     
     self.rewardedAdSpot = [IAAdSpot build:^(id<IAAdSpotBuilder> builder) {
         builder.adRequest = request;
-        builder.mediationType = [[IAMediationMax alloc] init];
         [builder addSupportedUnitController: self.rewardedUnitController];
     }];
     
@@ -372,7 +383,6 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     
     self.adViewAdSpot = [IAAdSpot build:^(id<IAAdSpotBuilder> builder) {
         builder.adRequest = request;
-        builder.mediationType = [[IAMediationMax alloc] init];
         [builder addSupportedUnitController: self.adViewUnitController];
     }];
     
@@ -457,19 +467,15 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     IAAdRequest *request = [IAAdRequest build:^(id<IAAdRequestBuilder> builder) {
         builder.spotID = requestParameters.thirdPartyAdPlacementIdentifier;
         builder.timeout = [requestParameters.serverParameters al_numberForKey: @"load_timeout" defaultValue: @(10.0f)].al_timeIntervalValue;
-        
-        NSDictionary *serverParameters = requestParameters.serverParameters;
-        // Overwritten by `mute_state` setting, unless `mute_state` is disabled
-        if ( [builder respondsToSelector: @selector(muteAudio)] && [serverParameters al_containsValueForKey: @"is_muted"] )
-        {
-            // this protocol property is optional
-            builder.muteAudio = [serverParameters al_numberForKey: @"is_muted"].boolValue; // Introduced in 6.10.0
-        }
-        else
-        {
-            [self log: @"Ad request does not support mute configuration."];
-        }
     }];
+    
+    NSDictionary *serverParameters = requestParameters.serverParameters;
+
+    if ( [serverParameters al_containsValueForKey: @"is_muted"] )
+    {
+        // Overwritten by `mute_state` setting, unless `mute_state` is disabled
+        [IASDKCore sharedInstance].muteAudio = [serverParameters al_numberForKey: @"is_muted"].boolValue; // Introduced in 6.10.0
+    }
     
     return request;
 }
