@@ -211,8 +211,12 @@ static MAAdapterInitializationStatus ALGoogleInitializatationStatus = NSIntegerM
         }
         
         // astar
+		NSString *responseIdentifier = interstitialAd.responseInfo.responseIdentifier;
+		if(!responseIdentifier) {
+			responseIdentifier = @"";
+		}
         NSDictionary *data = @{
-            @"ResponseId": interstitialAd.responseInfo.responseIdentifier
+			@"ResponseId": responseIdentifier
         };
         
         ASAdTracker *adTracker = [ASAdTracker sharedInstance];
