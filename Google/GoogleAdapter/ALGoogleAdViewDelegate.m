@@ -10,7 +10,7 @@
 
 #import "ASAdTracker.h"
 
-
+  
 @interface ALGoogleAdViewDelegate()
 @property (nonatomic, weak) ALGoogleMediationAdapter *parentAdapter;
 @property (nonatomic, weak) MAAdFormat *adFormat;
@@ -38,9 +38,13 @@
     [self.parentAdapter log: @"%@ ad loaded: %@", self.adFormat.label, bannerView.adUnitID];
     
     // astar
-    NSDictionary *data = @{
-        @"ResponseId": bannerView.responseInfo.responseIdentifier
-    };
+	NSString *responseIdentifier = bannerView.responseInfo.responseIdentifier;
+	if(!responseIdentifier) {
+		responseIdentifier = @"";
+	}
+	NSDictionary *data = @{
+		@"ResponseId": responseIdentifier
+	};
     
     ASAdTracker *adTracker = [ASAdTracker sharedInstance];
     [adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
