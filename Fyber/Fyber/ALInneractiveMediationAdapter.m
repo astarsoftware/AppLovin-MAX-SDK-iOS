@@ -10,7 +10,7 @@
 #import <IASDKCore/IASDKCore.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"8.2.4.0"
+#define ADAPTER_VERSION @"8.2.6.0"
 
 @interface ALInneractiveMediationAdapterGlobalDelegate : NSObject <IAGlobalAdDelegate>
 @end
@@ -424,7 +424,7 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     [IASDKCore sharedInstance].userID = self.sdk.userIdentifier;
     
     NSNumber *hasUserConsent = [requestParameters hasUserConsent];
-    if ( hasUserConsent )
+    if ( hasUserConsent != nil )
     {
         [[IASDKCore sharedInstance] setGDPRConsent: hasUserConsent.boolValue];
     }
@@ -442,7 +442,7 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     }
     
     NSNumber *isDoNotSell = [requestParameters isDoNotSell];
-    if ( isDoNotSell )
+    if ( isDoNotSell != nil )
     {
         [[IASDKCore sharedInstance] setCCPAString: isDoNotSell.boolValue ? @"1YY-" : @"1YN-"];
     }
@@ -452,7 +452,7 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     }
     
     NSNumber *isAgeRestrictedUser = [requestParameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser )
+    if ( isAgeRestrictedUser != nil )
     {
         [[IASDKCore sharedInstance] setCoppaApplies: isAgeRestrictedUser.boolValue ? IACoppaAppliesTypeGiven : IACoppaAppliesTypeDenied];
     }
@@ -474,6 +474,7 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     if ( [serverParameters al_containsValueForKey: @"is_muted"] )
     {
         // Overwritten by `mute_state` setting, unless `mute_state` is disabled
+        // NOTE: Does not work for rewarded ads
         [IASDKCore sharedInstance].muteAudio = [serverParameters al_numberForKey: @"is_muted"].boolValue; // Introduced in 6.10.0
     }
     
@@ -713,10 +714,13 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
 // NOTE: Only AppLovin SDK 6.15.0+ registers for this callback
 - (void)adDidShowWithImpressionData:(IAImpressionData *)impressionData withAdRequest:(IAAdRequest *)adRequest
 {
+    NSString *placementID = adRequest.spotID;
+    if ( ![placementID al_isValidString] ) return;
+    
     NSString *creativeID = impressionData.creativeID;
     
-    ALInneractiveMediationAdapter *adapter = ALInneractiveCurrentlyShowingAdapters[adRequest.spotID];
-    [ALInneractiveCurrentlyShowingAdapters removeObjectForKey: adRequest.spotID];
+    ALInneractiveMediationAdapter *adapter = ALInneractiveCurrentlyShowingAdapters[placementID];
+    [ALInneractiveCurrentlyShowingAdapters removeObjectForKey: placementID];
     
     if ( adapter.interstitialDelegate )
     {

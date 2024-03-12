@@ -1,5 +1,21 @@
 # Changelog
 
+## 22.8.0.0
+* Certified with Smaato SDK 22.8.0.
+
+## 22.7.0.0
+* Certified with Smaato SDK 22.7.0.
+
+## 22.6.1.0
+* Certified with Smaato SDK 22.6.1.
+
+## 22.6.0.0
+* Certified with Smaato SDK 22.6.0.
+
+## 22.5.0.0
+* Certified with Smaato SDK 22.5.0.
+* Updated minimum iOS version to 11.0.
+
 ## 22.4.0.0
 * Certified with Smaato SDK 22.4.0.
 

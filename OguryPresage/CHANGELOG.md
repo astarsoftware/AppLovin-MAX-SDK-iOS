@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.2.3.0
+* Certified with OguryPresage SDK 4.2.3.
+
+## 4.2.2.1
+* Updated minimum iOS version to 11.0.
+* Move `updateUserConsent:` call after `[Ogury startWithConfiguration:]`.
+
 ## 4.2.2.0
 * Certified with OguryPresage SDK 4.2.2.
 

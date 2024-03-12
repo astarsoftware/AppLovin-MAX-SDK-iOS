@@ -6,12 +6,11 @@
 //  Copyright © 2018 AppLovin. All rights reserved.
 //
 
+#import "ASAdTracker.h"
 #import "ALVungleMediationAdapter.h"
 #import <VungleAdsSDK/VungleAdsSDK.h>
 
-#import "ASAdTracker.h"
-
-#define ADAPTER_VERSION @"7.1.0.2"
+#define ADAPTER_VERSION @"7.2.2.0"
 
 @interface ALVungleMediationAdapterInterstitialAdDelegate : NSObject <VungleInterstitialDelegate>
 @property (nonatomic,   weak) ALVungleMediationAdapter *parentAdapter;
@@ -412,9 +411,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
                                                                                          parameters: parameters
                                                                                           andNotify: delegate];
         self.adView.delegate = self.adViewDelegate;
-        
-        self.adView.enableRefresh = NO;
-        
+                
         self.adViewContainer = [[UIView alloc] initWithFrame: (CGRect) { CGPointZero, adFormat.size }];
         
         [self.adView load: bidResponse];
@@ -467,7 +464,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     NSNumber *isDoNotSell = [parameters isDoNotSell];
     if ( isDoNotSell != nil )
     {
-        [VunglePrivacySettings setCCPAStatus: isDoNotSell.boolValue];
+        [VunglePrivacySettings setCCPAStatus: !isDoNotSell.boolValue];
     }
 }
 
@@ -560,9 +557,11 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
         case 207: // Invalid Placement Type
         case 222: // Invalid Placement load type
         case 500: // BannerView: Invalid Size
+        case 30001: // Ad Publisher Mismatch
             adapterError = MAAdapterError.invalidConfiguration;
             break;
         case 119: // Json Encode Error
+        case 30002: // Ad Internal Integration Error
             adapterError = MAAdapterError.internalError;
             break;
         case 202: // Ad already Consumed
@@ -582,6 +581,8 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
             adapterError = MAAdapterError.adDisplayFailedError;
             break;
         case 212: // Placement Sleep
+        case 10001: // Ad No Fill
+        case 10002: // AdLoad Too Frequently
             adapterError = MAAdapterError.noFill;
             break;
         case 217: // Ad response timeOut
@@ -589,6 +590,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
             break;
         case 220: // Server busy with retry after timer.
         case 221: // Load ad during Server busy with retry after timer.
+        case 20001: // Ad Server Error
             adapterError = MAAdapterError.serverError;
             break;
         case 304: // Ad Expired
@@ -631,7 +633,25 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)interstitialAdDidLoad:(VungleInterstitial *)interstitial
 {
     [self.parentAdapter log: @"Interstitial ad loaded: %@", interstitial.placementId];
-    [self.delegate didLoadInterstitialAd];
+    
+    NSString *creativeIdentifier = interstitial.creativeId;
+    if ( [creativeIdentifier al_isValidString] )
+    {
+		// astar
+		NSDictionary *data = @{
+			@"creativeID": creativeIdentifier,
+			@"placementID" : interstitial.placementId
+		};
+		
+		ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+		[adTracker adDidLoadForMediator:@"max" fromNetwork:@"vungle" ofType:@"fullscreen" data:data];
+		
+        [self.delegate didLoadInterstitialAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
+    }
+    else
+    {
+        [self.delegate didLoadInterstitialAd];
+    }
 }
 
 - (void)interstitialAdDidFailToLoad:(VungleInterstitial *)interstitial withError:(NSError *)error
@@ -654,25 +674,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)interstitialAdDidTrackImpression:(VungleInterstitial *)interstitial
 {
     [self.parentAdapter log: @"Interstitial ad impression tracked: %@", interstitial.placementId];
-    
-    NSString *creativeIdentifier = interstitial.creativeId;
-    if ( [creativeIdentifier al_isValidString] )
-    {
-        // astar
-        NSDictionary *data = @{
-            @"creativeID": creativeIdentifier,
-            @"placementID" : interstitial.placementId
-        };
-        
-        ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-        [adTracker adDidLoadForMediator:@"max" fromNetwork:@"vungle" ofType:@"fullscreen" data:data];
-    
-        [self.delegate didDisplayInterstitialAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
-    }
-    else
-    {
-        [self.delegate didDisplayInterstitialAd];
-    }
+    [self.delegate didDisplayInterstitialAd];
 }
 
 - (void)interstitialAdDidFailToPresent:(VungleInterstitial *)interstitial withError:(NSError *)error
@@ -722,7 +724,16 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)interstitialAdDidLoad:(VungleInterstitial *)interstitial
 {
     [self.parentAdapter log: @"App Open ad loaded: %@", interstitial.placementId];
-    [self.delegate didLoadAppOpenAd];
+    
+    NSString *creativeIdentifier = interstitial.creativeId;
+    if ( [creativeIdentifier al_isValidString] )
+    {
+        [self.delegate didLoadAppOpenAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
+    }
+    else
+    {
+        [self.delegate didLoadAppOpenAd];
+    }
 }
 
 - (void)interstitialAdDidFailToLoad:(VungleInterstitial *)interstitial withError:(NSError *)error
@@ -745,16 +756,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)interstitialAdDidTrackImpression:(VungleInterstitial *)interstitial
 {
     [self.parentAdapter log: @"App Open ad impression tracked: %@", interstitial.placementId];
-    
-    NSString *creativeIdentifier = interstitial.creativeId;
-    if ( [creativeIdentifier al_isValidString] )
-    {
-        [self.delegate didDisplayAppOpenAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
-    }
-    else
-    {
-        [self.delegate didDisplayAppOpenAd];
-    }
+    [self.delegate didDisplayAppOpenAd];
 }
 
 - (void)interstitialAdDidFailToPresent:(VungleInterstitial *)interstitial withError:(NSError *)error
@@ -804,7 +806,16 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)rewardedAdDidLoad:(VungleRewarded *)rewarded
 {
     [self.parentAdapter log: @"Rewarded ad loaded: %@", rewarded.placementId];
-    [self.delegate didLoadRewardedAd];
+    
+    NSString *creativeIdentifier = rewarded.creativeId;
+    if ( [creativeIdentifier al_isValidString] )
+    {
+        [self.delegate didLoadRewardedAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
+    }
+    else
+    {
+        [self.delegate didLoadRewardedAd];
+    }
 }
 
 - (void)rewardedAdDidFailToLoad:(VungleRewarded *)rewarded withError:(NSError *)error
@@ -828,16 +839,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)rewardedAdDidTrackImpression:(VungleRewarded *)rewarded
 {
     [self.parentAdapter log: @"Rewarded ad impression tracked: %@", rewarded.placementId];
-    
-    NSString *creativeIdentifier = rewarded.creativeId;
-    if ( [creativeIdentifier al_isValidString] )
-    {
-        [self.delegate didDisplayRewardedAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
-    }
-    else
-    {
-        [self.delegate didDisplayRewardedAd];
-    }
+    [self.delegate didDisplayRewardedAd];
 }
 
 - (void)rewardedAdDidFailToPresent:(VungleRewarded *)rewarded withError:(NSError *)error
@@ -907,7 +909,25 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)bannerAdDidLoad:(VungleBanner *)banner
 {
     [self.parentAdapter log: @"AdView loaded: %@", banner.placementId];
-    [self.delegate didLoadAdForAdView: self.parentAdapter.adViewContainer];
+    
+    NSString *creativeIdentifier = banner.creativeId;
+    if ( [creativeIdentifier al_isValidString] )
+    {
+		// astar
+		NSDictionary *data = @{
+			@"creativeID": creativeIdentifier,
+			@"placementID" : banner.placementId
+		};
+		
+		ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+		[adTracker adDidLoadForMediator:@"max" fromNetwork:@"vungle" ofType:@"banner" data:data];
+		
+        [self.delegate didLoadAdForAdView: self.parentAdapter.adViewContainer withExtraInfo: @{@"creative_id" : creativeIdentifier}];
+    }
+    else
+    {
+        [self.delegate didLoadAdForAdView: self.parentAdapter.adViewContainer];
+    }
     
     if ( [banner canPlayAd] )
     {
@@ -940,24 +960,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)bannerAdDidTrackImpression:(VungleBanner *)banner
 {
     [self.parentAdapter log: @"AdView ad impression tracked %@", banner.placementId];
-    
-    NSString *creativeIdentifier = banner.creativeId;
-    if ( [creativeIdentifier al_isValidString] )
-    {
-        // astar
-        NSDictionary *data = @{
-            @"creativeID": creativeIdentifier,
-            @"placementID" : banner.placementId
-        };
-        
-        ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-        [adTracker adDidLoadForMediator:@"max" fromNetwork:@"vungle" ofType:@"banner" data:data];
-        [self.delegate didDisplayAdViewAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
-    }
-    else
-    {
-        [self.delegate didDisplayAdViewAd];
-    }
+    [self.delegate didDisplayAdViewAd];
 }
 
 - (void)bannerAdDidClick:(VungleBanner *)banner
@@ -1072,7 +1075,15 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
         
         [maxVungleNativeAd prepareForInteractionClickableViews: [self.parentAdapter clickableViewsForNativeAdView: maxNativeAdView] withContainer: maxNativeAdView];
         
-        [self.delegate didLoadAdForAdView: maxNativeAdView];
+        NSString *creativeIdentifier = nativeAd.creativeId;
+        if ( [creativeIdentifier al_isValidString] )
+        {
+            [self.delegate didLoadAdForAdView: maxNativeAdView withExtraInfo: @{@"creative_id" : creativeIdentifier}];
+        }
+        else
+        {
+            [self.delegate didLoadAdForAdView: maxNativeAdView];
+        }
     });
 }
 
@@ -1086,16 +1097,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)nativeAdDidTrackImpression:(VungleNative *)nativeAd
 {
     [self.parentAdapter log: @"Native %@ ad shown: %@", self.adFormat, self.placementIdentifier];
-    
-    NSString *creativeIdentifier = nativeAd.creativeId;
-    if ( [creativeIdentifier al_isValidString] )
-    {
-        [self.delegate didDisplayAdViewAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
-    }
-    else
-    {
-        [self.delegate didDisplayAdViewAd];
-    }
+    [self.delegate didDisplayAdViewAd];
 }
 
 - (void)nativeAdDidClick:(VungleNative *)nativeAd
@@ -1165,7 +1167,15 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 #pragma clang diagnostic pop
         }];
         
-        [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
+        NSString *creativeIdentifier = nativeAd.creativeId;
+        if ( [creativeIdentifier al_isValidString] )
+        {
+            [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: @{@"creative_id" : creativeIdentifier}];
+        }
+        else
+        {
+            [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
+        }
     });
 }
 
@@ -1179,15 +1189,7 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
 - (void)nativeAdDidTrackImpression:(VungleNative *)nativeAd
 {
     [self.parentAdapter log: @"Native ad shown: %@", self.placementIdentifier];
-    NSString *creativeIdentifier = nativeAd.creativeId;
-    if ( [creativeIdentifier al_isValidString] )
-    {
-        [self.delegate didDisplayNativeAdWithExtraInfo: @{@"creative_id" : creativeIdentifier}];
-    }
-    else
-    {
-        [self.delegate didDisplayNativeAdWithExtraInfo: nil];
-    }
+    [self.delegate didDisplayNativeAdWithExtraInfo: nil];
 }
 
 - (void)nativeAdDidClick:(VungleNative *)nativeAd

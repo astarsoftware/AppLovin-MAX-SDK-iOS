@@ -1,5 +1,36 @@
 # Changelog
 
+## 5.8.0.7.0
+* Certified with ByteDance SDK 5.8.0.7.
+
+## 5.7.0.9.0
+* Certified with ByteDance SDK 5.7.0.9.
+
+## 5.7.0.8.0
+* Certified with ByteDance SDK 5.7.0.8.
+
+## 5.7.0.7.0
+* Certified with ByteDance SDK 5.7.0.7.
+
+## 5.7.0.6.0
+* Certified with ByteDance SDK 5.7.0.6.
+
+## 5.6.0.9.0
+* Certified with ByteDance SDK 5.6.0.9.
+
+## 5.6.0.8.0
+* Certified with ByteDance SDK 5.6.0.8.
+
+## 5.6.0.7.0
+* Certified with ByteDance SDK 5.6.0.7.
+
+## 5.6.0.6.0
+* Certified with ByteDance SDK 5.6.0.6.
+
+## 5.6.0.5.0
+* Certified with ByteDance SDK 5.6.0.5.
+* Updated minimum iOS version to 11.0.
+
 ## 5.5.0.9.0
 * Certified with ByteDance SDK 5.5.0.9.
 

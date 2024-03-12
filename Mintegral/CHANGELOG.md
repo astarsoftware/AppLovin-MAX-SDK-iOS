@@ -1,5 +1,42 @@
 # Changelog
 
+## 7.5.8.0.0
+* Certified with Mintegral SDK 7.5.8.
+
+## 7.5.7.0.0
+* Certified with Mintegral SDK 7.5.7.
+
+## 7.5.6.0.0
+* Certified with Mintegral SDK 7.5.6.
+
+## 7.5.5.0.0
+* Certified with Mintegral SDK 7.5.5.
+
+## 7.5.4.0.2
+* Add `kMTGErrorCodeSocketInvalidStatus` and `kMTGErrorCodeSocketInvalidContent` error codes to error mapping.
+
+## 7.5.4.0.1
+* Update to retrieve creative ID and set channel code/ID using new APIs.
+* Add `kMTGErrorCodeAdsCountInvalid` error code to error mapping.
+* Now requires MAX SDK version 6.15.0 or higher.
+
+## 7.5.4.0.0
+* Certified with Mintegral SDK 7.5.4.
+
+## 7.5.3.0.0
+* Certified with Mintegral SDK 7.5.3.
+
+## 7.5.2.0.0
+* Certified with Mintegral SDK 7.5.2.
+
+## 7.5.1.0.0
+* Certified with Mintegral SDK 7.5.1.
+* Note: This is the first Mintegral SDK with TCF v2 compliance.
+
+## 7.5.0.0.0
+* Certified with Mintegral SDK 7.5.0.
+* Updated minimum iOS version to 11.0.
+
 ## 7.4.9.0.0
 * Certified with Mintegral SDK 7.4.9.
 

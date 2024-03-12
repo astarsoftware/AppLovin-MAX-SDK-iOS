@@ -1,5 +1,17 @@
 # Changelog
 
+## 8.2.6.0
+* Certified with Fyber SDK 8.2.6.
+
+## 8.2.5.2
+* Fix `-[__NSDictionaryM removeObjectForKey:] key cannot be nil` crash when spotID is `nil` in `adDidShowWithImpressionData:withAdRequest:` callback.
+
+## 8.2.5.1
+* Downgrade Fyber SDK to 8.2.4 due to `The signature cannot be verified` [issue](https://github.com/AppLovin/AppLovin-MAX-Unity-Plugin/issues/313) with `IASDKCore.xcframework`.
+
+## 8.2.5.0
+* Certified with Fyber SDK 8.2.5.
+
 ## 8.2.4.0
 * Certified with Fyber SDK 8.2.4.
 * Updated minimum Xcode requirement to 14.1.
