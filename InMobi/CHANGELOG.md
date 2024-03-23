@@ -1,5 +1,12 @@
 # Changelog
 
+## 10.7.1.0
+* Certified with InMobi SDK 10.7.1.
+
+## 10.7.0.0
+* Certified with InMobi SDK 10.7.0.
+* Updated minimum iOS version to 12.0.
+
 ## 10.6.4.0
 * Certified with InMobi SDK 10.6.4.
 
