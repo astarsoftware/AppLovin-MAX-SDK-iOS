@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.21.1.0
+* Certified with MyTarget SDK 5.21.1.
+
+## 5.21.0.0
+* Certified with MyTarget SDK 5.21.0.
+* Added `onMediaLoadFailed` method to `MyTargetNativeAdAdapterDelegate`.
+
 ## 5.20.1.1
 * Fully re-written in Swift.
 * Updated minimum AppLovinSDK requirement to 12.0.0.
@@ -90,7 +97,7 @@
 
 ## 5.14.2.0
 * Certified with MyTarget SDK 5.14.2.
-* Added suport for native bidding.
+* Added support for native bidding.
 
 ## 5.12.0.1
 * Downgrade to MyTarget SDK 5.11.1.
