@@ -7,9 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2E2965A3F02BF3CF25C7F778 /* Pods_MolocoAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A737BE15F65505726E55A57 /* Pods_MolocoAdapter.framework */; };
+		6237A0B82AA91D1A00DC0675 /* MolocoAdapter+AdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6237A0B72AA91D1A00DC0675 /* MolocoAdapter+AdView.swift */; };
+		623A41592AAA6E98009B7980 /* MolocoAdapter+Interstitial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623A41582AAA6E98009B7980 /* MolocoAdapter+Interstitial.swift */; };
+		626B0EB32B92803D00CE1212 /* Native+Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 626B0EB22B92803D00CE1212 /* Native+Utils.swift */; };
+		62A462DD2AAA7D95002731A9 /* MolocoAdapter+Rewarded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A462DC2AAA7D95002731A9 /* MolocoAdapter+Rewarded.swift */; };
+		62DC144F2B90641E00C95A94 /* MolocoAdapter+Native.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62DC144E2B90641E00C95A94 /* MolocoAdapter+Native.swift */; };
+		62E8E6262AA8EB59005AC90F /* MolocoAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62E8E6252AA8EB59005AC90F /* MolocoAdapter.swift */; };
+		62F6694C2AAFD7020073E95F /* Error+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F6694B2AAFD7020073E95F /* Error+Extensions.swift */; };
 		6A561CE0219BB5A600E3749A /* AppLovinSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D31B64D219BA4E600875D92 /* AppLovinSDK.framework */; };
-		6A9A772A21A4F43A00151D7A /* ALNendMediationAdapter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9A772821A4F43A00151D7A /* ALNendMediationAdapter.m */; };
-		D61D29C8F4A1B4BEEF627A5E /* Pods_NendAdapter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 877A4F29F4F343C59F34736F /* Pods_NendAdapter.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,6 +32,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		19E7D7F28031CB2C628542E5 /* Pods-MolocoAdapter.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MolocoAdapter.debug.xcconfig"; path = "Target Support Files/Pods-MolocoAdapter/Pods-MolocoAdapter.debug.xcconfig"; sourceTree = "<group>"; };
 		1D31B64D219BA4E600875D92 /* AppLovinSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = AppLovinSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D9AE8E221423C7D00080475 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		1D9AE8E321423C7D00080475 /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
@@ -41,14 +48,18 @@
 		1D9AE8ED21423C7E00080475 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		1D9AE8EE21423C7E00080475 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		1D9AE8FC21423C9200080475 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		63B577FEEAE162DABC4A84AB /* Pods-NendAdapter.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NendAdapter.release.xcconfig"; path = "Target Support Files/Pods-NendAdapter/Pods-NendAdapter.release.xcconfig"; sourceTree = "<group>"; };
-		6A561CE5219BB5A600E3749A /* libNendAdapter.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNendAdapter.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6237A0B72AA91D1A00DC0675 /* MolocoAdapter+AdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MolocoAdapter+AdView.swift"; sourceTree = "<group>"; };
+		623A41582AAA6E98009B7980 /* MolocoAdapter+Interstitial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MolocoAdapter+Interstitial.swift"; sourceTree = "<group>"; };
+		626B0EB22B92803D00CE1212 /* Native+Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Native+Utils.swift"; sourceTree = "<group>"; };
+		62A462DC2AAA7D95002731A9 /* MolocoAdapter+Rewarded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MolocoAdapter+Rewarded.swift"; sourceTree = "<group>"; };
+		62DC144E2B90641E00C95A94 /* MolocoAdapter+Native.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MolocoAdapter+Native.swift"; sourceTree = "<group>"; };
+		62E8E6252AA8EB59005AC90F /* MolocoAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MolocoAdapter.swift; sourceTree = "<group>"; };
+		62F6694B2AAFD7020073E95F /* Error+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Error+Extensions.swift"; sourceTree = "<group>"; };
+		6A561CE5219BB5A600E3749A /* libMolocoAdapter.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libMolocoAdapter.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A5A633A21C0875E00B755D7 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
-		6A5A633B21C0875E00B755D7 /* AppLovinMediationNendAdapter.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppLovinMediationNendAdapter.podspec; sourceTree = "<group>"; };
-		6A9A772821A4F43A00151D7A /* ALNendMediationAdapter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ALNendMediationAdapter.m; sourceTree = "<group>"; };
-		6A9A772921A4F43A00151D7A /* ALNendMediationAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALNendMediationAdapter.h; sourceTree = "<group>"; };
-		7BAB63F2B15020446A865769 /* Pods-NendAdapter.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NendAdapter.debug.xcconfig"; path = "Target Support Files/Pods-NendAdapter/Pods-NendAdapter.debug.xcconfig"; sourceTree = "<group>"; };
-		877A4F29F4F343C59F34736F /* Pods_NendAdapter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NendAdapter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A5A633B21C0875E00B755D7 /* AppLovinMediationMolocoAdapter.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppLovinMediationMolocoAdapter.podspec; sourceTree = "<group>"; };
+		6A737BE15F65505726E55A57 /* Pods_MolocoAdapter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MolocoAdapter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		84DC725DFA49F3809D855632 /* Pods-MolocoAdapter.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MolocoAdapter.release.xcconfig"; path = "Target Support Files/Pods-MolocoAdapter/Pods-MolocoAdapter.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +68,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A561CE0219BB5A600E3749A /* AppLovinSDK.framework in Frameworks */,
-				D61D29C8F4A1B4BEEF627A5E /* Pods_NendAdapter.framework in Frameworks */,
+				2E2965A3F02BF3CF25C7F778 /* Pods_MolocoAdapter.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,7 +93,7 @@
 				1D9AE8EA21423C7E00080475 /* SystemConfiguration.framework */,
 				1D9AE8E821423C7E00080475 /* UIKit.framework */,
 				1D9AE8E721423C7E00080475 /* WebKit.framework */,
-				877A4F29F4F343C59F34736F /* Pods_NendAdapter.framework */,
+				6A737BE15F65505726E55A57 /* Pods_MolocoAdapter.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -90,58 +101,71 @@
 		1D97FB7C1FBCF38B00D6C309 = {
 			isa = PBXGroup;
 			children = (
-				6A9A772721A4F43A00151D7A /* NendAdapter */,
+				6A9A772721A4F43A00151D7A /* MolocoAdapter */,
 				6A5A632921C086CF00B755D7 /* Supporting Files */,
 				1D97FB861FBCF38B00D6C309 /* Products */,
 				1D2303A61FBCF4C7001939D7 /* Frameworks */,
-				DC0E9390B5FBE1D747296540 /* Pods */,
+				3EE3140D0385636205C14C53 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
 		1D97FB861FBCF38B00D6C309 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6A561CE5219BB5A600E3749A /* libNendAdapter.a */,
+				6A561CE5219BB5A600E3749A /* libMolocoAdapter.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6A5A632921C086CF00B755D7 /* Supporting Files */ = {
+		3EE3140D0385636205C14C53 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				6A5A633B21C0875E00B755D7 /* AppLovinMediationNendAdapter.podspec */,
-				6A5A633A21C0875E00B755D7 /* CHANGELOG.md */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		6A9A772721A4F43A00151D7A /* NendAdapter */ = {
-			isa = PBXGroup;
-			children = (
-				6A9A772921A4F43A00151D7A /* ALNendMediationAdapter.h */,
-				6A9A772821A4F43A00151D7A /* ALNendMediationAdapter.m */,
-			);
-			path = NendAdapter;
-			sourceTree = "<group>";
-		};
-		DC0E9390B5FBE1D747296540 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				7BAB63F2B15020446A865769 /* Pods-NendAdapter.debug.xcconfig */,
-				63B577FEEAE162DABC4A84AB /* Pods-NendAdapter.release.xcconfig */,
+				19E7D7F28031CB2C628542E5 /* Pods-MolocoAdapter.debug.xcconfig */,
+				84DC725DFA49F3809D855632 /* Pods-MolocoAdapter.release.xcconfig */,
 			);
 			name = Pods;
 			path = "../../iOS-Workspace/Pods";
 			sourceTree = "<group>";
 		};
+		62A118712B90130600A31928 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				62F6694B2AAFD7020073E95F /* Error+Extensions.swift */,
+				626B0EB22B92803D00CE1212 /* Native+Utils.swift */,
+			);
+			name = Extensions;
+			sourceTree = "<group>";
+		};
+		6A5A632921C086CF00B755D7 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				6A5A633B21C0875E00B755D7 /* AppLovinMediationMolocoAdapter.podspec */,
+				6A5A633A21C0875E00B755D7 /* CHANGELOG.md */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		6A9A772721A4F43A00151D7A /* MolocoAdapter */ = {
+			isa = PBXGroup;
+			children = (
+				62A118712B90130600A31928 /* Extensions */,
+				62E8E6252AA8EB59005AC90F /* MolocoAdapter.swift */,
+				623A41582AAA6E98009B7980 /* MolocoAdapter+Interstitial.swift */,
+				62A462DC2AAA7D95002731A9 /* MolocoAdapter+Rewarded.swift */,
+				6237A0B72AA91D1A00DC0675 /* MolocoAdapter+AdView.swift */,
+				62DC144E2B90641E00C95A94 /* MolocoAdapter+Native.swift */,
+			);
+			path = MolocoAdapter;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		6A561CDC219BB5A600E3749A /* NendAdapter */ = {
+		6A561CDC219BB5A600E3749A /* MolocoAdapter */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6A561CE2219BB5A600E3749A /* Build configuration list for PBXNativeTarget "NendAdapter" */;
+			buildConfigurationList = 6A561CE2219BB5A600E3749A /* Build configuration list for PBXNativeTarget "MolocoAdapter" */;
 			buildPhases = (
-				F417E9508BAC7374219F155E /* [CP] Check Pods Manifest.lock */,
+				7300898637DB5AAFD060C27C /* [CP] Check Pods Manifest.lock */,
 				6A561CDD219BB5A600E3749A /* Sources */,
 				6A561CDF219BB5A600E3749A /* Frameworks */,
 				6A561CE1219BB5A600E3749A /* Copy Files */,
@@ -150,9 +174,9 @@
 			);
 			dependencies = (
 			);
-			name = NendAdapter;
+			name = MolocoAdapter;
 			productName = "Unity Plugin";
-			productReference = 6A561CE5219BB5A600E3749A /* libNendAdapter.a */;
+			productReference = 6A561CE5219BB5A600E3749A /* libMolocoAdapter.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -165,11 +189,12 @@
 				ORGANIZATIONNAME = AppLovin;
 				TargetAttributes = {
 					6A561CDC219BB5A600E3749A = {
+						LastSwiftMigration = 1430;
 						ProvisioningStyle = Manual;
 					};
 				};
 			};
-			buildConfigurationList = 1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "NendAdapter" */;
+			buildConfigurationList = 1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "MolocoAdapter" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -182,13 +207,13 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6A561CDC219BB5A600E3749A /* NendAdapter */,
+				6A561CDC219BB5A600E3749A /* MolocoAdapter */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		F417E9508BAC7374219F155E /* [CP] Check Pods Manifest.lock */ = {
+		7300898637DB5AAFD060C27C /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -203,7 +228,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-NendAdapter-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-MolocoAdapter-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -217,7 +242,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6A9A772A21A4F43A00151D7A /* ALNendMediationAdapter.m in Sources */,
+				62E8E6262AA8EB59005AC90F /* MolocoAdapter.swift in Sources */,
+				626B0EB32B92803D00CE1212 /* Native+Utils.swift in Sources */,
+				62A462DD2AAA7D95002731A9 /* MolocoAdapter+Rewarded.swift in Sources */,
+				6237A0B82AA91D1A00DC0675 /* MolocoAdapter+AdView.swift in Sources */,
+				62DC144F2B90641E00C95A94 /* MolocoAdapter+Native.swift in Sources */,
+				62F6694C2AAFD7020073E95F /* Error+Extensions.swift in Sources */,
+				623A41592AAA6E98009B7980 /* MolocoAdapter+Interstitial.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,10 +307,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
 			};
 			name = Debug;
 		};
@@ -329,56 +363,56 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
 		6A561CE3219BB5A600E3749A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7BAB63F2B15020446A865769 /* Pods-NendAdapter.debug.xcconfig */;
+			baseConfigurationReference = 19E7D7F28031CB2C628542E5 /* Pods-MolocoAdapter.debug.xcconfig */;
 			buildSettings = {
-				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = X8JXXK4FF5;
 				ENABLE_BITCODE = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"${PODS_ROOT}/NendSDK_iOS\"/**",
-					"\"${PODS_XCFRAMEWORKS_BUILD_DIR}/NendSDK_iOS\"/**",
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		6A561CE4219BB5A600E3749A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 63B577FEEAE162DABC4A84AB /* Pods-NendAdapter.release.xcconfig */;
+			baseConfigurationReference = 84DC725DFA49F3809D855632 /* Pods-MolocoAdapter.release.xcconfig */;
 			buildSettings = {
-				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = X8JXXK4FF5;
 				ENABLE_BITCODE = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"${PODS_ROOT}/NendSDK_iOS\"/**",
-					"\"${PODS_XCFRAMEWORKS_BUILD_DIR}/NendSDK_iOS\"/**",
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -386,7 +420,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "NendAdapter" */ = {
+		1D97FB801FBCF38B00D6C309 /* Build configuration list for PBXProject "MolocoAdapter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1D97FB8C1FBCF38B00D6C309 /* Debug */,
@@ -395,7 +429,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6A561CE2219BB5A600E3749A /* Build configuration list for PBXNativeTarget "NendAdapter" */ = {
+		6A561CE2219BB5A600E3749A /* Build configuration list for PBXNativeTarget "MolocoAdapter" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6A561CE3219BB5A600E3749A /* Debug */,

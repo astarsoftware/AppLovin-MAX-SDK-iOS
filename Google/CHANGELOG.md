@@ -1,5 +1,12 @@
 # Changelog
 
+## 11.3.0.0
+* Certified with Google SDK 11.3.0.
+
+## 11.2.0.1
+* Added Privacy Manifest defining use of NSUserDefaults.
+* Remove deprecated callbacks `didStartRewardedAdVideo`, `didCompleteRewardedAdVideo`, `didStartRewardedInterstitialAdVideo` and `didCompleteRewardedInterstitialAdVideo`.
+
 ## 11.2.0.0
 * Certified with Google SDK 11.2.0.
 

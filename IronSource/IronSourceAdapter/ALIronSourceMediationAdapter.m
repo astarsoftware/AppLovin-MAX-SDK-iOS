@@ -9,7 +9,7 @@
 #import <IronSource/IronSource.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"7.9.1.0.0"
+#define ADAPTER_VERSION @"8.0.0.0.0"
 
 @interface ALIronSourceMediationAdapterRouter : ALMediationAdapterRouter <ISDemandOnlyInterstitialDelegate, ISDemandOnlyRewardedVideoDelegate, ISLogDelegate>
 @property (nonatomic, assign, getter=hasGrantedReward) BOOL grantedReward;
@@ -594,13 +594,11 @@ static NSObject *ALLoadedAdViewPlacementIdentifiersLock;
 {
     [self log: @"Rewarded ad shown for instance ID: %@", instanceId];
     [self didDisplayAdForPlacementIdentifier: [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceId]];
-    [self didStartRewardedVideoForPlacementIdentifier: [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceId]];
 }
 
 - (void)rewardedVideoDidClose:(NSString *)instanceId
 {
     NSString *routerPlacementIdentifier = [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceId];
-    [self didCompleteRewardedVideoForPlacementIdentifier: routerPlacementIdentifier];
     
     if ( [self hasGrantedReward] || [self shouldAlwaysRewardUserForPlacementIdentifier: [ALIronSourceMediationAdapterRouter rewardedVideoRouterIdentifierForInstanceID: instanceId]] )
     {
