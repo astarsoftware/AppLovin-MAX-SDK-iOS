@@ -10,7 +10,7 @@
 #import <DTBiOSSDK/DTBiOSSDK.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"4.9.2.0"
+#define ADAPTER_VERSION @"4.9.3.0"
 
 /**
  * Container object for holding mediation hints dict generated from Amazon's SDK and the timestamp it was geenrated at.
