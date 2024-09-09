@@ -1,5 +1,18 @@
 # Changelog
 
+## 7.4.0.0
+* Certified with Vungle SDK 7.4.0.
+
+## 7.3.2.2
+* Add ability to disable init check during ad load.
+
+## 7.3.2.1
+* Allow SDK to re-initialize upon failure.
+
+## 7.3.2.0
+* Certified with Vungle SDK 7.3.2.
+* Updated minimum Xcode requirement to 15.0.
+
 ## 7.3.1.0
 * Certified with Vungle SDK 7.3.1.
 * Remove deprecated callbacks `didStartRewardedAdVideo` and `didCompleteRewardedAdVideo`.

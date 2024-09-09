@@ -1,5 +1,37 @@
 # Changelog
 
+## 6.2.0.7.1
+* Downgrade ByteDance SDK to 6.2.0.6 because `Ads-Global 6.2.0.7` Pod was deleted.
+
+## 6.2.0.7.0
+* Certified with ByteDance SDK 6.2.0.7.
+
+## 6.2.0.6.0
+* Certified with ByteDance SDK 6.2.0.6.
+
+## 6.2.0.5.0
+* Certified with ByteDance SDK 6.2.0.5.
+* Updated minimum iOS version to 12.0 to match ByteDance SDK.
+
+## 6.1.0.7.0
+* Certified with ByteDance SDK 6.1.0.7.
+
+## 6.1.0.6.0
+* Certified with ByteDance SDK 6.1.0.6.
+
+## 6.1.0.5.0
+* Certified with ByteDance SDK 6.1.0.5.
+
+## 6.0.0.5.0
+* Certified with ByteDance SDK 6.0.0.5.
+* Remove String validation for signal.
+
+## 5.9.0.9.0
+* Certified with ByteDance SDK 5.9.0.9.
+
+## 5.9.0.8.0
+* Certified with ByteDance SDK 5.9.0.8.
+
 ## 5.9.0.7.0
 * Certified with ByteDance SDK 5.9.0.7.
 * Updated minimum Xcode requirement to 15.0.

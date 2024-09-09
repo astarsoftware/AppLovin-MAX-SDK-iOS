@@ -1,5 +1,24 @@
 # Changelog
 
+## 11.8.0.0
+* Certified with Google SDK 11.8.0.
+
+## 11.7.0.1
+* Add support for [inline adaptive banner ads](https://developers.applovin.com/en/ios/ad-formats/banner-and-mrec-ads/#inline-adaptive-banners).
+
+## 11.7.0.0
+* Certified with Google SDK 11.7.0.
+
+## 11.6.0.0
+* Certified with Google SDK 11.6.0.
+
+## 11.5.0.0
+* Certified with Google SDK 11.5.0.
+
+## 11.4.0.0
+* Certified with Google SDK 11.4.0.
+* Updated minimum Xcode requirement to 15.0.
+
 ## 11.3.0.0
 * Certified with Google SDK 11.3.0.
 

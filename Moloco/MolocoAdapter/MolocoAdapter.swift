@@ -9,6 +9,7 @@
 import AppLovinSDK
 import MolocoSDK
 
+@available(iOS 13.0, *)
 @objc(ALMolocoMediationAdapter)
 final class MolocoAdapter: ALMediationAdapter
 {
@@ -35,33 +36,41 @@ final class MolocoAdapter: ALMediationAdapter
     
     override var thirdPartySdkName: String { "Moloco" }
     
-    override var adapterVersion: String { "2.1.1.1" }
+    override var adapterVersion: String { "3.1.3.0" }
     
     override var sdkVersion: String { Moloco.shared.sdkVersion }
-        
+    
     override func initialize(with parameters: MAAdapterInitializationParameters, completionHandler: @escaping MAAdapterInitializationCompletionHandler)
     {
+        // NOTE: We need this extra guard because the SDK bypasses the @available check when this function is called from Objective-C
+        guard #available(iOS 13.0, *) else
+        {
+            log(customEvent: .unsupportedMinimumOS)
+            completionHandler(.initializedFailure, "Moloco SDK does not support serving ads on iOS 12 and below")
+            return
+        }
+        
         guard Self.initialized.compareAndSet(false, update: true) else
         {
             log(lifecycleEvent: .alreadyInitialized)
             completionHandler(.doesNotApply, nil)
             return
         }
-                
+        
         let appKey = parameters.serverParameters["app_key"] as? String ?? ""
         
         log(lifecycleEvent: .initializing())
-                
-        Moloco.shared.initialize(initParams: .init(appKey: appKey, mediator: .max)) { [weak self] success, error in
+        
+        Moloco.shared.initialize(initParams: .init(appKey: appKey, mediator: .max)) { success, error in
             
             if !success || error != nil
             {
-                self?.log(lifecycleEvent: .initializeFailure(description: error?.localizedDescription))
+                self.log(lifecycleEvent: .initializeFailure(description: error?.localizedDescription))
                 completionHandler(.initializedFailure, error?.localizedDescription)
                 return
             }
             
-            self?.log(lifecycleEvent: .initializeSuccess())
+            self.log(lifecycleEvent: .initializeSuccess())
             completionHandler(.initializedSuccess, nil)
         }
     }
@@ -117,6 +126,7 @@ final class MolocoAdapter: ALMediationAdapter
 
 // MARK: - MASignalProvider
 
+@available(iOS 13.0, *)
 extension MolocoAdapter: MASignalProvider
 {
     func collectSignal(with parameters: MASignalCollectionParameters, andNotify delegate: MASignalCollectionDelegate)
@@ -125,7 +135,16 @@ extension MolocoAdapter: MASignalProvider
         
         updatePrivacyStates(for: parameters)
         
-        Moloco.shared.getBidToken { signal in
+        Moloco.shared.getBidToken { signal, error in
+            
+            if let error
+            {
+                self.log(signalEvent: .collectionFailed(description: error.localizedDescription))
+                delegate.didFailToCollectSignalWithErrorMessage(error.localizedDescription)
+                return
+            }
+            
+            self.log(signalEvent: .collectionSuccess)
             delegate.didCollectSignal(signal)
         }
     }

@@ -9,7 +9,7 @@
 #import "ALGoogleAdManagerMediationAdapter.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 
-#define ADAPTER_VERSION @"11.3.0.0"
+#define ADAPTER_VERSION @"11.8.0.0"
 
 #define TITLE_LABEL_TAG          1
 #define MEDIA_VIEW_CONTAINER_TAG 2
@@ -131,6 +131,7 @@
 @end
 
 @implementation ALGoogleAdManagerMediationAdapter
+static NSString *const kAdaptiveBannerTypeInline = @"inline";
 
 #pragma mark - MAAdapter Methods
 
@@ -685,13 +686,7 @@
     {
         if ( isAdaptiveBanner )
         {
-            __block GADAdSize adSize;
-            
-            dispatchSyncOnMainQueue(^{
-                adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth([self adaptiveBannerWidthFromParameters: parameters]);
-            });
-            
-            return adSize;
+            return [self adaptiveAdSizeFromParameters: parameters];
         }
         else
         {
@@ -708,6 +703,48 @@
         
         return GADAdSizeBanner;
     }
+}
+
+- (GADAdSize)adaptiveAdSizeFromParameters:(id<MAAdapterParameters>)parameters
+{
+    CGFloat bannerWidth = [self adaptiveBannerWidthFromParameters: parameters];
+    __block GADAdSize adSize;
+
+    if ( [self isInlineAdaptiveBannerFromParameters: parameters] )
+    {
+        CGFloat inlineMaxHeight = [self inlineAdaptiveBannerMaxHeightFromParameters: parameters];
+        if ( inlineMaxHeight > 0 )
+        {
+            dispatchSyncOnMainQueue(^{
+                adSize = GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight(bannerWidth, inlineMaxHeight);
+            });
+        }
+        else
+        {
+            dispatchSyncOnMainQueue(^{
+                adSize = GADCurrentOrientationInlineAdaptiveBannerAdSizeWithWidth(bannerWidth);
+            });
+        }
+    }
+    else // Return anchored size by default.
+    {
+        dispatchSyncOnMainQueue(^{
+            adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(bannerWidth);
+        });
+    }
+    
+    return adSize;
+}
+
+- (BOOL)isInlineAdaptiveBannerFromParameters:(id<MAAdapterParameters>)parameters
+{
+    NSString *adaptiveBannerType = [parameters.localExtraParameters al_stringForKey: @"adaptive_banner_type"];
+    return [kAdaptiveBannerTypeInline al_isEqualToStringIgnoringCase: adaptiveBannerType];
+}
+
+- (CGFloat)inlineAdaptiveBannerMaxHeightFromParameters:(id<MAAdapterParameters>)parameters
+{
+    return [parameters.localExtraParameters al_numberForKey: @"inline_adaptive_banner_max_height" defaultValue: @(-1.0)].floatValue;
 }
 
 - (CGFloat)adaptiveBannerWidthFromParameters:(id<MAAdapterParameters>)parameters
@@ -1271,12 +1308,12 @@
         if ( ALSdk.versionCode >= 6150000 && [responseId al_isValidString] )
         {
             [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
-                                withObject: self.parentAdapter.nativeAdView
+                                withObject: maxNativeAdView
                                 withObject: @{@"creative_id" : responseId}];
         }
         else
         {
-            [self.delegate didLoadAdForAdView: self.parentAdapter.nativeAdView];
+            [self.delegate didLoadAdForAdView: maxNativeAdView];
         }
     });
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 6.15.2.0
+* Certified with Facebook SDK 6.15.2.
+* Updated minimum Xcode requirement to 15.3 to match Facebook SDK.
+
+## 6.15.1.0
+* Certified with Facebook SDK 6.15.1.
+* Updated minimum Xcode requirement to 15.0.
+* Remove deprecated callbacks `didStartRewardedAdVideo`, `didCompleteRewardedAdVideo`, `didStartRewardedInterstitialAdVideo` and `didCompleteRewardedInterstitialAdVideo`.
+
 ## 6.15.0.0
 * Certified with Facebook SDK 6.15.0.
 * Updated the minimum required iOS version to 12.0 to match Facebook SDK. 

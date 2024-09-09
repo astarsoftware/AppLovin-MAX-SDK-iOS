@@ -1,5 +1,20 @@
 # Changelog
 
+## 8.3.0.0.0
+* Certified with IronSource SDK 8.3.0.0.
+* Add support for passing mediation type to SDK.
+
+## 8.2.0.0.0
+* Certified with IronSource SDK 8.2.0.0.
+
+## 8.1.0.0.1
+* Add support for bidding.
+
+## 8.1.0.0.0
+* Certified with IronSource SDK 8.1.0.0.
+* Updated minimum Xcode requirement to 15.0.
+* Updated the minimum required iOS version to 12.0 to match IronSource SDK.
+
 ## 8.0.0.0.0
 * Certified with IronSource SDK 8.0.0.0.
 * Remove deprecated callbacks `didStartRewardedVideo:` and `didCompleteRewardedVideo:`.

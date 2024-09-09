@@ -1,5 +1,22 @@
 # Changelog
 
+## 5.21.7.0
+* Certified with MyTarget SDK 5.21.7.
+
+## 5.21.6.0
+* Certified with MyTarget SDK 5.21.6.
+* Updated minimum Xcode requirement to 15.3 to match MyTarget SDK.
+
+## 5.21.5.0
+* Certified with MyTarget SDK 5.21.5.
+
+## 5.21.4.0
+* Certified with MyTarget SDK 5.21.4.
+
+## 5.21.3.0
+* Certified with MyTarget SDK 5.21.3.
+* Updated minimum Xcode requirement to 15.0.
+
 ## 5.21.2.0
 * Certified with MyTarget SDK 5.21.2.
 * Remove deprecated callbacks `didStartRewardedAdVideo` and `didCompleteRewardedAdVideo`.

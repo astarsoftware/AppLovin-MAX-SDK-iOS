@@ -10,7 +10,7 @@
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"6.15.0.0"
+#define ADAPTER_VERSION @"6.15.2.0"
 #define MEDIATION_IDENTIFIER [NSString stringWithFormat: @"APPLOVIN_%@:%@", [ALSdk version], self.adapterVersion]
 #define ICON_VIEW_TAG            3
 
@@ -721,7 +721,6 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
 - (void)rewardedVideoAdVideoComplete:(FBRewardedVideoAd *)rewardedVideoAd
 {
     [self.parentAdapter log: @"Rewarded interstitial video completed: %@", rewardedVideoAd.placementID];
-    [self.delegate didCompleteRewardedInterstitialAdVideo];
     
     self.grantedReward = YES;
 }
@@ -731,7 +730,6 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
     [self.parentAdapter log: @"Rewarded interstitial video started: %@", rewardedVideoAd.placementID];
     
     [self.delegate didDisplayRewardedInterstitialAd];
-    [self.delegate didStartRewardedInterstitialAdVideo];
 }
 
 @end
@@ -784,7 +782,6 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
 - (void)rewardedVideoAdVideoComplete:(FBRewardedVideoAd *)rewardedVideoAd
 {
     [self.parentAdapter log: @"Rewarded video completed: %@", rewardedVideoAd.placementID];
-    [self.delegate didCompleteRewardedAdVideo];
     
     self.grantedReward = YES;
 }
@@ -794,7 +791,6 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
     [self.parentAdapter log: @"Rewarded video started: %@", rewardedVideoAd.placementID];
     
     [self.delegate didDisplayRewardedAd];
-    [self.delegate didStartRewardedAdVideo];
 }
 
 @end
