@@ -1,7 +1,19 @@
 # Changelog
 
+## 11.10.0.0
+* Certified with Google SDK 11.10.0.
+
+## 11.9.0.1
+* Requires minimum AppLovin MAX SDK version be 13.0.0.
+* Removed COPPA support.
+* Remove deprecated native API usages.
+
+## 11.9.0.0
+* Certified with Google SDK 11.9.0.
+
 ## 11.8.0.0
 * Certified with Google SDK 11.8.0.
+* Updated minimum Xcode requirement to 15.3 to match Google SDK.
 
 ## 11.7.0.1
 * Add support for [inline adaptive banner ads](https://developers.applovin.com/en/ios/ad-formats/banner-and-mrec-ads/#inline-adaptive-banners).

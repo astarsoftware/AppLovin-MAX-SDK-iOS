@@ -1,5 +1,16 @@
 # Changelog
 
+## 6.2.0.9.0
+* Certified with ByteDance SDK 6.2.0.9.
+
+## 6.2.0.7.3
+* Certified with ByteDance SDK 6.2.0.7, as the `Ads-Global 6.2.0.7` Pod is added back.
+
+## 6.2.0.7.2
+* Requires minimum AppLovin MAX SDK version be 13.0.0.
+* Removed COPPA support.
+* Remove deprecated native API usages.
+
 ## 6.2.0.7.1
 * Downgrade ByteDance SDK to 6.2.0.6 because `Ads-Global 6.2.0.7` Pod was deleted.
 

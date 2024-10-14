@@ -17,7 +17,7 @@
 #import <MobileFuseSDK/MFNativeAd.h>
 #import <MobileFuseSDK/MobileFusePrivacyPreferences.h>
 
-#define ADAPTER_VERSION @"1.7.6.0"
+#define ADAPTER_VERSION @"1.8.0.1"
 
 /**
  * Enum representing the list of MobileFuse SDK error codes in https://docs.mobilefuse.com/docs/error-codes.
@@ -391,17 +391,6 @@ static NSString *ALMobileFuseSDKVersion;
     else
     {
         [privacyPreferences setUsPrivacyConsentString: @"1---"];
-    }
-    
-    NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser != nil )
-    {
-        [privacyPreferences setSubjectToCoppa: isAgeRestrictedUser.boolValue];
-    }
-    
-    if ( parameters.consentString )
-    {
-        [privacyPreferences setIabConsentString: parameters.consentString];
     }
     
     [MobileFuse setPrivacyPreferences: privacyPreferences];
@@ -953,11 +942,6 @@ static NSString *ALMobileFuseSDKVersion;
         self.parentAdapter = parentAdapter;
     }
     return self;
-}
-
-- (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
-{
-    [self prepareForInteractionClickableViews: [self.parentAdapter clickableViewsForNativeAdView: maxNativeAdView] withContainer: maxNativeAdView];
 }
 
 - (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container

@@ -9,7 +9,7 @@
 #import "ALInMobiMediationAdapter.h"
 #import <InMobiSDK/InMobiSDK.h>
 
-#define ADAPTER_VERSION @"10.7.5.0"
+#define ADAPTER_VERSION @"10.7.8.0"
 
 /**
  * Dedicated delegate object for InMobi AdView ads.
@@ -453,16 +453,8 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
 
 - (NSDictionary<NSString *, id> *)extrasForParameters:(id<MAAdapterParameters>)parameters
 {
-    NSMutableDictionary *extras = [@{@"tp"     : @"c_applovin",
-                                     @"tp-ver" : [ALSdk version]} mutableCopy];
-    
-    NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser != nil )
-    {
-        [extras setObject: isAgeRestrictedUser forKey: @"coppa"];
-    }
-    
-    return extras;
+    return @{@"tp"     : @"c_applovin",
+             @"tp-ver" : [ALSdk version]};   
 }
 
 - (void)updatePrivacySettingsWithParameters:(id<MAAdapterParameters>)parameters
@@ -597,12 +589,9 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
 {
     [self.parentAdapter log: @"AdView loaded"];
     
-    // Passing extra info such as creative id supported in 6.15.0+
-    if ( ALSdk.versionCode >= 6150000 && [banner.creativeId al_isValidString] )
+    if ( [banner.creativeId al_isValidString] )
     {
-        [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
-                            withObject: banner
-                            withObject: @{@"creative_id" : banner.creativeId}];
+        [self.delegate didLoadAdForAdView: banner withExtraInfo: @{@"creative_id" : banner.creativeId}];
     }
     else
     {
@@ -671,11 +660,9 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
 {
     [self.parentAdapter log: @"Interstitial loaded"];
     
-    // Passing extra info such as creative id supported in 6.15.0+
-    if ( ALSdk.versionCode >= 6150000 && [interstitial.creativeId al_isValidString] )
+    if ( [interstitial.creativeId al_isValidString] )
     {
-        [self.delegate performSelector: @selector(didLoadInterstitialAdWithExtraInfo:)
-                            withObject: @{@"creative_id" : interstitial.creativeId}];
+        [self.delegate didLoadInterstitialAdWithExtraInfo: @{@"creative_id" : interstitial.creativeId}];
     }
     else
     {
@@ -763,10 +750,9 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     [self.parentAdapter log: @"Rewarded ad loaded"];
     
     // Passing extra info such as creative id supported in 6.15.0+
-    if ( ALSdk.versionCode >= 6150000 && [interstitial.creativeId al_isValidString] )
+    if ( [interstitial.creativeId al_isValidString] )
     {
-        [self.delegate performSelector: @selector(didLoadRewardedAdWithExtraInfo:)
-                            withObject: @{@"creative_id" : interstitial.creativeId}];
+        [self.delegate didLoadRewardedAdWithExtraInfo: @{@"creative_id" : interstitial.creativeId}];
     }
     else
     {
@@ -1048,16 +1034,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
             builder.callToAction = nativeAd.adCtaText;
             builder.icon = [[MANativeAdImage alloc] initWithImage: nativeAd.adIcon];
             builder.mediaView = [[UIView alloc] init];
-            
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-            // Introduced in 11.7.0
-            if ( [builder respondsToSelector: @selector(setStarRating:)] )
-            {
-                // NOTE: `nativeAd.adRating` is an NSString(ex: @"1.0"). Using .doubleValue any invalid value, 0 -> 0.0
-                [builder performSelector: @selector(setStarRating:) withObject: @(nativeAd.adRating.doubleValue)];
-            }
-#pragma clang diagnostic pop
+            builder.starRating = @(nativeAd.adRating.doubleValue);
         }];
         
         NSDictionary *extraInfo = [nativeAd.creativeId al_isValidString] ? @{@"creative_id" : nativeAd.creativeId} : nil;
@@ -1141,11 +1118,6 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
     return self;
 }
 
-- (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
-{
-    [self prepareForInteractionClickableViews: [self.parentAdapter clickableViewsForNativeAdView: maxNativeAdView] withContainer: maxNativeAdView];
-}
-
 - (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container
 {
     IMNative *nativeAd = self.parentAdapter.nativeAd;
@@ -1184,8 +1156,7 @@ static MAAdapterInitializationStatus ALInMobiInitializationStatus = NSIntegerMin
 
 - (void)clickNativeView
 {
-    [self.parentAdapter log: @"Native ad clicked from gesture recognizer"];
-    
+    [self.parentAdapter log: @"Native ad clicked from gesture recognizer"];    
     [self.parentAdapter.nativeAd reportAdClickAndOpenLandingPage];
 }
 

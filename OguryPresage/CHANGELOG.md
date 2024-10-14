@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.4.2.0
+* Certified with OguryPresage SDK 4.4.2.
+
+## 4.4.1.0
+* Certified with OguryPresage SDK 4.4.1.
+
 ## 4.4.0.1
 * Add support for passing in MAX SDK name and version.
 

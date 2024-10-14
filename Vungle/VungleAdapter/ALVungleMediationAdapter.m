@@ -10,7 +10,7 @@
 #import "ALVungleMediationAdapter.h"
 #import <VungleAdsSDK/VungleAdsSDK.h>
 
-#define ADAPTER_VERSION @"7.4.0.0"
+#define ADAPTER_VERSION @"7.4.2.0"
 
 @interface ALVungleMediationAdapterInterstitialAdDelegate : NSObject <VungleInterstitialDelegate>
 @property (nonatomic,   weak) ALVungleMediationAdapter *parentAdapter;
@@ -462,12 +462,6 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
         [VunglePrivacySettings setGDPRMessageVersion: @""];
     }
     
-    NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser != nil )
-    {
-        [VunglePrivacySettings setCOPPAStatus: isAgeRestrictedUser.boolValue];
-    }
-    
     NSNumber *isDoNotSell = [parameters isDoNotSell];
     if ( isDoNotSell != nil )
     {
@@ -509,19 +503,10 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
     {
         [clickableViews addObject: maxNativeAdView.mediaContentView];
     }
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-    // Introduced in 10.4.0
-    if ( [maxNativeAdView respondsToSelector: @selector(advertiserLabel)] )
+    if ( maxNativeAdView.advertiserLabel )
     {
-        id advertiserLabel = [maxNativeAdView performSelector: @selector(advertiserLabel)];
-        if ( advertiserLabel )
-        {
-            [clickableViews addObject: advertiserLabel];
-        }
+        [clickableViews addObject: maxNativeAdView.advertiserLabel];
     }
-#pragma clang diagnostic pop
     
     return clickableViews;
 }
@@ -1042,19 +1027,11 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
         
         MAVungleNativeAd *maxVungleNativeAd = [[MAVungleNativeAd alloc] initWithParentAdapter: self.parentAdapter adFormat: self.adFormat builderBlock:^(MANativeAdBuilder *builder) {
             builder.title = nativeAd.title;
+            builder.advertiser = nativeAd.sponsoredText;
             builder.body = nativeAd.bodyText;
             builder.callToAction = nativeAd.callToAction;
             builder.icon = [[MANativeAdImage alloc] initWithImage: nativeAd.iconImage];
             builder.mediaView = mediaView;
-            
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-            // Introduced in 10.4.0
-            if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
-            {
-                [builder performSelector: @selector(setAdvertiser:) withObject: nativeAd.sponsoredText];
-            }
-#pragma clang diagnostic pop
         }];
         
         // Backend will pass down `vertical` as the template to indicate using a vertical native template
@@ -1156,19 +1133,11 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
         
         MANativeAd *maxNativeAd = [[MAVungleNativeAd alloc] initWithParentAdapter: self.parentAdapter adFormat: MAAdFormat.native builderBlock:^(MANativeAdBuilder *builder) {
             builder.title = nativeAd.title;
+            builder.advertiser = nativeAd.sponsoredText;
             builder.body = nativeAd.bodyText;
             builder.callToAction = nativeAd.callToAction;
             builder.icon = [[MANativeAdImage alloc] initWithImage: nativeAd.iconImage];
             builder.mediaView = mediaView;
-            
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-            // Introduced in 10.4.0
-            if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
-            {
-                [builder performSelector: @selector(setAdvertiser:) withObject: nativeAd.sponsoredText];
-            }
-#pragma clang diagnostic pop
         }];
         
         NSString *creativeIdentifier = nativeAd.creativeId;
@@ -1214,11 +1183,6 @@ static MAAdapterInitializationStatus ALVungleIntializationStatus = NSIntegerMin;
         self.parentAdapter = parentAdapter;
     }
     return self;
-}
-
-- (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
-{
-    [self prepareForInteractionClickableViews: [self.parentAdapter clickableViewsForNativeAdView: maxNativeAdView] withContainer: maxNativeAdView];
 }
 
 - (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container
