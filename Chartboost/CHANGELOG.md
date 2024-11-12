@@ -1,5 +1,13 @@
 # Changelog
 
+## 9.8.0.0
+* Certified with Chartboost SDK 9.8.0.
+* Simplified API calls by removing selector checks; direct API calls are now safe with the updated min SDK version.
+
+## 9.7.0.2
+* Requires minimum AppLovin MAX SDK version be 13.0.0.
+* Removed COPPA support.
+
 ## 9.7.0.1
 * Add bidding support for banners, leaders, MRECs, interstitial and rewarded ads.
 * Add COPPA support.

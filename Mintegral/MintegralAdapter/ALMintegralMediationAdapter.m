@@ -16,7 +16,7 @@
 #import <MTGSDKBanner/MTGBannerAdViewDelegate.h>
 #import <MTGSDKSplash/MTGSplashAD.h>
 
-#define ADAPTER_VERSION @"7.7.1.0.0"
+#define ADAPTER_VERSION @"7.7.3.0.0"
 
 // List of Mintegral error codes not defined in API, but in their docs
 //
@@ -135,17 +135,6 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
         if ( isDoNotSell != nil && isDoNotSell.boolValue )
         {
             mtgSDK.doNotTrackStatus = YES;
-        }
-        
-        // Has to be _before_ their SDK init as well
-        NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-        if ( isAgeRestrictedUser != nil )
-        {
-            [mtgSDK setCoppa: isAgeRestrictedUser.boolValue ? MTGBoolYes : MTGBoolNo];
-        }
-        else
-        {
-            [mtgSDK setCoppa: MTGBoolUnknown];
         }
         
         [mtgSDK setAppID: appId ApiKey: appKey];
@@ -410,7 +399,7 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
             {
                 extraInfo = @{@"creative_id" : creativeId};
             }
-           
+            
             [delegate didLoadRewardedAdWithExtraInfo: extraInfo];
         }
         else
@@ -1536,22 +1525,12 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
                 builder.body = campaign.appDesc;
                 builder.callToAction = campaign.adCall;
                 builder.icon = iconImage;
+                builder.mainImage = mainImage;
                 builder.optionsView = adChoicesView;
-                
-                if ( ALSdk.versionCode >= 11040299 )
-                {
-                    [builder performSelector: @selector(setMainImage:) withObject: mainImage];
-                }
                 builder.mediaView = mediaView;
             }];
             
-            // To compile SOURCE code with < 11.0.0 before SDK is merged so we can push adapter
-            if ( [self.delegate respondsToSelector: @selector(didLoadAdForNativeAd:withExtraInfo:)] )
-            {
-                [self.delegate performSelector: @selector(didLoadAdForNativeAd:withExtraInfo:)
-                                    withObject: maxNativeAd
-                                    withObject: @{}];
-            }
+            [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: @{}];
         });
     });
 }
@@ -1618,11 +1597,6 @@ static NSTimeInterval const kDefaultImageTaskTimeoutSeconds = 5.0; // Mintegral 
         self.parentAdapter = parentAdapter;
     }
     return self;
-}
-
-- (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
-{
-    [self prepareForInteractionClickableViews: [self.parentAdapter clickableViewsForNativeAdView: maxNativeAdView] withContainer: maxNativeAdView];
 }
 
 - (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container

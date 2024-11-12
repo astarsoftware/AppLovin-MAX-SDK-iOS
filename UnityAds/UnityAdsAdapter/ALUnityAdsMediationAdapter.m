@@ -10,7 +10,7 @@
 #import "ALUnityAdsMediationAdapter.h"
 #import <UnityAds/UnityAds.h>
 
-#define ADAPTER_VERSION @"4.12.2.0"
+#define ADAPTER_VERSION @"4.12.4.0"
 
 @interface ALUnityAdsInitializationDelegate : NSObject <UnityAdsInitializationDelegate>
 @property (nonatomic, weak) ALUnityAdsMediationAdapter *parentAdapter;
@@ -423,13 +423,6 @@ static MAAdapterInitializationStatus ALUnityAdsInitializationStatus = NSIntegerM
     
     [privacyConsentMetaData set: @"privacy.mode" value: @"mixed"];
     [privacyConsentMetaData commit];
-    
-    NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-    if ( isAgeRestrictedUser != nil )
-    {
-        [privacyConsentMetaData set: @"user.nonbehavioral" value: @(isAgeRestrictedUser.boolValue)];
-        [privacyConsentMetaData commit];
-    }
 }
 
 @end

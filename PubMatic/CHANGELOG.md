@@ -1,5 +1,22 @@
 # Changelog
 
+## 4.1.0.0
+* Certified with PubMatic SDK 4.1.0.
+* Removed exception throwing if unable to map ad format to that of the network's.
+
+## 4.0.1.0
+* Certified with PubMatic SDK 4.0.1.
+
+## 4.0.0.0
+* Certified with PubMatic SDK 4.0.0.
+
+## 3.9.0.3
+* Unity only: Fix an issue with OpenWrapSDK PodSpec being incorrectly marked as static.
+
+## 3.9.0.2
+* Requires minimum AppLovin MAX SDK version be 13.0.0.
+* Removed COPPA support.
+
 ## 3.9.0.1
 * Add support for COPPA.
 

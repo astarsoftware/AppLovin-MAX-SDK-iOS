@@ -8,7 +8,7 @@
 #import "ALLineMediationAdapter.h"
 #import <FiveAd/FiveAd.h>
 
-#define ADAPTER_VERSION @"2.8.20240827.0"
+#define ADAPTER_VERSION @"2.9.20241106.0"
 
 @interface ALLineMediationAdapterInterstitialAdDelegate : NSObject <FADLoadDelegate, FADInterstitialEventListener>
 @property (nonatomic,   weak) ALLineMediationAdapter *parentAdapter;
@@ -119,15 +119,6 @@ static ALAtomicBoolean *ALLineInitialized;
         if ( hasUserConsent != nil )
         {
             config.needGdprNonPersonalizedAdsTreatment = hasUserConsent.boolValue ? kFADNeedGdprNonPersonalizedAdsTreatmentFalse : kFADNeedGdprNonPersonalizedAdsTreatmentTrue;
-        }
-        
-        //
-        // COPPA options
-        //
-        NSNumber *isAgeRestrictedUser = [parameters isAgeRestrictedUser];
-        if ( isAgeRestrictedUser != nil )
-        {
-            config.needChildDirectedTreatment = isAgeRestrictedUser.boolValue ? kFADNeedChildDirectedTreatmentTrue : kFADNeedChildDirectedTreatmentFalse;
         }
         
         [FADSettings registerConfig: config];
@@ -802,19 +793,11 @@ static ALAtomicBoolean *ALLineInitialized;
             
             MANativeAd *maxNativeAd = [[MALineNativeAd alloc] initWithParentAdapter: self.parentAdapter builderBlock:^(MANativeAdBuilder *builder) {
                 builder.title = nativeAd.getAdTitle;
+                builder.advertiser = nativeAd.getAdvertiserName;
                 builder.body = nativeAd.getDescriptionText;
                 builder.callToAction = nativeAd.getButtonText;
                 builder.icon = [[MANativeAdImage alloc] initWithImage: iconImage];
                 builder.mediaView = nativeAd.getAdMainView;
-                
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-                // Introduced in 10.4.0
-                if ( [builder respondsToSelector: @selector(setAdvertiser:)] )
-                {
-                    [builder performSelector: @selector(setAdvertiser:) withObject: nativeAd.getAdvertiserName];
-                }
-#pragma clang diagnostic pop
             }];
             
             [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
@@ -878,47 +861,6 @@ static ALAtomicBoolean *ALLineInitialized;
         self.parentAdapter = parentAdapter;
     }
     return self;
-}
-
-- (void)prepareViewForInteraction:(MANativeAdView *)maxNativeAdView
-{
-    NSMutableArray *clickableViews = [NSMutableArray array];
-    if ( [self.title al_isValidString] && maxNativeAdView.titleLabel )
-    {
-        [clickableViews addObject: maxNativeAdView.titleLabel];
-    }
-    if ( [self.body al_isValidString] && maxNativeAdView.bodyLabel )
-    {
-        [clickableViews addObject: maxNativeAdView.bodyLabel];
-    }
-    if ( [self.callToAction al_isValidString] && maxNativeAdView.callToActionButton )
-    {
-        [clickableViews addObject: maxNativeAdView.callToActionButton];
-    }
-    if ( self.icon && maxNativeAdView.iconImageView )
-    {
-        [clickableViews addObject: maxNativeAdView.iconImageView];
-    }
-    if ( self.mediaView && maxNativeAdView.mediaContentView )
-    {
-        [clickableViews addObject: maxNativeAdView.mediaContentView];
-    }
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-    // Introduced in 10.4.0
-    if ( [maxNativeAdView respondsToSelector: @selector(advertiserLabel)] && [self respondsToSelector: @selector(advertiser)] )
-    {
-        id advertiserLabel = [maxNativeAdView performSelector: @selector(advertiserLabel)];
-        id advertiser = [self performSelector: @selector(advertiser)];
-        if ( [advertiser al_isValidString] && advertiserLabel )
-        {
-            [clickableViews addObject: advertiserLabel];
-        }
-    }
-#pragma clang diagnostic pop
-    
-    [self prepareForInteractionClickableViews: clickableViews withContainer: maxNativeAdView];
 }
 
 - (BOOL)prepareForInteractionClickableViews:(NSArray<UIView *> *)clickableViews withContainer:(UIView *)container

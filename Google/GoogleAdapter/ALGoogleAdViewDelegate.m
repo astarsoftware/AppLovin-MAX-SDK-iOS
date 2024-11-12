@@ -37,43 +37,37 @@
 {
     [self.parentAdapter log: @"%@ ad loaded: %@", self.adFormat.label, bannerView.adUnitID];
     
-    // astar
-	NSString *responseIdentifier = bannerView.responseInfo.responseIdentifier;
-	if(!responseIdentifier) {
-		responseIdentifier = @"";
+    NSMutableDictionary *extraInfo = [NSMutableDictionary dictionaryWithCapacity: 3];
+	
+	//astar
+	NSDictionary *data;
+    
+	NSString *responseId = bannerView.responseInfo.responseIdentifier;
+    if ( [responseId al_isValidString] )
+    {
+        extraInfo[@"creative_id"] = responseId;
+		data = @{
+			@"ResponseId": responseId
+		};
+    }
+	else
+	{
+		data = @{
+			@"ResponseId": @""
+		};
 	}
-	NSDictionary *data = @{
-		@"ResponseId": responseIdentifier
-	};
+	
+	ASAdTracker *adTracker = [ASAdTracker sharedInstance];
+	[adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
     
-    ASAdTracker *adTracker = [ASAdTracker sharedInstance];
-    [adTracker adDidLoadForMediator:@"max" fromNetwork:@"admob" ofType:@"banner" data:data];
+    CGSize adSize = bannerView.adSize.size;
+    if ( !CGSizeEqualToSize(CGSizeZero, adSize) )
+    {
+        extraInfo[@"ad_width"] = @(adSize.width);
+        extraInfo[@"ad_height"] = @(adSize.height);
+    }
     
-    if ( ALSdk.versionCode >= 6150000 )
-    {
-        NSMutableDictionary *extraInfo = [NSMutableDictionary dictionaryWithCapacity: 3];
-        
-        NSString *responseId = bannerView.responseInfo.responseIdentifier;
-        if ( [responseId al_isValidString] )
-        {
-            extraInfo[@"creative_id"] = responseId;
-        }
-        
-        CGSize adSize = bannerView.adSize.size;
-        if ( !CGSizeEqualToSize(CGSizeZero, adSize) )
-        {
-            extraInfo[@"ad_width"] = @(adSize.width);
-            extraInfo[@"ad_height"] = @(adSize.height);
-        }
-        
-        [self.delegate performSelector: @selector(didLoadAdForAdView:withExtraInfo:)
-                            withObject: bannerView
-                            withObject: extraInfo];
-    }
-    else
-    {
-        [self.delegate didLoadAdForAdView: bannerView];
-    }
+    [self.delegate didLoadAdForAdView: bannerView withExtraInfo: extraInfo];
 }
 
 - (void)bannerView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(NSError *)error
