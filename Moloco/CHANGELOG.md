@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.7.0.0
+* Certified with Moloco SDK 3.7.0.
+
+## 3.6.0.1
+* Updated minimum iOS version to iOS 12.0.
+
+## 3.6.0.0
+* Certified with Moloco SDK 3.6.0.
+* Added support for native and native ad view ads.
+* Updated minimum iOS version to iOS 13.0.
+
+## 3.4.0.0
+* Certified with Moloco SDK 3.4.0.
+* Removed redundant log output when initialization was already completed.
+
 ## 3.3.1.0
 * Certified with Moloco SDK 3.3.1.
 
@@ -23,7 +38,7 @@
 * Certified with Moloco SDK 3.1.1.
 
 ## 3.0.0.1
-* Lower minOS version to iOS 12.0.
+* Updated minimum iOS version to iOS 12.0.
 
 ## 3.0.0.0
 * Certified with Moloco SDK 3.0.0.

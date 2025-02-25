@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.2.0.0.0
+* Certified with BidMachine SDK 3.2.0.
+
+## 3.1.2.0.0
+* Certified with BidMachine SDK 3.1.2.
+
+## 3.1.1.0.1
+* Fix asset views in a native ad not clickable.
+
+## 3.1.1.0.0
+* Certified with BidMachine SDK 3.1.1.
+
+## 3.1.0.0.0
+* Certified with BidMachine SDK 3.1.0.
+* Updated minimum Xcode requirement to 15.3 to match BidMachine SDK.
+
+## 3.0.1.0.1
+* Add support for native ads in external plugins (e.g. React Native / Flutter).
+* Simplified API calls by removing selector checks; direct API calls are now safe with the updated min SDK version.
+* Removed exception throwing if unable to map ad format to that of the network's.
+
 ## 3.0.1.0.0
 * Certified with BidMachine SDK 3.0.1.
 

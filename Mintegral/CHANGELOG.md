@@ -1,5 +1,17 @@
 # Changelog
 
+## 7.7.7.0.0
+* Certified with Mintegral SDK 7.7.7.
+
+## 7.7.6.0.0
+* Certified with Mintegral SDK 7.7.6.
+
+## 7.7.5.0.0
+* Certified with Mintegral SDK 7.7.5.
+
+## 7.7.4.0.0
+* Certified with Mintegral SDK 7.7.4.
+
 ## 7.7.3.0.0
 * Certified with Mintegral SDK 7.7.3.
 * Simplified API calls by removing selector checks; direct API calls are now safe with the updated min SDK version.

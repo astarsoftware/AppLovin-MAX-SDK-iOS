@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.4.0.0
+* Certified with PubMatic SDK 4.4.0.
+
+## 4.3.0.0
+* Certified with PubMatic SDK 4.3.0.
+
+## 4.2.0.1
+* Updated to use bidding specific APIs.
+
+## 4.2.0.0
+* Certified with PubMatic SDK 4.2.0.
+* Removed redundant log output when initialization was already completed.
+
 ## 4.1.0.0
 * Certified with PubMatic SDK 4.1.0.
 * Removed exception throwing if unable to map ad format to that of the network's.

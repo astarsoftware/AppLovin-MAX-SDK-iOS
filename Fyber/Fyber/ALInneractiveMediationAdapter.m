@@ -10,7 +10,7 @@
 #import <IASDKCore/IASDKCore.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"8.3.2.1"
+#define ADAPTER_VERSION @"8.3.5.0"
 
 @interface ALInneractiveMediationAdapterGlobalDelegate : NSObject <IAGlobalAdDelegate>
 @end
@@ -113,11 +113,6 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     }
     else
     {
-        if ( [[IASDKCore sharedInstance] isInitialised] )
-        {
-            [self log: @"Inneractive SDK already initialized"];
-        }
-        
         completionHandler(ALInneractiveInitializationStatus, nil);
     }
 }
@@ -694,8 +689,8 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     {
         if ( [creativeID al_isValidString] )
         {
-            [adapter.interstitialDelegate.delegate performSelector: @selector(didDisplayInterstitialAdWithExtraInfo:)
-                                                        withObject: @{@"creative_id" : creativeID}];
+            [adapter.interstitialDelegate.delegate didDisplayInterstitialAdWithExtraInfo: @{@"creative_id" : creativeID}];
+			
             // astar
             NSMutableDictionary *data = [NSMutableDictionary dictionary];
             data[@"creative_id"] = creativeID;
@@ -724,8 +719,8 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     {
         if ( [creativeID al_isValidString] )
         {
-            [adapter.rewardedDelegate.delegate performSelector: @selector(didDisplayRewardedAdWithExtraInfo:)
-                                                    withObject: @{@"creative_id" : creativeID}];
+            [adapter.rewardedDelegate.delegate didDisplayRewardedAdWithExtraInfo: @{@"creative_id" : creativeID}];
+			
             // astar
             NSDictionary *data = @{@"creative_id" : creativeID};
             
@@ -741,8 +736,7 @@ static NSMutableDictionary<NSString *, ALInneractiveMediationAdapter *> *ALInner
     {
         if ( [creativeID al_isValidString] )
         {
-            [adapter.adViewDelegate.delegate performSelector: @selector(didDisplayAdViewAdWithExtraInfo:)
-                                                  withObject: @{@"creative_id" : creativeID}];
+            [adapter.adViewDelegate.delegate didDisplayAdViewAdWithExtraInfo: @{@"creative_id" : creativeID}];
             
             // astar
             NSMutableDictionary *data = [NSMutableDictionary dictionary];

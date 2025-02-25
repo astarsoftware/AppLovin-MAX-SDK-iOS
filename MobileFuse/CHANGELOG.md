@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.9.0.0
+* Certified with MobileFuse SDK 1.9.0.
+
+## 1.8.2.0
+* Certified with MobileFuse SDK 1.8.2.
+
+## 1.8.1.0
+* Certified with MobileFuse SDK 1.8.1.
+* Removed redundant log output when initialization was already completed.
+
 ## 1.8.0.1
 * Remove passing in of consent string as it has been deprecated.
 
