@@ -1,5 +1,31 @@
 # Changelog
 
+## 4.7.0.2
+* Distributed as a static framework within the XCFramework.
+
+## 4.7.0.1
+* Updated to use PubMatic's new `-loadAdWithResponse:forBiddingHost:` API that includes MAX as the bidding host.
+
+## 4.7.0.0
+* Certified with PubMatic SDK 4.7.0.
+* Update ad display failed error code.
+
+## 4.6.0.0
+* Certified with PubMatic SDK 4.6.0.
+
+## 4.5.2.0
+* Certified with PubMatic SDK 4.5.2.
+
+## 4.5.1.0
+* Certified with PubMatic SDK 4.5.1.
+
+## 4.5.0.0
+* Certified with PubMatic SDK 4.5.0.
+* Removed deprecated code paths based on the minimum supported AppLovin MAX SDK version 13.0.0.
+
+## 4.4.0.1
+* Updated to support gpid (Global Placement ID).
+
 ## 4.4.0.0
 * Certified with PubMatic SDK 4.4.0.
 

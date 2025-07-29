@@ -1,5 +1,23 @@
 # Changelog
 
+## 8.10.0.0.0
+* Certified with IronSource SDK 8.10.0.0.
+
+## 8.9.1.0.1
+* Updated minimum iOS version to 12.0 to match IronSource SDK.
+
+## 8.9.1.0.0
+* Certified with IronSource SDK 8.9.1.0.
+* Replaced deprecated `IronSource` method calls with `IronSourceAds` equivalents.
+* Update ad display failed error code.
+
+## 8.9.0.0.0
+* Certified with IronSource SDK 8.9.0.0.
+
+## 8.8.0.0.0
+* Certified with IronSource SDK 8.8.0.0.
+* Removed deprecated code paths based on the minimum supported AppLovin MAX SDK version 13.0.0.
+
 ## 8.7.0.0.0
 * Certified with IronSource SDK 8.7.0.0.
 * Updated minimum iOS version to 13.0 to match IronSource SDK.

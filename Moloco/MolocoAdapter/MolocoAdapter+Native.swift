@@ -15,7 +15,7 @@ extension MolocoAdapter: MANativeAdAdapter
     func loadNativeAd(for parameters: MAAdapterResponseParameters, andNotify delegate: MANativeAdAdapterDelegate)
     {
         // NOTE: We need this extra guard because the SDK bypasses the @available check when this function is called from Objective-C
-        guard #available(iOS 13.0, *) else
+        guard ALUtils.isInclusiveVersion(UIDevice.current.systemVersion, forMinVersion: "13.0", maxVersion: nil) else
         {
             log(customEvent: .unsupportedMinimumOS)
             delegate.didFailToLoadNativeAdWithError(.unspecified)
@@ -64,12 +64,7 @@ final class MolocoNativeAdapterDelegate: NativeAdAdapterDelegate<MolocoAdapter>,
         
         log(adEvent: .loaded)
         
-        guard let assets = nativeAd.assets, !assets.title.isEmpty else
-        {
-            log(adEvent: .missingRequiredAssets)
-            delegate?.didFailToLoadNativeAdWithError(.missingRequiredNativeAdAssets)
-            return
-        }
+        guard let assets = nativeAd.assets else { return }
         
         let maxNativeAd = MAMolocoNativeAd(adapter: adapter, adFormat: adFormat) { builder in
             builder.title = assets.title
@@ -100,7 +95,9 @@ final class MolocoNativeAdapterDelegate: NativeAdAdapterDelegate<MolocoAdapter>,
     
     func failToShow(ad: MolocoAd, with error: Error?)
     {
-        let adapterError = error?.molocoNativeAdapterError ?? error?.molocoAdapterError ?? .unspecified
+        let adapterError = MAAdapterError.init(adapterError: MAAdapterError.adDisplayFailedError,
+                                               mediatedNetworkErrorCode: error?.code ?? MAAdapterError.unspecified.code.rawValue,
+                                               mediatedNetworkErrorMessage: error?.localizedDescription ?? MAAdapterError.unspecified.message)
         log(adEvent: .displayFailed(error: adapterError))
     }
     

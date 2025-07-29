@@ -1,5 +1,35 @@
 # Changelog
 
+## 5.33.0.0
+* Certified with MyTarget SDK 5.33.0.
+
+## 5.32.1.0
+* Certified with MyTarget SDK 5.32.1.
+
+## 5.32.0.0
+* Certified with MyTarget SDK 5.32.0.
+
+## 5.31.1.0
+* Certified with MyTarget SDK 5.31.1.
+
+## 5.31.0.0
+* Certified with MyTarget SDK 5.31.0.
+
+## 5.30.0.0
+* Certified with MyTarget SDK 5.30.0.
+
+## 5.29.1.0
+* Certified with MyTarget SDK 5.29.1.
+
+## 5.28.0.0
+* Certified with MyTarget SDK 5.28.0.
+
+## 5.27.0.0
+* Certified with MyTarget SDK 5.27.0.
+
+## 5.26.0.0
+* Certified with MyTarget SDK 5.26.0.
+
 ## 5.25.1.0
 * Certified with MyTarget SDK 5.25.1.
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 10.8.6.0
+* Certified with InMobi SDK 10.8.6.
+* Update ad display failed error code.
+
+## 10.8.3.1
+* Removed requirement of the title asset for native banners and MRECs.
+
+## 10.8.3.0
+* Certified with InMobi SDK 10.8.3.
+* Removed deprecated code paths based on the minimum supported AppLovin MAX SDK version 13.0.0.
+* Fix API deprecation warnings.
+
+## 10.8.2.0
+* Certified with InMobi SDK 10.8.2.
+
 ## 10.8.0.0
 * Certified with InMobi SDK 10.8.0.
 * Removed redundant log output when initialization was already completed.

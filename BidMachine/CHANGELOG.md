@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.3.0.0.2
+* Implement new signal collection and ad load APIs.
+
+## 3.3.0.0.1
+* Distributed adapter as a static framework within the XCFramework.
+* Updated ad display failed error code.
+
+## 3.3.0.0.0
+* Certified with BidMachine SDK 3.3.0.
+
+## 3.2.1.0.0
+* Certified with BidMachine SDK 3.2.1.
+* Removed deprecated code paths based on the minimum supported AppLovin MAX SDK version 13.0.0+.
+
 ## 3.2.0.0.0
 * Certified with BidMachine SDK 3.2.0.
 

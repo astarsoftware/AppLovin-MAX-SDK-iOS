@@ -1,5 +1,40 @@
 # Changelog
 
+## 12.8.0.0
+* Certified with Google SDK 12.8.0.
+
+## 12.7.0.0
+* Certified with Google SDK 12.7.0.
+
+## 12.6.0.0
+* Certified with Google SDK 12.6.0.
+* Update ad display failed error code.
+
+## 12.5.0.0
+* Certified with Google SDK 12.5.0.
+
+## 12.4.0.1
+* Removed requirement of the title asset for native banners and MRECs.
+
+## 12.4.0.0
+* Certified with Google SDK 12.4.0.
+
+## 12.3.0.0
+* Certified with Google SDK 12.3.0.
+* Removed deprecated code paths based on the minimum supported AppLovin MAX SDK version 13.0.0.
+
+## 12.2.0.0
+* Certified with Google SDK 12.2.0.
+* Updated minimum Xcode requirement to 16.0 to match Google SDK.
+
+## 12.1.0.0
+* Certified with Google SDK 12.1.0.
+
+## 12.0.0.0
+* Certified with Google SDK 12.0.0.
+* Update to new bidding APIs.
+* Remove support for the interstitial option of app open ads.
+
 ## 11.13.0.1
 * Add support for [inline adaptive banners in MRECs](https://developers.applovin.com/en/max/ios/ad-formats/banner-and-mrec-ads/#inline-adaptive-banners-in-mrecs).
 * Remove support for rewarded interstitial ads.

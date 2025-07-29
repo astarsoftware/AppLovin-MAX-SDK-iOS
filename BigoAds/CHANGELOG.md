@@ -1,5 +1,21 @@
 # Changelog
 
+## 4.8.1.0
+* Certified with BigoAds SDK 4.8.1.
+
+## 4.8.0.0
+* Certified with BigoAds SDK 4.8.0.
+* Update ad display failed error code.
+
+## 4.7.0.2
+* Removed requirement of the title asset for native banners and MRECs.
+
+## 4.7.0.1
+* Add support for respecting mute state for native ads.
+
+## 4.7.0.0
+* Certified with BigoAds SDK 4.7.0.
+
 ## 4.6.0.0
 * Certified with BigoAds SDK 4.6.0.
 * Removed redundant log output when initialization was already completed.

@@ -10,7 +10,7 @@
 #import <DTBiOSSDK/DTBiOSSDK.h>
 #import "ASAdTracker.h"
 
-#define ADAPTER_VERSION @"5.0.1.0"
+#define ADAPTER_VERSION @"5.2.0.0"
 
 /**
  * Container object for holding mediation hints dict generated from Amazon's SDK and the timestamp it was geenrated at.
@@ -279,7 +279,7 @@ static NSString *ALAPSSDKVersion;
                                                                                          parameters: parameters
                                                                                            adFormat: adFormat
                                                                                           andNotify: delegate];
-
+    
     DTBAdNetworkInfo *currentAdNetworkInfo = [adLoader getAdNetworkInfo];
     if ( currentAdNetworkInfo.adNetworkNameEnumValue != DTBADNETWORK_MAX )
     {
@@ -289,7 +289,7 @@ static NSString *ALAPSSDKVersion;
         
         [adLoader updateAdNetworkInfo: adNetworkInfo];
     }
-
+    
     [adLoader loadAd: self.signalCollectionDelegate];
 }
 
@@ -441,14 +441,9 @@ static NSString *ALAPSSDKVersion;
     if ( !success )
     {
         [self e: @"Interstitial ad not ready"];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
-                                                                             errorString: @"Ad Display Failed"
-                                                                  thirdPartySdkErrorCode: 0
-                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
-#pragma clang diagnostic pop
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                                        mediatedNetworkErrorCode: 0
+                                                                     mediatedNetworkErrorMessage: @"Interstitial ad not ready"]];
     }
 }
 
@@ -488,14 +483,9 @@ static NSString *ALAPSSDKVersion;
     if ( !success )
     {
         [self e: @"Rewarded ad not ready"];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
-                                                                         errorString: @"Ad Display Failed"
-                                                              thirdPartySdkErrorCode: 0
-                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
-#pragma clang diagnostic pop
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                                    mediatedNetworkErrorCode: 0
+                                                                 mediatedNetworkErrorMessage: @"Rewarded ad not ready"]];
     }
 }
 
@@ -531,16 +521,7 @@ static NSString *ALAPSSDKVersion;
         return NO;
     }
     
-    UIViewController *presentingViewController;
-    if ( ALSdk.versionCode >= 11020199 )
-    {
-        presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
-    }
-    else
-    {
-        presentingViewController = [ALUtils topViewControllerFromKeyWindow];
-    }
-    
+    UIViewController *presentingViewController = parameters.presentingViewController ?: [ALUtils topViewControllerFromKeyWindow];
     [interstitialDispatcher showFromController: presentingViewController];
     
     return YES;
@@ -565,13 +546,9 @@ static NSString *ALAPSSDKVersion;
             break;
     }
     
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    return [MAAdapterError errorWithCode: adapterError.code
-                             errorString: adapterError.message
-                  thirdPartySdkErrorCode: amazonErrorCode
-               thirdPartySdkErrorMessage: @""];
-#pragma clang diagnostic pop
+    return [MAAdapterError errorWithAdapterError: adapterError
+                        mediatedNetworkErrorCode: amazonErrorCode
+                     mediatedNetworkErrorMessage: @""];
 }
 
 + (NSString *)stringFromDTBAdError:(DTBAdError)error
@@ -589,7 +566,7 @@ static NSString *ALAPSSDKVersion;
         case REQUEST_ERROR:
             return @"REQUEST_ERROR";
     }
-       
+    
     return @"UNKNOWN_ERROR";
 }
 

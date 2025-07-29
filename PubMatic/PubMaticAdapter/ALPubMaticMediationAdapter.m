@@ -9,7 +9,7 @@
 #import "ALPubMaticMediationAdapter.h"
 #import <OpenWrapSDK/OpenWrapSDK.h>
 
-#define ADAPTER_VERSION @"4.4.0.0"
+#define ADAPTER_VERSION @"4.7.0.2"
 
 @interface ALPubMaticMediationAdapterInterstitialDelegate : NSObject <POBInterstitialDelegate>
 @property (nonatomic,   weak) ALPubMaticMediationAdapter *parentAdapter;
@@ -139,6 +139,8 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
     }
     
     POBSignalConfig *signalConfig = [[POBSignalConfig alloc] initWithAdFormat: adFormat];
+    signalConfig.gpid = parameters.adUnitIdentifier;
+    
     NSString *bidToken = [POBSignalGenerator generateSignalForBiddingHost: POBSDKBiddingHostALMAX
                                                                 andConfig: signalConfig];
     
@@ -156,7 +158,7 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
     self.interstitialAd = [[POBInterstitial alloc] init];
     self.interstitialAd.delegate = self.interstitialAdDelegate;
     
-    [self.interstitialAd loadAdWithResponse: parameters.bidResponse];
+    [self.interstitialAd loadAdWithResponse: parameters.bidResponse forBiddingHost: POBSDKBiddingHostALMAX];
 }
 
 - (void)showInterstitialAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MAInterstitialAdapterDelegate>)delegate
@@ -165,10 +167,10 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
     
     if ( ![self.interstitialAd isReady] )
     {
-        [self log: @"Interstitial ad failed to load - ad not ready"];
+        [self log: @"Interstitial ad failed to show - ad not ready"];
         [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
-                                                                          thirdPartySdkErrorCode: 0
-                                                                       thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
+                                                                        mediatedNetworkErrorCode: MAAdapterError.adNotReady.code
+                                                                     mediatedNetworkErrorMessage: MAAdapterError.adNotReady.message]];
         return;
     }
     
@@ -187,7 +189,7 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
     self.rewardedAd = [[POBRewardedAd alloc] init];
     self.rewardedAd.delegate = self.rewardedAdDelegate;
     
-    [self.rewardedAd loadAdWithResponse: parameters.bidResponse];
+    [self.rewardedAd loadAdWithResponse: parameters.bidResponse forBiddingHost: POBSDKBiddingHostALMAX];
 }
 
 - (void)showRewardedAdForParameters:(id<MAAdapterResponseParameters>)parameters andNotify:(id<MARewardedAdapterDelegate>)delegate
@@ -196,10 +198,10 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
     
     if ( ![self.rewardedAd isReady] )
     {
-        [self log: @"Rewarded ad failed to load - ad not ready"];
+        [self log: @"Rewarded ad failed to show - ad not ready"];
         [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
-                                                                      thirdPartySdkErrorCode: 0
-                                                                   thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
+                                                                    mediatedNetworkErrorCode: MAAdapterError.adNotReady.code
+                                                                 mediatedNetworkErrorMessage: MAAdapterError.adNotReady.message]];
         return;
     }
     
@@ -223,7 +225,7 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
     self.adView = [[POBBannerView alloc] init];
     self.adView.delegate = self.adViewDelegate;
     
-    [self.adView loadAdWithResponse: parameters.bidResponse];
+    [self.adView loadAdWithResponse: parameters.bidResponse forBiddingHost: POBSDKBiddingHostALMAX];
     [self.adView pauseAutoRefresh];
 }
 
@@ -348,7 +350,9 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
 
 - (void)interstitial:(POBInterstitial *)interstitial didFailToShowAdWithError:(NSError *)error
 {
-    MAAdapterError *adapterError = [ALPubMaticMediationAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.code
+                                             mediatedNetworkErrorMessage: error.localizedDescription];
     [self.parentAdapter log: @"Interstitial failed to show with error: %@", adapterError];
     [self.delegate didFailToDisplayInterstitialAdWithError: adapterError];
 }
@@ -402,7 +406,9 @@ static MAAdapterInitializationStatus ALPubMaticInitializationStatus = NSIntegerM
 
 - (void)rewardedAd:(POBRewardedAd *)rewardedAd didFailToShowAdWithError:(NSError *)error
 {
-    MAAdapterError *adapterError = [ALPubMaticMediationAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.code
+                                             mediatedNetworkErrorMessage: error.localizedDescription];
     [self.parentAdapter log: @"Rewarded ad failed to show with error: %@", adapterError];
     [self.delegate didFailToDisplayRewardedAdWithError: adapterError];
 }

@@ -41,14 +41,6 @@
 {
     [self.parentAdapter log: @"Native %@ ad loaded: %@", self.adFormat.label, adLoader.adUnitID];
     
-    if ( ![nativeAd.headline al_isValidString] )
-    {
-        [self.parentAdapter log: @"Native %@ ad failed to load: Google native ad is missing one or more required assets", self.adFormat.label];
-        [self.delegate didFailToLoadAdViewAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
-        
-        return;
-    }
-    
     GADMediaView *gadMediaView = [[GADMediaView alloc] init];
     MANativeAd *maxNativeAd = [[MANativeAd alloc] initWithFormat: self.adFormat builderBlock:^(MANativeAdBuilder *builder) {
         
@@ -73,10 +65,6 @@
     }];
     
     NSString *templateName = [self.serverParameters al_stringForKey: @"template" defaultValue: @""];
-    if ( [templateName containsString: @"vertical"] && ALSdk.versionCode < 6140500 )
-    {
-        [self.parentAdapter log: @"Vertical native banners are only supported on MAX SDK 6.14.5 and above. Default native template will be used."];
-    }
     
     nativeAd.delegate = self;
     

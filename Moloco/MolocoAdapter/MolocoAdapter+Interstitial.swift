@@ -15,7 +15,7 @@ extension MolocoAdapter: MAInterstitialAdapter
     func loadInterstitialAd(for parameters: MAAdapterResponseParameters, andNotify delegate: MAInterstitialAdapterDelegate)
     {
         // NOTE: We need this extra guard because the SDK bypasses the @available check when this function is called from Objective-C
-        guard #available(iOS 13.0, *) else
+        guard ALUtils.isInclusiveVersion(UIDevice.current.systemVersion, forMinVersion: "13.0", maxVersion: nil) else
         {
             log(customEvent: .unsupportedMinimumOS)
             delegate.didFailToLoadInterstitialAdWithError(.unspecified)
@@ -50,8 +50,11 @@ extension MolocoAdapter: MAInterstitialAdapter
         
         guard let interstitialAd, interstitialAd.isReady else
         {
+            let adapterError = MAAdapterError.init(adapterError: MAAdapterError.adDisplayFailedError,
+                                       mediatedNetworkErrorCode: MAAdapterError.adNotReady.code.rawValue,
+                                    mediatedNetworkErrorMessage: MAAdapterError.adNotReady.message)
             log(adEvent: .notReady, id: placementId, adFormat: .interstitial)
-            delegate.didFailToDisplayInterstitialAdWithError(.adNotReady)
+            delegate.didFailToDisplayInterstitialAdWithError(adapterError)
             return
         }
         
@@ -85,7 +88,9 @@ final class MolocoInterstitialAdapterDelegate: InterstitialAdapterDelegate<Moloc
     
     func failToShow(ad: MolocoAd, with error: Error?)
     {
-        let adapterError = error?.molocoAdapterError ?? .unspecified
+        let adapterError = MAAdapterError.init(adapterError: MAAdapterError.adDisplayFailedError,
+                                               mediatedNetworkErrorCode: error?.code ?? MAAdapterError.unspecified.code.rawValue,
+                                               mediatedNetworkErrorMessage: error?.localizedDescription ?? MAAdapterError.unspecified.message)
         log(adEvent: .displayFailed(error: adapterError))
         delegate?.didFailToDisplayInterstitialAdWithError(adapterError)
     }

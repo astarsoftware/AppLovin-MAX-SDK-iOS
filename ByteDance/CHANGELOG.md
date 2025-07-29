@@ -1,5 +1,38 @@
 # Changelog
 
+## 7.4.1.0.0
+* Certified with ByteDance SDK 7.4.1.0.
+
+## 7.4.0.9.0
+* Certified with ByteDance SDK 7.4.0.9.
+
+## 7.4.0.8.0
+* Certified with ByteDance SDK 7.4.0.8.
+
+## 7.4.0.7.0
+* Certified with ByteDance SDK 7.4.0.7.
+* Removed `appLogoImage` for app open ads.
+
+## 7.2.0.5.0
+* Certified with ByteDance SDK 7.2.0.5.
+
+## 7.2.0.4.0
+* Certified with ByteDance SDK 7.2.0.4.
+
+## 7.1.1.1.0
+* Certified with ByteDance SDK 7.1.1.1.
+
+## 7.1.1.0.0
+* Certified with ByteDance SDK 7.1.1.0.
+
+## 7.1.0.8.0
+* Certified with ByteDance SDK 7.1.0.8.
+* Add support for [adaptive banners](https://developers.applovin.com/en/max/ios/ad-formats/banner-and-mrec-ads#adaptive-banners) & inline adaptive ads in both [banners](https://developers.applovin.com/en/max/ios/ad-formats/banner-and-mrec-ads#inline-adaptive-banners) and [MRECs](https://developers.applovin.com/en/max/ios/ad-formats/banner-and-mrec-ads#inline-adaptive-mrecs). Requires AppLovin MAX SDK 13.2.0 or higher.
+* Removed deprecated code paths based on the minimum supported AppLovin MAX SDK version 13.0.0.
+
+## 6.5.0.9.0
+* Certified with ByteDance SDK 6.5.0.9.
+
 ## 6.5.0.8.0
 * Certified with ByteDance SDK 6.5.0.8.
 

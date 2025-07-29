@@ -9,7 +9,7 @@
 #import "ALBidMachineMediationAdapter.h"
 #import <BidMachine/BidMachine-Swift.h>
 
-#define ADAPTER_VERSION @"3.2.0.0.0"
+#define ADAPTER_VERSION @"3.3.0.0.2"
 
 #define TITLE_LABEL_TAG          1
 #define MEDIA_VIEW_CONTAINER_TAG 2
@@ -169,15 +169,21 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     [self updateSettings: parameters];
     
     BidMachinePlacementFormat bidMachinePlacementFormat = [self bidMachinePlacementFormatFromAdFormat: parameters.adFormat];
-    if ( bidMachinePlacementFormat == BidMachinePlacementFormatUnknown )
+    
+    NSError *error;
+    BidMachinePlacement *placement = [BidMachineSdk.shared placementFrom: bidMachinePlacementFormat
+                                                                   error: &error
+                                                                 builder: nil];
+
+    if ( !placement || error )
     {
-        [self log: @"Signal collection failed with error: Unsupported ad format: %@", parameters.adFormat];
-        [delegate didFailToCollectSignalWithErrorMessage: [NSString stringWithFormat: @"Unsupported ad format: %@", parameters.adFormat]];
+        [self log: @"Signal collection failed while retrieving placement with error: %@", error];
+        [delegate didFailToCollectSignalWithErrorMessage: error.localizedDescription];
         
         return;
     }
     
-    [BidMachineSdk.shared tokenWith: bidMachinePlacementFormat completion:^(NSString *_Nullable signal) {
+    [BidMachineSdk.shared tokenWithPlacement: placement completion:^(NSString *_Nullable signal) {
         [self log: @"Signal collection successful with%@ valid signal", [signal al_isValidString] ? @"" : @"out"];
         [delegate didCollectSignal: signal];
     }];
@@ -191,30 +197,29 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     
     [self updateSettings: parameters];
     
-    NSError *configurationError = nil;
-    id<BidMachineRequestConfigurationProtocol> config = [BidMachineSdk.shared requestConfiguration: BidMachinePlacementFormatInterstitial error: &configurationError];
+    NSError *configurationError;
+    BidMachinePlacement *placement = [BidMachineSdk.shared placementFrom: BidMachinePlacementFormatInterstitial
+                                                                   error: &configurationError
+                                                                 builder: nil];
     
-    if ( configurationError )
+    if ( !placement || configurationError )
     {
         [self log: @"Interstitial ad failed to load with error: %@", configurationError];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         [delegate didFailToLoadInterstitialAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.invalidConfiguration
-                                                                       thirdPartySdkErrorCode: configurationError.code
-                                                                    thirdPartySdkErrorMessage: configurationError.localizedDescription]];
-#pragma clang diagnostic pop
+                                                                     mediatedNetworkErrorCode: configurationError.code
+                                                                  mediatedNetworkErrorMessage: configurationError.localizedDescription]];
         
         return;
     }
     
-    [config populate:^(id<BidMachineRequestBuilderProtocol> builder) {
+    BidMachineAuctionRequest *request = [BidMachineSdk.shared auctionRequestWithPlacement: placement
+                                                                                  builder:^(id<BidMachineAuctionRequestBuilderProtocol> builder) {
         [builder withPayload: parameters.bidResponse];
     }];
     
     __weak typeof(self) weakSelf = self;
     
-    [BidMachineSdk.shared interstitial: config :^(BidMachineInterstitial *interstitialAd, NSError *error) {
+    [BidMachineSdk.shared interstitialWithRequest: request completion:^(BidMachineInterstitial *interstitialAd, NSError *error) {
         
         if ( error )
         {
@@ -248,14 +253,9 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     if ( ![self.interstitialAd canShow] )
     {
         [self log: @"Unable to show interstitial - ad not ready"];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithCode: -4205
-                                                                             errorString: @"Ad Display Failed"
-                                                                  thirdPartySdkErrorCode: 0
-                                                               thirdPartySdkErrorMessage: @"Interstitial ad not ready"]];
-#pragma clang diagnostic pop
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                                        mediatedNetworkErrorCode: MAAdapterError.adNotReady.code
+                                                                     mediatedNetworkErrorMessage: MAAdapterError.adNotReady.message]];
         
         return;
     }
@@ -272,30 +272,29 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     
     [self updateSettings: parameters];
     
-    NSError *configurationError = nil;
-    id<BidMachineRequestConfigurationProtocol> config = [BidMachineSdk.shared requestConfiguration: BidMachinePlacementFormatRewarded error: &configurationError];
+    NSError *configurationError;
+    BidMachinePlacement *placement = [BidMachineSdk.shared placementFrom: BidMachinePlacementFormatRewarded
+                                                                   error: &configurationError
+                                                                 builder: nil];
     
-    if ( configurationError )
+    if ( !placement || configurationError )
     {
         [self log: @"Rewarded ad failed to load with error: %@", configurationError];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         [delegate didFailToLoadRewardedAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.invalidConfiguration
-                                                                   thirdPartySdkErrorCode: configurationError.code
-                                                                thirdPartySdkErrorMessage: configurationError.localizedDescription]];
-#pragma clang diagnostic pop
+                                                                 mediatedNetworkErrorCode: configurationError.code
+                                                              mediatedNetworkErrorMessage: configurationError.localizedDescription]];
         
         return;
     }
     
-    [config populate:^(id<BidMachineRequestBuilderProtocol> builder) {
+    BidMachineAuctionRequest *request = [BidMachineSdk.shared auctionRequestWithPlacement: placement
+                                                                                  builder:^(id<BidMachineAuctionRequestBuilderProtocol> builder) {
         [builder withPayload: parameters.bidResponse];
     }];
     
     __weak typeof(self) weakSelf = self;
     
-    [BidMachineSdk.shared rewarded: config :^(BidMachineRewarded *rewardedAd, NSError *error) {
+    [BidMachineSdk.shared rewardedWithRequest: request completion:^(BidMachineRewarded *rewardedAd, NSError *error) {
         
         if ( error )
         {
@@ -329,14 +328,9 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     if ( ![self.rewardedAd canShow] )
     {
         [self log: @"Unable to show rewarded ad - ad not ready"];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithCode: -4205
-                                                                         errorString: @"Ad Display Failed"
-                                                              thirdPartySdkErrorCode: 0
-                                                           thirdPartySdkErrorMessage: @"Rewarded ad not ready"]];
-#pragma clang diagnostic pop
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                                    mediatedNetworkErrorCode: MAAdapterError.adNotReady.code
+                                                                 mediatedNetworkErrorMessage: MAAdapterError.adNotReady.message]];
         
         return;
     }
@@ -358,40 +352,30 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     [self updateSettings: parameters];
     
     BidMachinePlacementFormat format = [self bidMachinePlacementFormatFromAdFormat: adFormat];
-    if ( format == BidMachinePlacementFormatUnknown )
-    {
-        MAAdapterError *adapterError = [MAAdapterError errorWithCode: MAAdapterError.errorCodeInvalidConfiguration
-                                                         errorString: [NSString stringWithFormat: @"Unsupported ad format: %@", adFormat]];
-        [self log: @"AdView ad failed to load with error: %@", adapterError];
-        [delegate didFailToLoadAdViewAdWithError: adapterError];
-
-        return;
-    }
     
-    NSError *configurationError = nil;
-    id<BidMachineRequestConfigurationProtocol> config = [BidMachineSdk.shared requestConfiguration: format error: &configurationError];
+    NSError *configurationError;
+    BidMachinePlacement *placement = [BidMachineSdk.shared placementFrom: format
+                                                                   error: &configurationError
+                                                                 builder: nil];
     
-    if ( configurationError )
+    if ( !placement || configurationError )
     {
         [self log: @"AdView ad failed to load with error: %@", configurationError];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         [delegate didFailToLoadAdViewAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.invalidConfiguration
-                                                                 thirdPartySdkErrorCode: configurationError.code
-                                                              thirdPartySdkErrorMessage: configurationError.localizedDescription]];
-#pragma clang diagnostic pop
+                                                               mediatedNetworkErrorCode: configurationError.code
+                                                            mediatedNetworkErrorMessage: configurationError.localizedDescription]];
         
         return;
     }
     
-    [config populate:^(id<BidMachineRequestBuilderProtocol> builder) {
+    BidMachineAuctionRequest *request = [BidMachineSdk.shared auctionRequestWithPlacement: placement
+                                                                                  builder:^(id<BidMachineAuctionRequestBuilderProtocol> builder) {
         [builder withPayload: parameters.bidResponse];
     }];
     
     __weak typeof(self) weakSelf = self;
     
-    [BidMachineSdk.shared banner: config :^(BidMachineBanner *bannerAd, NSError *error) {
+    [BidMachineSdk.shared bannerWithRequest: request completion:^(BidMachineBanner *bannerAd, NSError *error) {
         
         if ( error )
         {
@@ -428,30 +412,29 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     
     [self updateSettings: parameters];
     
-    NSError *configurationError = nil;
-    id<BidMachineRequestConfigurationProtocol> config = [BidMachineSdk.shared requestConfiguration: BidMachinePlacementFormatNative error: &configurationError];
+    NSError *configurationError;
+    BidMachinePlacement *placement = [BidMachineSdk.shared placementFrom: BidMachinePlacementFormatNative
+                                                                   error: &configurationError
+                                                                 builder: nil];
     
-    if ( configurationError )
+    if ( !placement || configurationError )
     {
         [self log: @"Native ad failed to load with error: %@", configurationError];
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         [delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.invalidConfiguration
-                                                                 thirdPartySdkErrorCode: configurationError.code
-                                                              thirdPartySdkErrorMessage: configurationError.localizedDescription]];
-#pragma clang diagnostic pop
+                                                               mediatedNetworkErrorCode: configurationError.code
+                                                            mediatedNetworkErrorMessage: configurationError.localizedDescription]];
         
         return;
     }
     
-    [config populate:^(id<BidMachineRequestBuilderProtocol> builder) {
+    BidMachineAuctionRequest *request = [BidMachineSdk.shared auctionRequestWithPlacement: placement
+                                                                                  builder:^(id<BidMachineAuctionRequestBuilderProtocol> builder) {
         [builder withPayload: parameters.bidResponse];
     }];
     
     __weak typeof(self) weakSelf = self;
     
-    [BidMachineSdk.shared native: config :^(BidMachineNative *nativeAd, NSError *error) {
+    [BidMachineSdk.shared nativeWithRequest: request completion:^(BidMachineNative *nativeAd, NSError *error) {
         
         if ( error )
         {
@@ -518,13 +501,9 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
             break;
     }
     
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    return [MAAdapterError errorWithCode: adapterError.code
-                             errorString: adapterError.message
-                  thirdPartySdkErrorCode: bidmachineErrorCode
-               thirdPartySdkErrorMessage: bidmachineError.localizedDescription];
-#pragma clang diagnostic pop
+    return [MAAdapterError errorWithAdapterError: adapterError
+                        mediatedNetworkErrorCode: bidmachineErrorCode
+                     mediatedNetworkErrorMessage: bidmachineError.localizedDescription];
 }
 
 - (BidMachinePlacementFormat)bidMachinePlacementFormatFromAdFormat:(MAAdFormat *)adFormat
@@ -566,12 +545,9 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
         regulationBuilder = builder;
     }];
     
-    if ( ALSdk.versionCode >= 11040299 )
+    if ( parameters.consentString )
     {
-        if ( parameters.consentString )
-        {
-            [regulationBuilder withGDPRConsentString: parameters.consentString];
-        }
+        [regulationBuilder withGDPRConsentString: parameters.consentString];
     }
     
     NSNumber *hasUserConsent = [parameters hasUserConsent];
@@ -733,7 +709,9 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
 
 - (void)didFailPresentAd:(id<BidMachineAdProtocol>)ad :(NSError *)error
 {
-    MAAdapterError *adapterError = [ALBidMachineMediationAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.code
+                                             mediatedNetworkErrorMessage: error.localizedDescription];
     [self.parentAdapter log: @"Interstitial failed to present ad with error: %@", adapterError];
     [self.delegate didFailToDisplayInterstitialAdWithError: adapterError];
 }
@@ -840,7 +818,9 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
 
 - (void)didFailPresentAd:(id<BidMachineAdProtocol>)ad :(NSError *)error
 {
-    MAAdapterError *adapterError = [ALBidMachineMediationAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.code
+                                             mediatedNetworkErrorMessage: error.localizedDescription];
     [self.parentAdapter log: @"Rewarded failed to present ad with error: %@", adapterError];
     [self.delegate didFailToDisplayRewardedAdWithError: adapterError];
 }
@@ -947,7 +927,9 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
 
 - (void)didFailPresentAd:(id<BidMachineAdProtocol>)ad :(NSError *)error
 {
-    MAAdapterError *adapterError = [ALBidMachineMediationAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.code
+                                             mediatedNetworkErrorMessage: error.localizedDescription];
     [self.parentAdapter log: @"AdView failed to present ad with error: %@", adapterError];
     [self.delegate didFailToDisplayAdViewAdWithError: adapterError];
 }
@@ -1002,7 +984,7 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     if ( isTemplateAd && ![nativeAd.title al_isValidString] )
     {
         [self.parentAdapter log: @"Native ad (%@) does not have required assets.", nativeAd];
-        [self.delegate didFailToLoadNativeAdWithError: [MAAdapterError errorWithCode: -5400 errorString: @"Missing Native Ad Assets"]];
+        [self.delegate didFailToLoadNativeAdWithError: MAAdapterError.missingRequiredNativeAdAssets];
         
         return;
     }
@@ -1142,7 +1124,7 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     NSError *error = nil;
     
     [self.parentAdapter d: @"Preparing views for interaction: %@ with container: %@", clickableViews, container];
-
+    
     // Native integrations
     if ( [container isKindOfClass: [MANativeAdView class]] )
     {
@@ -1156,7 +1138,7 @@ static MAAdapterInitializationStatus ALBidMachineSDKInitializationStatus = NSInt
     {
         NSMutableArray *assetsForInteraction = [NSMutableArray array];
         MABidMachineNativeAdPluginRendering *adPluginRendering = [[MABidMachineNativeAdPluginRendering alloc] init];
-
+        
         for ( UIView *view in clickableViews )
         {
             if ( view.tag == TITLE_LABEL_TAG )

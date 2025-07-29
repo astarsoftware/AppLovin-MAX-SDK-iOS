@@ -14,7 +14,7 @@
 #import <BigoADS/BigoNativeAdLoader.h>
 #import <BigoADS/BigoAdInteractionDelegate.h>
 
-#define ADAPTER_VERSION @"4.6.0.0"
+#define ADAPTER_VERSION @"4.8.1.0"
 
 #define TITLE_LABEL_TAG          1
 #define MEDIA_VIEW_CONTAINER_TAG 2
@@ -278,7 +278,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
     if ( [self.interstitialAd isExpired] )
     {
         [self log: @"Unable to show interstitial ad for slot id: %@ - ad expired", slotId];
-        [delegate didFailToDisplayInterstitialAdWithError: MAAdapterError.adExpiredError];
+        [delegate didFailToDisplayInterstitialAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                                        mediatedNetworkErrorCode: MAAdapterError.adExpiredError.code
+                                                                     mediatedNetworkErrorMessage: MAAdapterError.adExpiredError.message]];
     }
     else
     {
@@ -325,7 +327,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
     if ( [self.appOpenAd isExpired] )
     {
         [self log: @"Unable to show app open ad for slot id: %@ - ad expired", slotId];
-        [delegate didFailToDisplayAppOpenAdWithError: MAAdapterError.adExpiredError];
+        [delegate didFailToDisplayAppOpenAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                                        mediatedNetworkErrorCode: MAAdapterError.adExpiredError.code
+                                                                     mediatedNetworkErrorMessage: MAAdapterError.adExpiredError.message]];
     }
     else
     {
@@ -372,7 +376,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
     if ( [self.rewardedAd isExpired] )
     {
         [self log: @"Unable to show rewarded ad for slot id: %@ - ad expired", slotId];
-        [delegate didFailToDisplayRewardedAdWithError: MAAdapterError.adExpiredError];
+        [delegate didFailToDisplayRewardedAdWithError: [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                                    mediatedNetworkErrorCode: MAAdapterError.adExpiredError.code
+                                                                 mediatedNetworkErrorMessage: MAAdapterError.adExpiredError.message]];
     }
     else
     {
@@ -518,6 +524,16 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
     return clickableViews;
 }
 
+- (void)updateMuteStateFromServerParameters:(NSDictionary<NSString *, id> *)serverParameters forMediaView:(BigoAdMediaView *)mediaView
+{
+    BigoVideoController *videoController = mediaView.videoController;
+    
+    if ( [serverParameters al_containsValueForKey: @"is_muted"] && videoController )
+    {
+        [videoController mute: [serverParameters al_numberForKey: @"is_muted"].boolValue];
+    }
+}
+
 - (MAAdapterError *)toMaxError:(BigoAdError *)error
 {
     NSInteger bigoErrorCode = error.errorCode;
@@ -621,7 +637,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
 
 - (void)onAd:(BigoAd *)ad error:(BigoAdError *)error
 {
-    MAAdapterError *adapterError = [self.parentAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.errorCode
+                                             mediatedNetworkErrorMessage: error.errorMsg];
     [self.parentAdapter log: @"Interstitial ad (%@) failed to show with error: %@", self.slotId, adapterError];
     [self.delegate didFailToDisplayInterstitialAdWithError: adapterError];
 }
@@ -678,7 +696,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
 
 - (void)onAd:(BigoAd *)ad error:(BigoAdError *)error
 {
-    MAAdapterError *adapterError = [self.parentAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.errorCode
+                                             mediatedNetworkErrorMessage: error.errorMsg];
     [self.parentAdapter log: @"App open ad (%@) failed to show with error: %@", self.slotId, adapterError];
     [self.delegate didFailToDisplayAppOpenAdWithError: adapterError];
 }
@@ -748,7 +768,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
 
 - (void)onAd:(BigoAd *)ad error:(BigoAdError *)error
 {
-    MAAdapterError *adapterError = [self.parentAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.errorCode
+                                             mediatedNetworkErrorMessage: error.errorMsg];
     [self.parentAdapter log: @"Rewarded ad (%@) failed to show with error: %@", self.slotId, adapterError];
     [self.delegate didFailToDisplayRewardedAdWithError: adapterError];
 }
@@ -822,7 +844,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
 
 - (void)onAd:(BigoAd *)ad error:(BigoAdError *)error
 {
-    MAAdapterError *adapterError = [self.parentAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.errorCode
+                                             mediatedNetworkErrorMessage: error.errorMsg];
     [self.parentAdapter log: @"%@ ad (%@) failed to show with error: %@", self.adFormat.label, self.slotId, adapterError];
     [self.delegate didFailToDisplayAdViewAdWithError: adapterError];
 }
@@ -867,14 +891,6 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
         return;
     }
     
-    if ( ![ad.title al_isValidString] )
-    {
-        [self.parentAdapter log: @"Native %@ ad (%@) does not have required assets.", self.adFormat, ad];
-        [self.delegate didFailToLoadAdViewAdWithError: [MAAdapterError missingRequiredNativeAdAssets]];
-        
-        return;
-    }
-    
     [ad setAdInteractionDelegate: self.parentAdapter.nativeAdViewAdapterDelegate];
     self.parentAdapter.nativeAd = ad;
     
@@ -885,7 +901,10 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
         builder.callToAction = ad.callToAction;
         builder.iconView = [[UIImageView alloc] init];
         builder.optionsView = [[BigoAdOptionsView alloc] init];
-        builder.mediaView = [[BigoAdMediaView alloc] init];
+        
+        BigoAdMediaView *mediaView = [[BigoAdMediaView alloc] init];
+        [self.parentAdapter updateMuteStateFromServerParameters: self.serverParameters forMediaView: mediaView];
+        builder.mediaView = mediaView;
     }];
     
     MANativeAdView *maxNativeAdView;
@@ -919,7 +938,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
 
 - (void)onAd:(BigoAd *)ad error:(BigoAdError *)error
 {
-    MAAdapterError *adapterError = [self.parentAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.errorCode
+                                             mediatedNetworkErrorMessage: error.errorMsg];
     [self.parentAdapter log: @"Native %@ ad (%@) failed to show with error: %@", self.adFormat.label, self.slotId, adapterError];
     [self.delegate didFailToDisplayAdViewAdWithError: adapterError];
 }
@@ -983,7 +1004,10 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
         builder.callToAction = ad.callToAction;
         builder.iconView = [[UIImageView alloc] init];
         builder.optionsView = [[BigoAdOptionsView alloc] init];
-        builder.mediaView = [[BigoAdMediaView alloc] init];
+        
+        BigoAdMediaView *mediaView = [[BigoAdMediaView alloc] init];
+        [self.parentAdapter updateMuteStateFromServerParameters: self.serverParameters forMediaView: mediaView];
+        builder.mediaView = mediaView;
     }];
     
     [self.delegate didLoadAdForNativeAd: maxNativeAd withExtraInfo: nil];
@@ -1004,7 +1028,9 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
 
 - (void)onAd:(BigoAd *)ad error:(BigoAdError *)error
 {
-    MAAdapterError *adapterError = [self.parentAdapter toMaxError: error];
+    MAAdapterError *adapterError = [MAAdapterError errorWithAdapterError: MAAdapterError.adDisplayFailedError
+                                                mediatedNetworkErrorCode: error.errorCode
+                                             mediatedNetworkErrorMessage: error.errorMsg];
     [self.parentAdapter log: @"Native ad (%@) failed to show with error: %@", self.slotId, adapterError];
 }
 
@@ -1043,25 +1069,25 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
     if ( [container isKindOfClass: [MANativeAdView class]] )
     {
         MANativeAdView *maxNativeAdView = (MANativeAdView *) container;
-    
+        
         BigoAdMediaView *mediaView;
         if ( maxNativeAdView.mediaContentView )
         {
             mediaView = (BigoAdMediaView *) self.mediaView;
         }
-    
+        
         UIImageView *iconView;
         if ( maxNativeAdView.iconImageView )
         {
             iconView = maxNativeAdView.iconImageView;
         }
-    
+        
         BigoAdOptionsView *optionsView;
         if ( maxNativeAdView.optionsContentView )
         {
             optionsView = (BigoAdOptionsView *) self.optionsView;
         }
-    
+        
         [nativeAd registerViewForInteraction: container
                                    mediaView: mediaView
                                   adIconView: iconView
@@ -1073,7 +1099,7 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
     {
         UIImageView *iconView;
         BigoAdMediaView *mediaView;
-      
+        
         for ( UIView *view in clickableViews )
         {
             if ( view.tag == TITLE_LABEL_TAG )
@@ -1106,14 +1132,14 @@ static MAAdapterInitializationStatus ALBigoAdsInitializationStatus = NSIntegerMi
                 view.bigoNativeAdViewTag = BigoNativeAdViewTagSponsored;
             }
         }
-
+        
         [nativeAd registerViewForInteraction: container
                                    mediaView: mediaView
                                   adIconView: iconView
                                adOptionsView: nil
                               clickableViews: clickableViews];
     }
-
+    
     return YES;
 }
 

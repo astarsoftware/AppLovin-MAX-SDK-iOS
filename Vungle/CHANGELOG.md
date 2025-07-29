@@ -1,5 +1,37 @@
 # Changelog
 
+## 7.5.2.0
+* Certified with Vungle SDK 7.5.2.
+
+## 7.5.1.4
+* Added additional Vungle's error code mappings.
+* Exposed `mediaContentAspectRatio` for native ads.
+
+## 7.5.1.3
+* Distributed adapter as a static framework within the XCFramework.
+* Updated ad display failed error code.
+
+## 7.5.1.2
+* Add check to enable adaptive ads only when using a Vungle inline ad placement identifier.
+
+## 7.5.1.1
+* Removed requirement of the title asset for native banners and MRECs.
+
+## 7.5.1.0
+* Certified with Vungle SDK 7.5.1.
+
+## 7.5.0.0
+* Certified with Vungle SDK 7.5.0.
+* Updated minimum Xcode requirement to 16.0.
+* Updated adaptive ad view API method signature to be consistent with codebase.
+
+## 7.4.5.1
+* Add support for [adaptive banners](https://developers.applovin.com/en/max/ios/ad-formats/banner-and-mrec-ads#adaptive-banners) & inline adaptive ads in both [banners](https://developers.applovin.com/en/max/ios/ad-formats/banner-and-mrec-ads#inline-adaptive-banners) and [MRECs](https://developers.applovin.com/en/max/ios/ad-formats/banner-and-mrec-ads#inline-adaptive-mrecs). Requires AppLovin MAX SDK 13.2.0 or higher.
+
+## 7.4.5.0
+* Certified with Vungle SDK 7.4.5.
+* Removed deprecated code paths based on the minimum supported AppLovin MAX SDK version 13.0.0.
+
 ## 7.4.4.0
 * Certified with Vungle SDK 7.4.4.
 
