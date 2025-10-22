@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.9.20250930.0
+* Certified with Line SDK 2.9.20250930.
+
+## 2.9.20250912.0
+* Certified with Line SDK 2.9.20250912.
+* Removed usage of deprecated `needGdprNonPersonalizedAdsTreatment` property.
+
+## 2.9.20250825.1
+* Fixed potential rewarded callback failures for rewarded ads by setting the event listener at ad load instead of show. 
+
+## 2.9.20250825.0
+* Certified with Line SDK 2.9.20250825.
+
+## 2.9.20250805.0
+* Certified with Line SDK 2.9.20250805.
+* Distributed as a static framework within the XCFramework.
+* Update ad display failed error code.
+
 ## 2.9.20250512.0
 * Certified with Line SDK 2.9.20250512.
 * Removed usage of deprecated `-[FADAdInterface state]` API to determine whether a reward should be granted.

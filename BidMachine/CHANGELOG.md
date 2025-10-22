@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.5.0.0.0
+* Certified with BidMachine SDK 3.5.0.
+
+## 3.4.0.0.0
+* Certified with BidMachine SDK 3.4.0.
+
 ## 3.3.0.0.2
 * Implement new signal collection and ad load APIs.
 

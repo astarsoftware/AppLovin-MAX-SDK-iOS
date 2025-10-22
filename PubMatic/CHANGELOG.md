@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.10.0.0
+* Certified with PubMatic SDK 4.10.0.
+
+## 4.9.0.0
+* Certified with PubMatic SDK 4.9.0.
+
+## 4.8.1.0
+* Certified with PubMatic SDK 4.8.1.
+
 ## 4.8.0.0
 * Certified with PubMatic SDK 4.8.0.
 

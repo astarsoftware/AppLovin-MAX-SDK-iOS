@@ -1,5 +1,18 @@
 # Changelog
 
+## 9.10.0.0
+* Certified with Chartboost SDK 9.10.0.
+
+## 9.9.3.0
+* Certified with Chartboost SDK 9.9.3.
+
+## 9.9.2.1
+* Removed `isCached` checks to prevent valid ads from being blocked.
+
+## 9.9.2.0
+* Certified with Chartboost SDK 9.9.2.
+* Distributed as a static framework within the XCFramework.
+
 ## 9.9.1.0
 * Certified with Chartboost SDK 9.9.1.
 
