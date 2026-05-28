@@ -381,7 +381,9 @@ static MAAdapterInitializationStatus ALFacebookSDKInitializationStatus = NSInteg
         
         if ( [parameters isTesting] )
         {
-            [FBAdSettings setLogLevel: FBAdLogLevelDebug];
+			//Don't allow log level to be set to debug because it appears to be the source of some crashes.
+			//[parameters isTesting] seems to be true in our apps.
+            //[FBAdSettings setLogLevel: FBAdLogLevelDebug];
         }
         
         [FBAdSettings setMediationService: MEDIATION_IDENTIFIER];
